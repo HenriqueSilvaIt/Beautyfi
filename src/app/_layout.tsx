@@ -8,11 +8,9 @@ import { SnackbarContextProvider } from "../shared/hooks/snackbar.context";
 import { Snackbar } from "../shared/components/Snackbar";
 import { AppModal } from "@/shared/components/AppModal";
 import { useNotifications } from "@/shared/hooks/useNotifications";
-import { useEffect } from "react";
 
-import { configureGoogleAuth } from "@/shared/config/google-auth";
 import { useOneSignal } from "@/shared/hooks/useOneSignal";
-import { GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID, STRIPE_PUBLIC_KEY_PROD } from "@env";
+import { STRIPE_PUBLIC_KEY_PROD } from "@env";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 

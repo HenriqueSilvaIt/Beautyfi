@@ -21,8 +21,8 @@ import {
   advertisementScheme,
 } from "./advertisement.scheme";
 import { useImage } from "@/shared/hooks/useImage";
-import { queryClient } from "../../../../queryClient";
 import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { queryClient } from "../../../../queryClient";
 
 export function useAdvertisementViewModel(advertisementId: number | undefined) {
   console.log("🔎 ID recebido no hook:", advertisementId);
