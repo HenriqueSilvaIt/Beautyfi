@@ -15,6 +15,7 @@ export interface UserProps {
   askWhatsappConfirmation?: boolean;
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
+  subscriptionExpired?: boolean;
 }
 
 export interface UserInterface {
