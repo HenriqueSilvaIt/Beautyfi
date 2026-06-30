@@ -23,6 +23,7 @@ import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
 import { useStore } from "zustand";
 import { router } from "expo-router";
+import { useCompanyStore } from "@/shared/store/company-store";
 
 export interface LocalImage {
   id: number;
@@ -272,13 +273,15 @@ const productsInStock = productDataPagged.filter(
     },
   });
 }
+  const companyId = useCompanyStore((state) => state.selectedCompanyId) || COMPANY_ID_NUMBER;
+
   useEffect(() => {
-    if (!COMPANY_ID_NUMBER) return;
+    if (!companyId) return;
 
     const loadHomeData = async () => {
       try {
         setIsLoading(true);
-        await Promise.allSettled([getCompanyById(COMPANY_ID_NUMBER)]);
+        await Promise.allSettled([getCompanyById(companyId)]);
       } catch (error) {
         console.error(error);
       } finally {
@@ -287,7 +290,7 @@ const productsInStock = productDataPagged.filter(
     };
 
     loadHomeData();
-  }, []);
+  }, [companyId]);
 
   return {
     control,

@@ -7,6 +7,7 @@ import {
 import { LoginHttpParams, LoginHttpResponse } from "../interfaces/http/login";
 import { Buffer } from "buffer";
 import { useUserStore } from "../store/user-store";
+import { useCompanyStore } from "../store/company-store";
 import { AxiosRequestConfig } from "axios";
 import { GoogleAuthResponseDTO } from "../interfaces/http/authenticate-reposnse";
 import { COMPANY_ID } from "@env";
@@ -52,8 +53,9 @@ export async function recoverPassword(email: string) {
 
 
 export async function googleAuth(token: string) {
+  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
   const { data } = await styleAppApiClient.post<GoogleAuthResponseDTO>(
-    `/auth/${COMPANY_ID_NUMBER}/google`,
+    `/auth/${companyId}/google`,
     {
       token, 
     }
@@ -63,8 +65,9 @@ export async function googleAuth(token: string) {
 }
 
 export async function appleAuth(token: string, name: string) {
+  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
   const { data } = await styleAppApiClient.post<GoogleAuthResponseDTO>(
-    `/auth/${COMPANY_ID_NUMBER}/apple`,
+    `/auth/${companyId}/apple`,
     {
       token, 
       name,

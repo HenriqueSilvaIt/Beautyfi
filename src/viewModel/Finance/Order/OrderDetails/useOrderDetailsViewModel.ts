@@ -16,7 +16,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Resolver, useForm } from "react-hook-form";
 import {
   EPaymentStatus,
-  OrderInsertDetailsParams,
   PaymentCardFlagDTO,
   PaymentInsertDTO,
   PaymentMethodDTO,

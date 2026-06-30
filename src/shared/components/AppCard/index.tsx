@@ -100,7 +100,7 @@ export function AppCard<T extends AppCardItemBase>({
             )}
             {item.description && (
               <Text
-                className="text-gray-600 mt-1 text-sm"
+                className="text-font-primary mt-1 text-sm"
                 ellipsizeMode="tail"
                 numberOfLines={1}
               >

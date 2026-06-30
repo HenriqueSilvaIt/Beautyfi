@@ -14,9 +14,9 @@ export const colors = {
   'accent-blue': '#5A86F7',
   'accent-blue-dark': '#284DAA',
   'background-primary': '#fff',
-  'background-secondary': '#202024',
-  'background-tertiary': '#29292E',
-  'background-quartenary': '#202024',
+  'background-secondary': '#FFDE96',
+  'background-tertiary': '#CBA35D',
+  'background-quartenary': '#CBA35D',
   
   white: '#FFFFFF',
   black: '#1A1A1A',

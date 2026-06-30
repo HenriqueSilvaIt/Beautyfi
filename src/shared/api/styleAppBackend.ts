@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import axios, { AxiosHeaders, AxiosInstance, AxiosRequestConfig } from "axios";
 import { AppError } from "../helpers/AppError";
 import { useUserStore } from "../store/user-store";
+import { useCompanyStore } from "../store/company-store";
 
 const getBaseURL = () =>
   __DEV__
@@ -18,11 +19,9 @@ const getBaseURL = () =>
 //    if (Platform.OS === "android") {
 //      return "www.styleappblue.lojinhadoquebrabackend.com.br";
 //    }
-//
 //    // fallback (android físico, Windows/macOS RN desktop, etc) http://10.0.2.2:8091
 //    return "www.styleappblue.lojinhadoquebrabackend.com.br"; // coloque seu IP  da rede
 //  }
-//
 //  // Produção
 //  return "www.styleappblue.lojinhadoquebrabackend.com.br";
 //};
@@ -45,6 +44,7 @@ export class StyleAppApiClient {
     this.instance.interceptors.request.use(
       (config) => {
         const token = useUserStore.getState().access_token;
+        const selectedCompanyId = useCompanyStore.getState().selectedCompanyId;
 
         if (!config.headers) {
           config.headers = new AxiosHeaders();
@@ -52,6 +52,22 @@ export class StyleAppApiClient {
 
         if (token) {
           config.headers.set("Authorization", `Bearer ${token}`);
+        }
+
+        if (
+          selectedCompanyId &&
+          config.url &&
+          !config.url.startsWith("/companies") &&
+          !config.url.startsWith("companies") &&
+          !config.url.startsWith("/auth") &&
+          !config.url.startsWith("auth") &&
+          !config.url.startsWith("/oauth2") &&
+          !config.url.startsWith("oauth2")
+        ) {
+          config.params = {
+            companyId: selectedCompanyId,
+            ...config.params,
+          };
         }
 
         return config;

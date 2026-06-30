@@ -29,7 +29,6 @@ export default function PublicLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          href: "home",
           title: "Início",
           tabBarIcon: ({ color }) => (
             <Ionicons name="home-outline" color={color} size={23} />

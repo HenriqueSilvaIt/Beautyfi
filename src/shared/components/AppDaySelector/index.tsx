@@ -3,13 +3,9 @@ import { colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import {
   addDays,
-  DateArg,
   format,
-  isBefore,
-  startOfDay,
   startOfWeek,
 } from "date-fns";
-import { useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 
 interface AppDaySelectorProps {
@@ -51,7 +47,7 @@ export function AppDaySelector({
     <View className="">
       <View className="flex-row items-center justify-between mb-3">
         <TouchableOpacity onPress={prevWeek}>
-          <Ionicons name="chevron-back" size={24} color={colors.white} />
+          <Ionicons name="chevron-back" size={24} color={colors.black} />
         </TouchableOpacity>
 
         <View className="flex-row gap-1">
@@ -64,7 +60,7 @@ export function AppDaySelector({
         </View>
 
         <TouchableOpacity onPress={nextWeek}>
-          <Ionicons name="chevron-forward" size={24} color={colors.white} />
+          <Ionicons name="chevron-forward" size={24} color={colors.black} />
         </TouchableOpacity>
       </View>
       <View className="items-center justify-center">
@@ -91,7 +87,7 @@ export function AppDaySelector({
 
                 <Text
                   className={` mt-1 text-lg font-bold text-font-primary rounded-full h-[34px] w-[34px] text-center leading-[34px]
-            ${selectedDay?.toDateString() === item.toDateString() && "bg-app-theme-primary"}
+            ${selectedDay?.toDateString() === item.toDateString() && "text-font-secundary bg-app-theme-primary"}
             ${item.toDateString() === localDate && "text-app-theme-primary"}`}
                 >
                   {formatDay(item)}

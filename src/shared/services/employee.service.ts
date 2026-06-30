@@ -1,5 +1,6 @@
 import { COMPANY_ID } from "@env";
 import { styleAppApiClient } from "../api/styleAppBackend";
+import { useCompanyStore } from "../store/company-store";
 import {
   EmployeeHttpRepsonse,
   EmployeeInterface,
@@ -19,15 +20,15 @@ export async function getEmployees(
   employeeId?: number,
   name?: string,
 ) {
+  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
   const { data } = await styleAppApiClient.get<EmployeeHttpRepsonse>(
-    `/employees?companyId=${COMPANY_ID_NUMBER}&sort=name,asc`,
+    `/employees?companyId=${companyId}&sort=name,asc`,
     {
       params: {
         page,
         size,
         employeeId,
         name,
-        
       },
     },
   );

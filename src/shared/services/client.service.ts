@@ -2,6 +2,7 @@ import { styleAppApiClient } from "../api/styleAppBackend";
 import { ClientHttpResponse, ClientInterface } from "../interfaces/http/client";
 import { AxiosRequestConfig } from "axios";
 import { useUserStore } from "../store/user-store";
+import { useCompanyStore } from "../store/company-store";
 import { COMPANY_ID } from "@env";
 
 const COMPANY_ID_NUMBER = Number(COMPANY_ID)
@@ -9,8 +10,9 @@ const COMPANY_ID_NUMBER = Number(COMPANY_ID)
   : (Number(process.env.EXPO_PUBLIC_COMPANY_ID) ?? 0);
 
 export async function getClients(page: number = 0, size: number = 10) {
+  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
   const { data } = await styleAppApiClient.get<ClientHttpResponse>(
-    `/clients?companyId=${COMPANY_ID_NUMBER}&sort=name,asc`,
+    `/clients?companyId=${companyId}&sort=name,asc`,
     {
       params: {
         page,

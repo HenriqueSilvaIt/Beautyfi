@@ -1,4 +1,3 @@
-import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -50,7 +49,7 @@ function handleBack() {
         ""
       ) : (
         <TouchableOpacity onPress={handleBack}>
-          <Ionicons name="chevron-back" size={30} color={colors.white} />
+          <Ionicons name="chevron-back" size={30} color={colors.black} />
         </TouchableOpacity>
       )}
 

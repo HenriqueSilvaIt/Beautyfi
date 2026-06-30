@@ -65,6 +65,8 @@ export default function ClientTabsLayout() {
           tabBarLabelStyle: { fontSize: 11, marginTop: 4 },
         }}
       />
+
+      
     </Tabs>
   );
 }

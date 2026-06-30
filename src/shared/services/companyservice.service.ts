@@ -2,8 +2,7 @@ import { AxiosRequestConfig } from "axios";
 import { styleAppApiClient } from "../api/styleAppBackend";
 import { CompanyServiceHttpResponse, CompanyServicesInterface, CreateServiceDTO } from "../interfaces/http/company-services";
 import { useUserStore } from "../store/user-store";
-
-
+import { useCompanyStore } from "../store/company-store";
 
 export async function getServiceById(serviceId: number) {
 
@@ -18,12 +17,13 @@ export async function getServices (
     page: number = 0,
     size: number = 10,
 ) {
-
+    const companyId = useCompanyStore.getState().selectedCompanyId;
     const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>("/services?sort=name,asc", 
          {
     params: {
       page,
-      size
+      size,
+      ...(companyId ? { companyId } : {})
     }
   } ) 
         return data;

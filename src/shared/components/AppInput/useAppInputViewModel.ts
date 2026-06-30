@@ -57,7 +57,7 @@ export function useAppInputViewModel({
 
     if (isFocused) return colors["app-theme-primary"]; 
     if (value) return colors["app-theme-primary"]; 
-    return colors.white;
+    return colors["accent-blue-dark"];
   }
 
   function handleTextChange(text: string) {

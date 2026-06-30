@@ -73,7 +73,7 @@ export function HomeView() {
         }}
         ListHeaderComponent={
           <>
-            <AppHeader user={user} token={access_token} company={company} />
+            <AppHeader user={user} token={access_token} />
 
             <Text className="text-gray-200 text-base font-semibold my-5  text-center">
               Novidades

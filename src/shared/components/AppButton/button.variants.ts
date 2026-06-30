@@ -11,7 +11,7 @@ export const buttonVariants = tv({
 
     slots: {
         base: "w-full h-[48] rounded-[10px] border px-4 flex-row items-center",
-        text: "font-semibold text-base",
+        text: "font-semibold  text-base",
         description: "",
         icon: ""
     },
@@ -38,7 +38,7 @@ export const buttonVariants = tv({
         size: {
             true: {
                 base: "h-[80px] justify-between ",
-                description: "text-sm text-gray-600"
+                description: "text-sm text-font-primary"
             }
         },
         variant: {

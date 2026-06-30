@@ -15,7 +15,7 @@ export function AppFormHeader({title, subTitle} : AppFormHeaderProps) {
 
         <View className="items-center mb-8 bg-background-primary">
             <Image 
-                source={{uri: company?.logoUrl}}
+                source={require("@assets/images/logo.png")}
                 resizeMode="contain"
                 className="w-[100px] h-[100px] mb-8"
                 />
