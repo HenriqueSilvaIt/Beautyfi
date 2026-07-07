@@ -34,10 +34,19 @@ export function useProductViewModel(productId: number | undefined) {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [availableInApp, setAvailableInApp] = useState(false);
 
+  // Search states for debounce
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
   const uploadProductAvatarMutation =
     useUploadAvatarGenericMutation<ProductInterface>();
-
-    
 
   const {
     productUpdateMutation,
@@ -60,7 +69,7 @@ export function useProductViewModel(productId: number | undefined) {
     fetchNextPage: productFechNextPage,
     hasNextPage: productHasNextPage,
     isFetchingNextPage: productIsFetchingNextPage,
-  } = useGetProductsMutation();
+  } = useGetProductsMutation(debouncedSearch);
 
   const productDataPagged =
     productData?.pages.flatMap((pages) => pages.content ?? [])?? [];
@@ -326,5 +335,7 @@ export function useProductViewModel(productId: number | undefined) {
     availableInApp,
     handleToggleAvailableInApp,
     setAvailableInApp,
+    searchValue,
+    setSearchValue,
   };
 }

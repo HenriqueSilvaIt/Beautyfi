@@ -1,0 +1,165 @@
+/* Design Tokens & CSS Reset for beautyfi (Premium Brand Identity) */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Brand Colors */
+  --primary: #16294E;         /* Deep Navy Blue */
+  --primary-hover: #0d1a33;
+  --accent: #C6A15B;          /* Premium Gold/Champagne */
+  --accent-hover: #B58F49;
+  --accent-light: #F6EFE2;
+  
+  /* Neutral Colors */
+  --background: #FAF7F2;      /* Elegant soft cream background */
+  --background-secondary: #FFFFFF;
+  --border: rgba(198, 161, 91, 0.15); /* Subtle gold border */
+  --border-light: rgba(22, 41, 78, 0.06);
+  
+  /* Text */
+  --text-primary: #16294E;    /* Navy text for high-contrast brand voice */
+  --text-secondary: #475569;  /* Muted slate for description */
+  --text-muted: #94A3B8;
+  
+  /* Typography */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Border Radii */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  
+  /* Elevation & Shadow */
+  --shadow-premium: 0 10px 30px -10px rgba(22, 41, 78, 0.08);
+  --shadow-soft: 0 4px 20px rgba(22, 41, 78, 0.04);
+  --shadow-accent: 0 8px 24px rgba(198, 161, 91, 0.12);
+  
+  /* Transition */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --max-width: 1200px;
+}
+
+/* CSS Reset */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  width: 100%;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+p {
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section-padding {
+  padding: 120px 0;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 80px 0;
+  }
+}
+
+/* Base button styles to match design presets */
+.btn-gold {
+  background-color: var(--accent);
+  color: var(--background-secondary) !important;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-accent);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-gold:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(22, 41, 78, 0.05);
+}
+
+.btn-secondary {
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+}
+
+/* Fade in up animations */
+.fade-in {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

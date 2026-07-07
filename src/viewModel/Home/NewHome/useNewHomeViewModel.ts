@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { Alert } from "react-native";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 import { useUserStore } from "@/shared/store/user-store";
 import { useCompanyStore } from "@/shared/store/company-store";
+import * as Location from "expo-location";
+import { useAddressStore } from "@/shared/store/address-store";
 
 export function useNewHomeViewModel() {
   const [searchText, setSearchText] = useState("");
@@ -26,6 +29,37 @@ export function useNewHomeViewModel() {
       clearTimeout(handler);
     };
   }, [searchText]);
+
+  const { addressText: savedAddress, latitude: savedLat, longitude: savedLng } = useAddressStore();
+
+  const requestGpsLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("GPS permission not granted");
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      if (loc && loc.coords) {
+        setUserLat(loc.coords.latitude);
+        setUserLng(loc.coords.longitude);
+        setAddressText("Minha Localização (GPS)");
+      }
+    } catch (err) {
+      console.log("Error getting GPS location", err);
+    }
+  };
+
+  useEffect(() => {
+    if (searchMode === "buscar") {
+      if (savedLat && savedLng) {
+        setUserLat(savedLat);
+        setUserLng(savedLng);
+        setAddressText(savedAddress || "Endereço cadastrado");
+      }
+      requestGpsLocation();
+    }
+  }, [searchMode, savedLat, savedLng, savedAddress]);
 
   const {
     useGetCompaniesQuery,
@@ -106,18 +140,28 @@ export function useNewHomeViewModel() {
     if (!addressText.trim()) return;
     setGeoLoading(true);
     try {
-      const encoded = encodeURIComponent(addressText);
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encoded}`);
+      const encoded = encodeURIComponent(addressText.trim());
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encoded}&countrycodes=br`,
+        {
+          headers: {
+            "User-Agent": "BeautyFi/1.0 (contact@beautyfi.com.br)",
+            "Accept-Language": "pt-BR,pt;q=0.9",
+          },
+        },
+      );
       const data = await res.json();
       if (data && data.length > 0) {
-        setUserLat(parseFloat(data[0].lat));
-        setUserLng(parseFloat(data[0].lon));
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setUserLat(lat);
+        setUserLng(lon);
       } else {
-        alert("Endereço não encontrado.");
+        Alert.alert("Endereço não encontrado", "Tente um endereço mais específico, incluindo cidade ou bairro.");
       }
     } catch (err) {
       console.error(err);
-      alert("Erro ao buscar endereço.");
+      Alert.alert("Erro", "Não foi possível buscar o endereço. Verifique sua conexão.");
     } finally {
       setGeoLoading(false);
     }

@@ -79,7 +79,7 @@ export function CompanyTabs({
               className={`mx-3 mt-3 text-xl font-bold ${
                 selectedMenu === item.menu
                   ? "text-font-primary border-b-2 border-app-theme-primary"
-                  : "text-gray-400"
+                  : "text-gray-600"
               }`}
             >
               {item.menu}

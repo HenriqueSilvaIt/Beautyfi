@@ -95,6 +95,21 @@ export function MenuView({
             </AppButton>
           )}
 
+          {!isAdmin && (
+            <AppButton
+              className=""
+              leftIcon="location"
+              rightIcon="chevron-forward"
+              variant="admin"
+              activeOpacity={0.8}
+              size={true}
+              description="Configure seu endereço residencial ou trabalho"
+              onPress={() => safePush("/(private)/(tabs)/(client-tabs)/(menu)/address")}
+            >
+              Endereço
+            </AppButton>
+          )}
+
           {!user?.googleUser && !user?.appleId && (
             <AppButton
               className="" /*tem que passar como prop o className */
@@ -122,6 +137,37 @@ export function MenuView({
             Histórico
           </AppButton>
 
+
+          {isAdmin && (
+            <AppButton
+              className=""
+              leftIcon="gift-outline"
+              rightIcon="chevron-forward"
+              variant="admin"
+              activeOpacity={0.8}
+              size={true}
+              description="Aniversariantes do mês atual"
+              onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/birthdays")}
+            >
+              Aniversariantes
+            </AppButton>
+          )}
+
+          {isAdmin && (
+            <AppButton
+              className=""
+              leftIcon="time-outline"
+              rightIcon="chevron-forward"
+              variant="admin"
+              activeOpacity={0.8}
+              size={true}
+              description="Visualize a lista de espera de clientes"
+              onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/waitlist")}
+            >
+              Lista de Espera
+            </AppButton>
+          )}
+
           {isAdmin && (
             <AppButton
               className=""
@@ -131,9 +177,24 @@ export function MenuView({
               activeOpacity={0.8}
               size={true}
               description="Ajuste configurações do aplicativo"
-              onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/whatsapp-config")}
+              onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences")}
             >
-              Preferencias
+              Preferências
+            </AppButton>
+          )}
+
+          {isAdmin && (
+            <AppButton
+              className=""
+              leftIcon="storefront-outline"
+              rightIcon="chevron-forward"
+              variant="admin"
+              activeOpacity={0.8}
+              size={true}
+              description="Altere os dados de sua empresa facilmente"
+              onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/company-edit")}
+            >
+              Empresa
             </AppButton>
           )}
           

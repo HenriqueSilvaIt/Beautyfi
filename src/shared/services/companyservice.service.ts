@@ -16,6 +16,7 @@ export async function getServiceById(serviceId: number) {
 export async function getServices (
     page: number = 0,
     size: number = 10,
+    search: string = ""
 ) {
     const companyId = useCompanyStore.getState().selectedCompanyId;
     const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>("/services?sort=name,asc", 
@@ -23,6 +24,7 @@ export async function getServices (
     params: {
       page,
       size,
+      name: search || undefined,
       ...(companyId ? { companyId } : {})
     }
   } ) 

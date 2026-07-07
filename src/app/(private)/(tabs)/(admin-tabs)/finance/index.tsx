@@ -31,29 +31,18 @@ export default function FinanceiroPage() {
             Comandas
           </AppButton>
 
-        {/* <AppButton
-            className="" /*tem que passar como prop o className 
-            leftIcon="trending-up"
-            rightIcon="chevron-forward"
-            variant="admin"
-            activeOpacity={0.8}
-            size={true}
-            description="Administre seu caixa diário"
-          >
-            Caixa
-          </AppButton>
-
           <AppButton
-            className="" /*tem que passar como prop o className 
-            leftIcon="storefront-outline"
+            className=""
+            leftIcon="wallet-outline"
             rightIcon="chevron-forward"
             variant="admin"
             activeOpacity={0.8}
             size={true}
-            description="Visualize o relatório do fluxo de caixa"
+            description="Acompanhe entradas e saídas do caixa"
+            onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/cashflow")}
           >
-            Fluxo de caixa
-          </AppButton>*/}  
+            Fluxo de Caixa
+          </AppButton>
 
           <AppButton
             className="" /*tem que passar como prop o className */
@@ -62,7 +51,7 @@ export default function FinanceiroPage() {
             variant="admin"
             activeOpacity={0.8}
             size={true}
-            description="Visualize relatórios de estabelecimento, profissionais e agendendamentos"
+            description="Visualize relatórios de estabelecimento, profissionais e agendamentos"
             onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/finance/dashboards")}
           >
             Relatórios
@@ -72,3 +61,4 @@ export default function FinanceiroPage() {
     </SafeAreaView>
   );
 }
+

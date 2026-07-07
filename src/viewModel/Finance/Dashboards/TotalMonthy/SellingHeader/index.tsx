@@ -1,6 +1,5 @@
 import { Text, View } from "react-native";
 import { moneyMapper } from "@/utils/moneyMapper";
-import { CountUp } from "use-count-up";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",

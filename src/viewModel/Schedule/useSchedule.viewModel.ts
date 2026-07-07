@@ -16,8 +16,6 @@ import { useBottomSheetContext } from "../../shared/hooks/useBotttomSheetApp";
 import { BookingCheckIn } from "../../shared/components/AppSchedule/BookingCheckIn";
 import { router } from "expo-router";
 import { useSnackbarContext } from "../../shared/hooks/snackbar.context";
-import { useWhatsAppMutation } from "@/shared/queries/zap/use-wt-send-message.mutation";
-import { WtSendMensageHttpParams } from "@/shared/interfaces/http/whatsapp";
 import { useFormatDate } from "@/shared/hooks/useFormatDate";
 import { useHomeViewModel } from "../Home/useHomeViewModel";
 import { moneyMapper } from "@/utils/moneyMapper";
@@ -34,6 +32,9 @@ import {
 import { useAdvertisementMutation } from "@/shared/queries/company/use-advertisement.mutation";
 import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
+import { useWaitListMutation } from "@/shared/queries/company/use-waitlist.mutation";
+import { getEmployeesByServiceId } from "@/shared/services/employee.service";
+import { useQuery } from "@tanstack/react-query";
 
 export function useScheduleViewModel(serviceIds: number[]) {
     const [serviceIdList, setServiceIdList] = useState<number[]>(() => serviceIds);
@@ -84,13 +85,12 @@ export function useScheduleViewModel(serviceIds: number[]) {
   };
 
   const [confirmationMessage, setConfirmationMessage] =
-    useState<WtSendMensageHttpParams>({
+    useState<any>({
       number: "",
       text: "",
       delay: 1200,
     });
 
-  const {sendMessageMutation} = useWhatsAppMutation();
   const { useGetAvailableAppointmentMutation, useGetAppointmentMutation } =
     useAppointmentMutation();
   const {
@@ -179,15 +179,41 @@ const { getCompanyByIdMutation } = useCompanyDetailsMutation();
     ).values(),
   );
 
+  // Fetch ALL employees that serve the first selected service
+  // This ensures professionals with no available slots still appear in the list
+  const { data: allServiceEmployees } = useQuery({
+    queryKey: ["employees-for-service", serviceIdList[0]],
+    queryFn: () => getEmployeesByServiceId(serviceIdList[0]),
+    enabled: serviceIdList.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const employeesForDay = useMemo(() => {
-    return Array.from(
-      new Map(
-        availableAppointments
-          .flatMap((item) => item.availableEmployees)
-          .map((e) => [e.id, e]),
-      ).values(),
+    // Start with employees from available slots
+    const slotEmployeesMap = new Map(
+      availableAppointments
+        .flatMap((item) => item.availableEmployees)
+        .map((e) => [e.id, e]),
     );
-  }, [availableAppointments]);
+
+    // Merge all eligible employees (even those without available slots)
+    if (allServiceEmployees) {
+      for (const emp of allServiceEmployees) {
+        if (emp.id && !slotEmployeesMap.has(emp.id)) {
+          slotEmployeesMap.set(emp.id, {
+            id: emp.id,
+            name: emp.name,
+            avatarUrl: emp.avatarUrl ?? "",
+            commissionFee: 0,
+            duration: 0,
+            price: 0,
+          });
+        }
+      }
+    }
+
+    return Array.from(slotEmployeesMap.values());
+  }, [availableAppointments, allServiceEmployees]);
   const sortedEmployees = useMemo(() => {
     return [...employeesForDay].sort((a, b) =>
       a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
@@ -306,51 +332,9 @@ const { getCompanyByIdMutation } = useCompanyDetailsMutation();
     }
   }
 
-  // Função para enviar  mensagem de confirmação de agendamento
-
+  // Função para enviar  mensagem de confirmação de agendamento (tratado pelo backend)
   async function sendConfirmationMessage(dateTimeString: string) {
-    try {
-      setIsLoadingMessage(true);
-
-      // ✅ todos os serviços
-      const serviceNames = serviceCheckIn.map((s) => s.name).join(", ");
-      const totalPrice = serviceCheckIn.reduce(
-        (sum, s) => sum + Number(s.price),
-        0,
-      );
-
-      const selectedEmployee = employeesForDay.find((e) => e.id === employeeId);
-      const barberName = selectedEmployee?.name ?? "Sem preferência";
-      const userPhone = user?.phone.trim();
-
-      const finalDateObj = new Date(dateTimeString);
-      const payload: WtSendMensageHttpParams = {
-        number: `55${userPhone}`,
-        text: `
-💈 Agendamento Confirmado ✅
-
-Olá ${user?.firstName}
-🔥 Seu horário tá confirmadíssimo com a gente!
-
-📅 Data: ${formatDate(finalDateObj)}
-⏰ Horário: ${formatHour(finalDateObj)}
-💇 Serviço${serviceCheckIn.length > 1 ? "s" : ""}: ${serviceNames}
-👤 Barbeiro: ${barberName}
-💵 Preço: R$ ${moneyMapper(totalPrice)}
-
-Chegue uns 10 min antes pra já entrar no clima e aproveitar aquele ☕ café expresso pra começar o dia no estilo.
-
-⏳ Tolerância máxima: 10 min de atraso.
-🤝 Dom Pagalani agradece pela confiança!`,
-        delay: 60,
-      };
-
-      await sendMessageMutation.mutateAsync(payload);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoadingMessage(false);
-    }
+    // No-op: O envio de confirmação agora é disparado automaticamente pelo backend
   }
   // refs para guardar os dados temporários
   const tempDataBody = useRef<AppointmentHttpParams | null>(null);
@@ -571,7 +555,41 @@ await continuarCreate(true);
     }));
   }, [serviceIds.join(",")]); // join evita re-render infinito com array
 
+  const { addToWaitListMutation } = useWaitListMutation();
+
+  async function handleJoinWaitList() {
+    if (!employeeId) {
+      notify({
+        message: "Por favor, selecione um profissional primeiro.",
+        type: "WARNING",
+      });
+      return;
+    }
+    if (!user?.id) {
+      notify({
+        message: "Usuário não autenticado.",
+        type: "WARNING",
+      });
+      return;
+    }
+
+    try {
+      await addToWaitListMutation.mutateAsync({
+        userId: user.id,
+        employeeId: employeeId,
+        requestedDate: format(selectedDay || new Date(), "yyyy-MM-dd"),
+      });
+      notify({
+        message: "Você entrou na lista de espera para este dia com sucesso!",
+        type: "SUCCESS",
+      });
+    } catch (error) {
+      handleError(error, "Falha ao entrar na lista de espera.");
+    }
+  }
+
   return {
+    handleJoinWaitList,
     services,
     serviceIdList,
     setEmployeeId,

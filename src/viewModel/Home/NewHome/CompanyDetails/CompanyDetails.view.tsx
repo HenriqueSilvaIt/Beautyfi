@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CompanyDetailTab, mockPackages, useCompanyDetailsViewModel } from "./useCompanyDetailsViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,7 +24,6 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
     companyDetailsError,
     isFavorite,
     handleToggleFavorite,
-    handleSelectCompany,
     handleGoBack,
     activeTab,
     setActiveTab,
@@ -49,7 +48,7 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
   if (companyDetailsError || !companyDetailsData) {
     return (
       <SafeAreaView className="flex-1 bg-background-primary justify-center items-center px-6">
-        <Text className="text-gray-200 text-center text-base mb-4">
+        <Text className="text-gray-800 text-center text-base mb-4">
           Erro ao carregar dados do estabelecimento.
         </Text>
         <TouchableOpacity
@@ -64,11 +63,11 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
 
   // Parse db images or fallback to high-quality mock carousel images
   const dbImages = companyDetailsData.imagesUrl
-    ? companyDetailsData.imagesUrl.split(",").map((x) => x.trim()).filter(Boolean)
+    ? companyDetailsData.imagesUrl.split(",").map((x: string) => x.trim()).filter(Boolean)
     : [];
   const images = dbImages.length > 0 ? dbImages : defaultCarouselImages;
 
-  const tabs: CompanyDetailTab[] = ["Serviços", "Produtos", "Detalhes", "Assinaturas", "Pacotes"];
+  const tabs: CompanyDetailTab[] = ["Serviços", "Produtos", "Detalhes", "Avaliações", "Assinaturas", "Pacotes"];
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
@@ -111,7 +110,113 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
           </View>
         );
       case "Detalhes":
-        return <CompanyDetails data={[companyDetailsData]} />;
+        return (
+          <CompanyDetails
+            data={[companyDetailsData]}
+            employees={props.employeesList}
+            reviews={[]} // reviews removidos daqui para a aba própria
+          />
+        );
+      case "Avaliações":
+        return (
+          <View className="px-1 py-3">
+            <View className="flex-row justify-between items-center mb-6 border-b border-gray-100 pb-3">
+              <Text className="text-gray-900 font-bold text-base">Avaliações dos Clientes</Text>
+              <View className="flex-row items-center bg-[#fbbf24]/10 px-3 py-1.5 rounded-full">
+                <Ionicons name="star" size={16} color="#fbbf24" />
+                <Text className="text-gray-900 font-bold text-sm ml-1">
+                  {(companyDetailsData.rating ?? 5.0).toFixed(1)}
+                </Text>
+                <Text className="text-gray-500 text-xs ml-1">
+                  ({companyDetailsData.reviewsCount ?? 0})
+                </Text>
+              </View>
+            </View>
+
+            {/* Form to leave a review (if logged in as client) */}
+            {props.user && !props.isAdmin && (
+              <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-6 shadow-sm">
+                <Text className="text-gray-900 font-bold text-sm mb-2">Deixe sua Avaliação</Text>
+                
+                {/* Star Selector */}
+                <View className="flex-row gap-2 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <TouchableOpacity key={star} onPress={() => props.setNewRating(star)} activeOpacity={0.7}>
+                      <Ionicons
+                        name={star <= props.newRating ? "star" : "star-outline"}
+                        size={28}
+                        color="#fbbf24"
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <TextInput
+                  placeholder="Escreva seu comentário aqui..."
+                  placeholderTextColor="#9ca3af"
+                  value={props.newComment}
+                  onChangeText={props.setNewComment}
+                  multiline
+                  numberOfLines={3}
+                  className="bg-gray-50 text-gray-900 text-sm p-4 rounded-xl border border-gray-200 min-h-[80px] text-left"
+                  style={{ textAlignVertical: "top" }}
+                />
+
+                <TouchableOpacity
+                  onPress={props.handleSubmitReview}
+                  disabled={props.isSubmittingReview}
+                  activeOpacity={0.8}
+                  className="bg-[#12294A] py-3.5 rounded-xl items-center mt-4"
+                >
+                  <Text className="text-white text-sm font-bold">
+                    {props.isSubmittingReview ? "Enviando..." : "Enviar Avaliação"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Reviews List */}
+            {props.reviewsList && props.reviewsList.length > 0 ? (
+              <View className="gap-4">
+                {props.reviewsList.map((rev) => (
+                  <View key={rev.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-row items-center">
+                        {rev.userAvatarUrl ? (
+                          <Image source={{ uri: rev.userAvatarUrl }} className="w-8 h-8 rounded-full" />
+                        ) : (
+                          <View className="w-8 h-8 rounded-full bg-gray-100 justify-center items-center border border-gray-200">
+                            <Ionicons name="person" size={14} color="#6b7280" />
+                          </View>
+                        )}
+                        <Text className="text-gray-900 font-bold text-sm ml-2">{rev.userFirstName}</Text>
+                      </View>
+                      
+                      <View className="flex-row gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Ionicons
+                            key={star}
+                            name={star <= rev.rating ? "star" : "star-outline"}
+                            size={12}
+                            color="#fbbf24"
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    <Text className="text-gray-400 text-[10px] mb-2">
+                      {new Date(rev.createdAt).toLocaleDateString("pt-BR")}
+                    </Text>
+                    {rev.comment ? (
+                      <Text className="text-gray-700 text-sm leading-relaxed">{rev.comment}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text className="text-center text-gray-500 my-8">Nenhuma avaliação ainda.</Text>
+            )}
+          </View>
+        );
       case "Assinaturas":
         return (
           <View className="px-1 py-3">
@@ -128,7 +233,7 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                   <Text className="text-gray-500 text-sm leading-relaxed mb-4">{plan.description}</Text>
                   <View className="flex-row justify-between items-center pt-3 border-t border-gray-50">
                     <Text className="text-gray-900 font-extrabold text-base">
-                      R$ {Number(plan.amount).toFixed(2).replace(".", ",")} <Text className="text-gray-400 font-normal text-xs">/mês</Text>
+                      R$ {Number(plan.amount).toFixed(2).replace(".", ",")} <Text className="text-gray-600 font-normal text-xs">/mês</Text>
                     </Text>
                     <TouchableOpacity
                       onPress={handleGoToSubscriptionTab}
@@ -251,7 +356,7 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                   >
                     <Text
                       className={`text-sm ${
-                        isSelected ? "text-[#12294A] font-extrabold" : "text-gray-400 font-semibold"
+                        isSelected ? "text-[#12294A] font-extrabold" : "text-gray-600 font-semibold"
                       }`}
                     >
                       {item}
@@ -282,7 +387,7 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
           zIndex: 999,
         }}
       >
-        {activeTab === "Serviços" && selectedServices.length > 0 ? (
+        {activeTab === "Serviços" && selectedServices.length > 0 && (
           <TouchableOpacity
             onPress={handleBookSelectedServices}
             activeOpacity={0.8}
@@ -290,16 +395,6 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
           >
             <Text className="text-white font-bold text-base">
               Agendar {selectedServices.length} Serviço{selectedServices.length > 1 ? "s" : ""}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={handleSelectCompany}
-            activeOpacity={0.8}
-            className="bg-[#12294A] h-[54px] rounded-xl items-center justify-center shadow-lg"
-          >
-            <Text className="text-white font-bold text-base">
-              Acessar Estabelecimento
             </Text>
           </TouchableOpacity>
         )}

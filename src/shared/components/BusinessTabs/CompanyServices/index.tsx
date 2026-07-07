@@ -108,7 +108,7 @@ export function CompanyServices({
                         className={
                           isNumber
                             ? "text-sm text-green-400 font-bold"
-                            : "text-gray-400"
+                            : "text-gray-600"
                         }
                       >
                         {isNumber ? `R$ ${part}` : part}

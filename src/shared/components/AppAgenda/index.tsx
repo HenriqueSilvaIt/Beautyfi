@@ -6,6 +6,7 @@ import { EmployeeOffHours } from "./EmployeeOffHours";
 import { useState } from "react";
 import { BlockedAgendaBlock } from "./BlockedAgendaBlock";
 import { DeleteModal } from "../AppDeleteModal";
+import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 
 type BlockedRangeInterface = {
   time: string;
@@ -83,6 +84,7 @@ export function AppAgenda({
   isDeleting,
 }: AppAgendaProps) {
   const [modalBlockVisible, setModalBlockVisible] = useState(false);
+  const { safePush } = useSafeNavigation();
 
   function showBlockModal(id: number) {
     setSelectedAppointmentId(id);
@@ -165,7 +167,7 @@ export function AppAgenda({
                   getEndTime={getEndTime}
                   overlapIndex={index}
                   overlapTotal={group.length}
-                  onPress={() => showModal(app.id)}
+                  onPress={() => safePush(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${app.id}`)}
                 />
               ),
             ),
@@ -214,23 +216,6 @@ export function AppAgenda({
           title="Desbloquear horário"
         />
 
-        <DeleteModal
-          loading={isDeleteLoading}
-          visible={modalVisible}
-          confirmationButtonText="Confirmar"
-          confirmationButtonColor
-          cancelbuttonText="Não cancelar"
-          hideModal={hideModal}
-          appointments={appointments.filter(
-            (a) => a.id === selectedAppointmentId,
-          )}
-          handleDeleteAppointment={async (appointmentsToDelete) => {
-            await handleDeleteAppointment(appointmentsToDelete);
-            hideModal();
-          }}
-          description="Tem certeza que deseja cancelar o agendamento?"
-          title="Cancelar agendamento"
-        />
       </ScrollView>
     </View>
   );

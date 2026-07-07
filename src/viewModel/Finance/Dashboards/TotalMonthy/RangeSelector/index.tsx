@@ -26,7 +26,7 @@ export function RangeSelector<Range extends string = string>({
           >
             <Text
               className={`text-sm font-semibold ${
-                isActive ? "text-font-secundary" : "text-gray-400"
+                isActive ? "text-font-secundary" : "text-gray-600"
               }`}
             >
               {range}

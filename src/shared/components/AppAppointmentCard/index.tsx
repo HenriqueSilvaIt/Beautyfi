@@ -174,7 +174,7 @@ export function AppAppointmentCard({
                           {service.service.name}
                         </Text>
 
-                        <Text className="text-gray-400 text-sm">
+                        <Text className="text-gray-600 text-sm">
                           {service.service.duration} min
                         </Text>
 
@@ -243,14 +243,14 @@ export function AppAppointmentCard({
         }}
       />
 
-      {modalVisible && (
+     {modalVisible && (
         <DeleteModal
           loading={isDeleteLoading}
           visible={modalVisible}
           confirmationButtonText="Sim, cancelar"
           cancelbuttonText="Não"
           hideModal={hideModal}
-          handleDeleteAppointment={handleDeleteAppointment}
+          handleDeleteAppointments={handleDeleteAppointment}
           description="Tem certeza que deseja cancelar este agendamento?"
           title="Cancelar o agendamento?"
           appointments={selectedAppointment ? [selectedAppointment] : []}

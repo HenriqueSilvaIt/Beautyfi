@@ -192,7 +192,7 @@ export function BusinessTabs({
               className={`mt-3 text-base font-bold ${
                 selectedMenu === item.menu
                   ? "text-font-primary border-b-2 border-app-theme-primary"
-                  : "text-gray-400"
+                  : "text-gray-600"
               }`}
             >
               {item.menu}

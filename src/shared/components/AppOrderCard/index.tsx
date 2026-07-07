@@ -60,9 +60,9 @@ export function AppOrderCard({
         activeOpacity={0.8}
       >
         <View
-          className={`flex-row max-w-[100%] justify-between items-center p-5 rounded-md`}
+          className="flex-row justify-between items-center p-5 rounded-md w-full"
         >
-          <View>
+          <View className="flex-1 pr-3">
             {item.orderNumber && (
               <Text className="text-font-primary text-sm font-semibold">
                 Nº {item.orderNumber}
@@ -79,7 +79,7 @@ export function AppOrderCard({
               </Text>
             )}
           </View>
-          <View className="items-end ">
+          <View className="items-end max-w-[45%]">
             {item.moment && (
               <Text className="text-font-primary text-sm">
                 {formatIsoDateAndTimeToBR(item.moment)}

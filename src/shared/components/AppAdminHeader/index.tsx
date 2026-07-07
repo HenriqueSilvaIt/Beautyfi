@@ -65,7 +65,7 @@ function handleBack() {
             name={iconRightName}
             size={30}
             color={
-              iconRightName === "add" ? colors.white : colors["accent-red"]
+              iconRightName === "add" ? colors.black : colors["accent-red"]
             }
             className="font-bold"
           />

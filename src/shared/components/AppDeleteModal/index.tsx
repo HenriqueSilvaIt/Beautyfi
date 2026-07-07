@@ -15,7 +15,8 @@ import { ReactNode } from "react";
 interface Params {
   visible?: boolean;
   hideModal?: () => void;
-  handleDeleteAppointment?: (data: AppointmentProps[]) => Promise<void>;
+  handleDeleteAppointments?: (data: AppointmentProps[]) => Promise<void>;
+  handleDeleteAppointment?: (data: AppointmentProps) => Promise<void>;
   handleDelete?: () => void;
   loading?: boolean;
   title: string;
@@ -24,12 +25,14 @@ interface Params {
   cancelbuttonText?: string;
   confirmationButtonColor?: boolean;
   appointments?: AppointmentProps[];
+  appointment?: AppointmentProps;
 }
 
 export function DeleteModal({
   visible,
   hideModal,
   handleDeleteAppointment,
+  handleDeleteAppointments,
   handleDelete,
   loading,
   title,
@@ -38,6 +41,7 @@ export function DeleteModal({
   cancelbuttonText,
   confirmationButtonColor,
   appointments,
+  appointment,
 }: Params) {
   return (
     <View className="flex-1 absolute">
@@ -90,17 +94,20 @@ export function DeleteModal({
                 <TouchableOpacity
                   onPress={hideModal}
                   className="w-[100] bg-none
-                            border-2 border-app-theme-primary items-center justify-center p-3 rounded-[6]"
+                            border-2 border-accent-orange items-center justify-center p-3 rounded-[6]"
                 >
-                  <Text className="text-app-theme-primary text-center">
+                  <Text className="text-accent-orange text-center">
                     {" "}
                     {cancelbuttonText ?? "Cancelar"}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={async () => {
-                    if (handleDeleteAppointment && appointments) {
-                      await handleDeleteAppointment(appointments);
+                    if (handleDeleteAppointments && appointments) {
+                      await handleDeleteAppointments(appointments);
+                      hideModal?.();
+                    } else if (handleDeleteAppointment && appointment) {
+                      await handleDeleteAppointment(appointment);
                       hideModal?.();
                     } else if (handleDelete) {
                       await handleDelete();
@@ -108,7 +115,7 @@ export function DeleteModal({
                     }
                   }}
                   className={`w-[100] items-center justify-center p-3 rounded-md
-    ${confirmationButtonColor ? "bg-app-theme-primary" : "bg-accent-red-background-primary"}`}
+    ${confirmationButtonColor ? "bg-accent-orange" : "bg-accent-red-background-primary"}`}
                 >
                   <Text className="text-font-primary text-sm text-center">
                     {loading ? <ActivityIndicator /> : confirmationButtonText}

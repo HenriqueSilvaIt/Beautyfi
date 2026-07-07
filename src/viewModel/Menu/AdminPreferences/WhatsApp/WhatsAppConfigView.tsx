@@ -27,6 +27,16 @@ export function WhatsAppConfigView({
   isSavingReminder,
   handleToggleReminder,
   handleChangeMinutesBefore,
+  bookingConfirmationEnabled,
+  companyType,
+  isSavingConfirmation,
+  handleToggleConfirmation,
+  remindersCount,
+  remindersLimit,
+  handleBuyMessages,
+  pushEnabled,
+  isSavingPush,
+  handleTogglePush,
 }: ReturnType<typeof useWhatsAppViewModel>) {
   if (isInitialLoading) {
     return (
@@ -54,126 +64,207 @@ export function WhatsAppConfigView({
 
         <Text className="text-font-primary text-xl font-bold mt-4 mb-1">WhatsApp</Text>
         <Text className="text-gray-500 text-sm mb-6">
-          Conecte o WhatsApp da empresa para enviar lembretes e confirmações.
+          {companyType === "WHITE_LABEL"
+            ? "Conecte o WhatsApp da empresa para enviar lembretes e confirmações."
+            : "Gerencie o envio de confirmações e lembretes por WhatsApp do estabelecimento."}
         </Text>
 
-        {/* ─── Status ─────────────────────────────────────────────────────── */}
-        <View className="flex-row items-center gap-2 mb-6 bg-background-tertiary p-4 rounded-xl">
-          <View
-            className={`w-3 h-3 rounded-full ${
-              status === "CONNECTED"
-                ? "bg-green-400"
-                : status === "QRCODE" || status === "CONNECTING"
-                  ? "bg-yellow-400"
-                  : "bg-red-500"
-            }`}
-          />
-          <Text className="text-font-primary font-semibold flex-1">
-            {status === "CONNECTED"
-              ? "Conectado"
-              : status === "QRCODE" || status === "CONNECTING"
-                ? "Aguardando leitura do QR Code"
-                : status === "DISCONNECTED"
-                  ? "Desconectado"
-                  : "Sem instância"}
+        {/* ─── MULTI_TENANT Banner ─────────────────────────────────────────── */}
+        {companyType === "MULTI_TENANT" && (
+          <View className="bg-blue-900/20 border border-app-theme-primary p-4 rounded-xl mb-6">
+            <View className="flex-row items-center gap-3 mb-2">
+              <Ionicons name="logo-whatsapp" size={30} color={colors["app-theme-primary"]} />
+              <Text className="text-font-primary font-bold text-base">
+                WhatsApp Oficial Beautyfi Ativo
+              </Text>
+            </View>
+            <Text className="text-gray-600 text-sm leading-5">
+              O seu estabelecimento utiliza o envio de mensagens oficial do Beautyfi. Não é necessário conectar seu próprio celular via QR Code. Todas as mensagens de agendamento serão enviadas de forma automática e integrada!
+            </Text>
+          </View>
+        )}
+
+        {/* ─── WhatsApp Lembretes Counter & Buy Section ────────────────── */}
+        <View className="bg-background-tertiary p-4 rounded-xl mb-6">
+          <Text className="text-font-primary font-semibold mb-2 text-base">
+            Uso do Plano & Lembretes
           </Text>
-          {isPolling && <ActivityIndicator size="small" color={colors.white} />}
+          <View className="flex-row justify-between mb-2">
+            <Text className="text-gray-600 text-sm">Lembretes Enviados (Mês):</Text>
+            <Text className="text-font-primary text-sm font-bold">{remindersCount} / {remindersLimit}</Text>
+          </View>
+          <View className="w-full bg-gray-800 h-2 rounded-full mb-4 overflow-hidden">
+            <View className="bg-app-theme-primary h-2 rounded-full" style={{ width: `${Math.min(100, (remindersCount / remindersLimit) * 100)}%` }} />
+          </View>
+
+          <Text className="text-gray-600 text-xs mb-4 leading-4">
+            O plano Starter inclui 100 lembretes gratuitos por mês. Você pode adquirir pacotes adicionais de 200 lembretes por apenas R$ 15,00 via Stripe.
+          </Text>
+
+          <TouchableOpacity
+            onPress={handleBuyMessages}
+            className="bg-app-theme-primary py-3 rounded-xl items-center flex-row justify-center gap-2"
+          >
+            <Ionicons name="cart-outline" size={20} color="white" />
+            <Text className="text-font-primary font-bold text-sm">Comprar +200 Lembretes</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* ─── QR Code ────────────────────────────────────────────────────── */}
-        {qrBase64 && (status === "QRCODE" || status === "CONNECTING") && (
-          <View className="items-center bg-white p-4 rounded-xl mb-6">
-            <Text className="text-font-secundary font-semibold mb-3 text-center">
-              Escaneie com o WhatsApp do celular
-            </Text>
-            <Image
-              source={{ uri: qrBase64 }}
-              className="w-[220px] h-[220px]"
-              resizeMode="contain"
-            />
-            <Text className="text-gray-500 text-xs mt-3 text-center">
-              Abra o WhatsApp → Dispositivos conectados → Conectar dispositivo
-            </Text>
-          </View>
-        )}
+        {/* ─── WHITE_LABEL (Evolution API) Widgets ─────────────────────────── */}
+        {companyType === "WHITE_LABEL" && (
+          <>
+            {/* Status */}
+            <View className="flex-row items-center gap-2 mb-6 bg-background-tertiary p-4 rounded-xl">
+              <View
+                className={`w-3 h-3 rounded-full ${
+                  status === "CONNECTED"
+                    ? "bg-green-400"
+                    : status === "QRCODE" || status === "CONNECTING"
+                      ? "bg-yellow-400"
+                      : "bg-red-500"
+                }`}
+              />
+              <Text className="text-font-primary font-semibold flex-1">
+                {status === "CONNECTED"
+                  ? "Conectado"
+                  : status === "QRCODE" || status === "CONNECTING"
+                    ? "Aguardando leitura do QR Code"
+                    : status === "DISCONNECTED"
+                      ? "Desconectado"
+                      : "Sem instância"}
+              </Text>
+              {isPolling && <ActivityIndicator size="small" color={colors.white} />}
+            </View>
 
-        {/* ─── Conectado ──────────────────────────────────────────────────── */}
-        {status === "CONNECTED" && (
-          <View className="items-center bg-green-900/30 border border-green-600 p-4 rounded-xl mb-6">
-            <Ionicons name="checkmark-circle" size={40} color="#4ade80" />
-            <Text className="text-green-400 font-semibold mt-2">
-              WhatsApp conectado com sucesso!
-            </Text>
-            <Text className="text-gray-500 text-sm mt-1 text-center">
-              Lembretes e confirmações serão enviados automaticamente.
-            </Text>
-          </View>
-        )}
-
-        {/* ─── Botões de ação ─────────────────────────────────────────────── */}
-        <View className="gap-3 mb-6">
-          {(status === "DISCONNECTED" || status === null) && (
-            <TouchableOpacity
-              onPress={handleConnect}
-              disabled={isLoading}
-              className="bg-green-600 py-3 rounded-xl items-center"
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-font-primary font-bold">Conectar WhatsApp</Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {(status === "QRCODE" || status === "CONNECTING") && (
-            <TouchableOpacity
-              onPress={handleConnect}
-              disabled={isLoading}
-              className="border border-app-theme-primary py-3 rounded-xl items-center"
-            >
-              {isLoading ? (
-                <ActivityIndicator color={colors["app-theme-primary"]} />
-              ) : (
-                <Text className="text-app-theme-primary font-bold">
-                  Gerar novo QR Code
+            {/* QR Code */}
+            {qrBase64 && (status === "QRCODE" || status === "CONNECTING") && (
+              <View className="items-center bg-white p-4 rounded-xl mb-6">
+                <Text className="text-font-secundary font-semibold mb-3 text-center">
+                  Escaneie com o WhatsApp do celular
                 </Text>
-              )}
-            </TouchableOpacity>
-          )}
+                <Image
+                  source={{ uri: qrBase64 }}
+                  className="w-[220px] h-[220px]"
+                  resizeMode="contain"
+                />
+                <Text className="text-gray-500 text-xs mt-3 text-center">
+                  Abra o WhatsApp → Dispositivos conectados → Conectar dispositivo
+                </Text>
+              </View>
+            )}
 
-          {status === "CONNECTED" && (
-            <TouchableOpacity
-              onPress={handleDisconnect}
-              disabled={isLoading}
-              className="border border-red-500 py-3 rounded-xl items-center"
-            >
-              {isLoading ? (
-                <ActivityIndicator color="red" />
-              ) : (
-                <Text className="text-red-500 font-bold">Desconectar</Text>
-              )}
-            </TouchableOpacity>
-          )}
-          {status !== null && status !== "DISCONNECTED" && (
-            <TouchableOpacity
-              onPress={handleDelete}
-              disabled={isLoading}
-              className="py-3 rounded-xl items-center"
-            >
-              <Text className="text-gray-500 text-sm">Remover instância</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+            {/* Connected success banner */}
+            {status === "CONNECTED" && (
+              <View className="items-center bg-green-900/30 border border-green-600 p-4 rounded-xl mb-6">
+                <Ionicons name="checkmark-circle" size={40} color="#4ade80" />
+                <Text className="text-green-400 font-semibold mt-2">
+                  WhatsApp conectado com sucesso!
+                </Text>
+                <Text className="text-gray-500 text-sm mt-1 text-center">
+                  Lembretes e confirmações serão enviados automaticamente.
+                </Text>
+              </View>
+            )}
 
-        {/* ─── Configuração de lembrete (só quando conectado) ─────────────── */}
+            {/* Action buttons */}
+            <View className="gap-3 mb-6">
+              {(status === "DISCONNECTED" || status === null) && (
+                <TouchableOpacity
+                  onPress={handleConnect}
+                  disabled={isLoading}
+                  className="bg-green-600 py-3 rounded-xl items-center"
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-font-primary font-bold">Conectar WhatsApp</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {(status === "QRCODE" || status === "CONNECTING") && (
+                <TouchableOpacity
+                  onPress={handleConnect}
+                  disabled={isLoading}
+                  className="border border-app-theme-primary py-3 rounded-xl items-center"
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color={colors["app-theme-primary"]} />
+                  ) : (
+                    <Text className="text-app-theme-primary font-bold">
+                      Gerar novo QR Code
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {status === "CONNECTED" && (
+                <TouchableOpacity
+                  onPress={handleDisconnect}
+                  disabled={isLoading}
+                  className="border border-red-500 py-3 rounded-xl items-center"
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="red" />
+                  ) : (
+                    <Text className="text-red-500 font-bold">Desconectar</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              {status !== null && status !== "DISCONNECTED" && (
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  disabled={isLoading}
+                  className="py-3 rounded-xl items-center"
+                >
+                  <Text className="text-gray-500 text-sm">Remover instância</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* ─── Configurações de Mensagens (só quando conectado / oficial ativo) ─── */}
         {status === "CONNECTED" && (
           <View className="bg-background-tertiary p-4 rounded-xl">
-            <Text className="text-font-primary font-semibold mb-4">
-              Lembrete automático
+            <Text className="text-font-primary font-semibold mb-4 text-base">
+              Configurações de Mensagens
             </Text>
 
-            {/* Toggle */}
+            {/* Toggle Confirmação de Agendamento */}
+            <View className="flex-row justify-between items-center mb-6 pb-4 border-b border-gray-800">
+              <View className="flex-1 pr-3">
+                <Text className="text-font-primary text-sm font-medium">
+                  Confirmação de agendamento
+                </Text>
+                <Text className="text-gray-500 text-xs mt-1">
+                  {bookingConfirmationEnabled
+                    ? "Enviar mensagem imediatamente quando um agendamento for criado."
+                    : "Confirmações desativadas."}
+                </Text>
+              </View>
+              {isSavingConfirmation ? (
+                <ActivityIndicator
+                  size="small"
+                  color={colors["app-theme-primary"]}
+                />
+              ) : (
+                <Switch
+                  value={bookingConfirmationEnabled}
+                  onValueChange={handleToggleConfirmation}
+                  thumbColor={
+                    bookingConfirmationEnabled ? colors["app-theme-primary"] : colors.white
+                  }
+                  trackColor={{
+                    false: colors.gray[800],
+                    true: colors["app-theme-primary-light"] ?? "#f97316",
+                  }}
+                  ios_backgroundColor={colors.gray[800]}
+                />
+              )}
+            </View>
+
+            {/* Toggle Lembrete Automático */}
             <View className="flex-row justify-between items-center mb-4">
               <View className="flex-1 pr-3">
                 <Text className="text-font-primary text-sm font-medium">
@@ -208,8 +299,8 @@ export function WhatsAppConfigView({
 
             {/* Antecedência */}
             {reminderEnabled && (
-              <View>
-                <Text className="text-gray-400 text-sm mb-3">
+              <View className="mt-4 pt-4 border-t border-gray-800">
+                <Text className="text-gray-600 text-sm mb-3">
                   Enviar com antecedência de:
                 </Text>
                 <View className="gap-2">
@@ -253,6 +344,44 @@ export function WhatsAppConfigView({
             )}
           </View>
         )}
+        {/* ─── Configurações do App Mobile (Notificações Push) ────────────────── */}
+        <View className="bg-background-tertiary p-4 rounded-xl mt-6">
+          <Text className="text-font-primary font-semibold mb-4 text-base">
+            Notificações do App Mobile
+          </Text>
+
+          <View className="flex-row justify-between items-center">
+            <View className="flex-1 pr-3">
+              <Text className="text-font-primary text-sm font-medium">
+                Notificação de novos agendamentos
+              </Text>
+              <Text className="text-gray-500 text-xs mt-1">
+                {pushEnabled
+                  ? "Receber notificações push e avisos sonoros no celular a cada agendamento."
+                  : "Notificações desativadas."}
+              </Text>
+            </View>
+            {isSavingPush ? (
+              <ActivityIndicator
+                size="small"
+                color={colors["app-theme-primary"]}
+              />
+            ) : (
+              <Switch
+                value={pushEnabled}
+                onValueChange={handleTogglePush}
+                thumbColor={
+                  pushEnabled ? colors["app-theme-primary"] : colors.white
+                }
+                trackColor={{
+                  false: colors.gray[800],
+                  true: colors["app-theme-primary-light"] ?? "#f97316",
+                }}
+                ios_backgroundColor={colors.gray[800]}
+              />
+            )}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

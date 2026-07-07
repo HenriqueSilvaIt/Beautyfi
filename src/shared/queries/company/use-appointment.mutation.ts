@@ -5,6 +5,7 @@ import {
   getAppointmentAdmin,
   getAppointments,
   getAvailableAppointments,
+  getMonthlyAppointments,
 } from "../../services/appointment.service";
 import { AppointmentHttpStatusParams } from "@/shared/interfaces/http/appointment";
 import { queryClient } from "../../../../queryClient";
@@ -61,6 +62,17 @@ export function useAppointmentMutation() {
     });
   }
 
+  function useGetMonthlyAppointmentsQuery(startDate: string, endDate: string) {
+    return useQuery({
+      queryKey: ["appointments-monthly", startDate, endDate],
+      queryFn: () => getMonthlyAppointments(startDate, endDate),
+      enabled: !!startDate && !!endDate,
+      staleTime: 0,
+      gcTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    });
+  }
+
   const getAppointmentAgenda = useMutation({
     mutationFn: ({ date, employeeId }: AppointmentsAgendaProps) =>
       getAppointmentAdmin(date, employeeId),
@@ -103,5 +115,6 @@ export function useAppointmentMutation() {
     useGetAppointmentMutation,
     useGetAvailableAppointmentMutation,
     cancelAppointmentByIdMutation,
+    useGetMonthlyAppointmentsQuery,
   };
 }

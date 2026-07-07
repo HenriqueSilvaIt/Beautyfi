@@ -10,6 +10,10 @@ import {
   getFavoritedCompanyIds,
   fetchCompanyCategories,
   fetchNearbyCompanies,
+  getCompanyReviews,
+  createCompanyReview,
+  updateOpeningHours,
+  updateSocialMedias,
 } from "../../services/company.service";
 import { CompanyInterface } from "@/shared/interfaces/http/company";
 import { queryClient } from "../../../../queryClient";
@@ -103,6 +107,7 @@ export function useCompanyDetailsMutation() {
     mutationFn: (dto: {
       reminderEnabled?: boolean;
       reminderMinutesBefore?: number;
+      bookingConfirmationEnabled?: boolean;
     }) => updateReminderConfig(dto),
   });
 
@@ -129,6 +134,39 @@ export function useCompanyDetailsMutation() {
     });
   }
 
+  function useGetCompanyReviewsQuery(companyId: number, page: number = 0) {
+    return useQuery({
+      queryKey: ["company-reviews", companyId, page],
+      queryFn: () => getCompanyReviews(companyId, page),
+      enabled: !!companyId,
+    });
+  }
+
+  const createCompanyReviewMutation = useMutation({
+    mutationFn: ({ companyId, rating, comment }: { companyId: number; rating: number; comment: string }) =>
+      createCompanyReview(companyId, { rating, comment }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["company-reviews", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    },
+  });
+
+  const updateOpeningHoursMutation = useMutation({
+    mutationFn: ({ companyId, openingHours }: { companyId: number; openingHours: any[] }) =>
+      updateOpeningHours(companyId, openingHours),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    },
+  });
+
+  const updateSocialMediasMutation = useMutation({
+    mutationFn: ({ companyId, socialMedias }: { companyId: number; socialMedias: any[] }) =>
+      updateSocialMedias(companyId, socialMedias),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    },
+  });
+
   return {
     mutation,
     mutationUpdate,
@@ -142,5 +180,9 @@ export function useCompanyDetailsMutation() {
     toggleFavoriteMutation,
     useGetFavoritedIdsQuery,
     useGetCompanyCategoriesQuery,
+    useGetCompanyReviewsQuery,
+    createCompanyReviewMutation,
+    updateOpeningHoursMutation,
+    updateSocialMediasMutation,
   };
 }

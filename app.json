@@ -4,7 +4,7 @@
     "slug": "Beautyfi",
     "version": "1.0.0",
     "orientation": "default",
-    "scheme": "beautify",
+    "scheme": "Beautify",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -13,8 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.iversion.beautify",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.iversion.beautyfi",
+      "config": {
+        "googleMapsApiKey": "AIzaSyAgQ6Gb8d6dZo26eMEFEsZNKPef4SWD2yU"
+      },
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
       "icon": "./assets/icon.png",
@@ -36,7 +39,12 @@
         "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.iversion.beautify",
+      "package": "com.iversion.beautyfi",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAgQ6Gb8d6dZo26eMEFEsZNKPef4SWD2yU"
+        }
+      },
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -48,6 +56,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       "expo-router",
       [
         "expo-image-picker",
@@ -78,7 +94,24 @@
       "router": {},
       "EXPO_PUBLIC_COMPANY_ID": "1",
       "eas": {
-        "projectId": "1c19b523-10a9-4a7a-84f6-5ff06f3fd04c"
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.iversion.beautyfi.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.iversion.beautyfi.onesignal"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "487c1300-0dee-4bf1-aeca-3fbd8a9ff3d4"
       }
     }
   }

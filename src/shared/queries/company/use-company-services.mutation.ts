@@ -36,10 +36,10 @@ export function useCompanyServicesMutation() {
     });
   }
 
-  function useGetServiceMutation() {
+  function useGetServiceMutation(search: string = "") {
     return useInfiniteQuery({
-      queryKey: ["services"],
-      queryFn: ({ pageParam = 0 }) => getServices(pageParam, 10),
+      queryKey: ["services", search],
+      queryFn: ({ pageParam = 0 }) => getServices(pageParam, 10, search),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;

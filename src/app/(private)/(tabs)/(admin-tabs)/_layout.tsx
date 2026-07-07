@@ -30,7 +30,11 @@ export default function AdminTabsLayout() {
         options={{
           title: "Agenda",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name="calendar-number-outline" color={focused ? colorTheme : color} size={30} />
+            <Ionicons
+              name="calendar-number-outline"
+              color={focused ? colorTheme : color}
+              size={30}
+            />
           ),
           tabBarLabelStyle: { fontSize: 11, marginTop: 4 },
         }}
@@ -63,6 +67,25 @@ export default function AdminTabsLayout() {
             <Ionicons name="person-circle" color={color} size={22} />
           ),
           tabBarLabelStyle: { fontSize: 11, marginTop: 4 },
+        }}
+      />
+      <Tabs.Screen
+        name="companies-details"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="birthdays/index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="cashflow/index"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

@@ -53,6 +53,10 @@ export interface CompanyProps {
   imagesUrl?: string;
   services?: any[];
   companyCategories?: any[];
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number;
+  bookingConfirmationEnabled?: boolean;
+  type?: "MULTI_TENANT" | "WHITE_LABEL";
 }
 
 export interface CompanyDTO {
@@ -74,10 +78,35 @@ export interface CompanyDTO {
   latitude?: number;
   longitude?: number;
   distanceKm?: number;
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number;
+  bookingConfirmationEnabled?: boolean;
+  type?: "MULTI_TENANT" | "WHITE_LABEL";
 }
 
 export interface CompanyHttpResponse {
   content: CompanyDTO[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  number: number;
+  numberOfElements: number;
+  last: boolean;
+}
+
+export interface CompanyReviewProps {
+  id: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  userId: number;
+  userFirstName: string;
+  userAvatarUrl?: string;
+}
+
+export interface CompanyReviewHttpResponse {
+  content: CompanyReviewProps[];
   totalElements: number;
   totalPages: number;
   page: number;

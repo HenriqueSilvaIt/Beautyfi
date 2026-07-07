@@ -134,7 +134,7 @@ export function AgendaBlock({
           }}
         >
           <Text
-            className="text-font-primary font-semibold"
+            className="text-font-secundary font-semibold"
             style={{
               fontSize: isSmallHeight ? 12 : isSmallWidth ? 12 : 14,
             }}
@@ -145,7 +145,7 @@ export function AgendaBlock({
           </Text>
 
           <Text
-            className="text-font-primary"
+            className="text-font-secundary"
             style={{
               fontSize: isSmallHeight ? 12 : isSmallWidth ? 12 : 14,
             }}
@@ -158,7 +158,7 @@ export function AgendaBlock({
 
           {appointment.usingSubscription === true && (
             <View className="flex-row gap-2">
-              <Text className="text-font-primary">Cliente de assinatura</Text>
+              <Text className="text-font-secundary">Cliente de assinatura</Text>
               <Ionicons
                 name="diamond-outline"
                 color={colors["app-theme-primary"]}
@@ -167,7 +167,7 @@ export function AgendaBlock({
             </View>
           )}
           <Text
-            className="text-font-primary "
+            className="text-font-secundary "
             style={{
               fontSize: isSmallHeight ? 12 : isSmallWidth ? 12 : 13,
             }}
@@ -178,7 +178,7 @@ export function AgendaBlock({
           </Text>
 
           <Text
-            className="text-font-primary"
+            className="text-font-secundary"
             style={{
               fontSize: isSmallHeight ? 12 : isSmallWidth ? 12 : 14,
             }}

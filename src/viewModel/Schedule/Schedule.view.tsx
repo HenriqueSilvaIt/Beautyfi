@@ -1,9 +1,6 @@
-import { ActivityIndicator, View } from "react-native";
 import { useScheduleViewModel } from "./useSchedule.viewModel";
 import { AppSchedule } from "../../shared/components/AppSchedule";
-import { KeyboardContainer } from "../../shared/components/KeyboardContainer";
 import { DeleteModal } from "@/shared/components/AppDeleteModal";
-import { colors } from "@/styles/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Loading } from "@/shared/components/Loading";
 
@@ -44,6 +41,7 @@ export function ScheduleView({
   appointmentData,
   createIsLoading,
   hoursForEmployee,
+  handleJoinWaitList,
 }: ReturnType<typeof useScheduleViewModel>) {
 
   if (createIsLoading) {
@@ -82,7 +80,7 @@ export function ScheduleView({
         appointmentIsRefetching={appointmentIsRefetching}
         initialized={initialized}
         isHoursLoading={isHoursLoading}
-
+        handleJoinWaitList={handleJoinWaitList}
       />
 
       <DeleteModal

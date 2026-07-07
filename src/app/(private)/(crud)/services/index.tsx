@@ -5,17 +5,20 @@ import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useServiceViewModel } from "@/viewModel/Admin/Services/userServiceViewModel";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppInput } from "@/shared/components/AppInput";
+import { View } from "react-native";
 
 export default function ServicePageList() {
   const {
     serviceDataPagged,
-    serviceError,
     serviceRefetch,
     serviceIsFetchingNextPage,
     serviceHasNextPage,
     serviceFetchNextPage,
     serviceIsRefetching,
     isLoading,
+    searchValue,
+    setSearchValue,
   } = useServiceViewModel(undefined);
 
   if (isLoading) {
@@ -31,6 +34,14 @@ export default function ServicePageList() {
         action={() => safePush(`/services/service-create`)}
         iconRight={{ icon: true, path: "/services/service-create" }}
       />
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <AppInput
+          placeholder="Buscar serviço por nome..."
+          leftIcon="search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+        />
+      </View>
       <AppCard
         data={serviceDataPagged.map((s) => ({
           id: s.id,

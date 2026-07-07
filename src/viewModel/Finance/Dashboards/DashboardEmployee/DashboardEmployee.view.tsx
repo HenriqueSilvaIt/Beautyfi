@@ -109,7 +109,7 @@ export function DashboardEmployeeView({
           onPress={() => setShowStartDatePicker(true)}
           activeOpacity={0.8}
         >
-          <Text className="mb-1  font-semibold text-center text-base text-gray-400">
+          <Text className="mb-1  font-semibold text-center text-base text-gray-600">
             Data de Inicio
           </Text>
           <View className=" justify-center bg-background-tertiary rounded-md w-[140px] h-[50px]">
@@ -123,7 +123,7 @@ export function DashboardEmployeeView({
           onPress={() => setShowEndDatePicker(true)}
           activeOpacity={0.8}
         >
-          <Text className="mb-1  font-semibold text-center text-base text-gray-400">
+          <Text className="mb-1  font-semibold text-center text-base text-gray-600">
             Data de Final
           </Text>
           <View className=" justify-center bg-background-tertiary rounded-md w-[140px] h-[50px]">
@@ -138,7 +138,7 @@ export function DashboardEmployeeView({
           activeOpacity={0.8}
           className="px-6 py-2 rounded-md w-full bg-app-theme-primary items-center justify-center"
         >
-          <Text className="text-font-primary text-center text-xl font-bold">
+          <Text className="text-font-primary  text-center text-xl font-bold">
             Buscar
           </Text>
         </TouchableOpacity>

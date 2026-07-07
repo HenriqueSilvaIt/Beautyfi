@@ -97,6 +97,19 @@ export function CrudView() {
           >
             Assinaturas
           </AppButton>
+
+          <AppButton
+            className=""
+            leftIcon="cube-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Cadastre combos e pacotes de serviços promocionais"
+            onPress={() => safePush("/(private)/(crud)/packages")}
+          >
+            Pacotes
+          </AppButton>
           <AppButton
             className="" /*tem que passar como prop o className */
             leftIcon="trending-up"
@@ -109,6 +122,7 @@ export function CrudView() {
           >
             Divulgação
           </AppButton>
+
         </View>
       </View>
     </KeyboardContainer>

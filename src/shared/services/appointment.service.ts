@@ -93,3 +93,10 @@ export async function deleteAppointment(id: number) {
 
   await styleAppApiClient.delete(`appointments/${id}`, config);
 }
+
+export async function getMonthlyAppointments(startDate: string, endDate: string) {
+  const { data } = await styleAppApiClient.get("/appointments/reports/monthly", {
+    params: { startDate, endDate }
+  });
+  return data;
+}

@@ -5,6 +5,8 @@ import {
   CompanyInterface,
   CompanyProps,
   CompanyDTO,
+  CompanyReviewHttpResponse,
+  CompanyReviewProps,
 } from "../interfaces/http/company";
 
 const COMPANY_ID_NUMBER = 1; // Fallback default ID
@@ -75,6 +77,7 @@ export async function updateCompany(dataBody: CompanyInterface) {
 export async function updateReminderConfig(dto: {
   reminderEnabled?: boolean;
   reminderMinutesBefore?: number;
+  bookingConfirmationEnabled?: boolean;
 }): Promise<void> {
   await styleAppApiClient.patch("/companies/reminder-config", dto);
 }
@@ -102,4 +105,27 @@ export interface CompanyCategoryInterface {
 export async function fetchCompanyCategories() {
   const { data } = await styleAppApiClient.get<CompanyCategoryInterface[]>(`/companies/categories`);
   return data;
+}
+
+export async function getCompanyReviews(companyId: number, page: number = 0, size: number = 10) {
+  const { data } = await styleAppApiClient.get<CompanyReviewHttpResponse>(
+    `/companies/${companyId}/reviews?page=${page}&size=${size}`
+  );
+  return data;
+}
+
+export async function createCompanyReview(companyId: number, dto: { rating: number; comment: string }) {
+  const { data } = await styleAppApiClient.post<CompanyReviewProps>(
+    `/companies/${companyId}/reviews`,
+    dto
+  );
+  return data;
+}
+
+export async function updateOpeningHours(companyId: number, openingHours: any[]) {
+  await styleAppApiClient.put(`/companies/${companyId}/opening-hours`, openingHours);
+}
+
+export async function updateSocialMedias(companyId: number, socialMedias: any[]) {
+  await styleAppApiClient.put(`/companies/${companyId}/social-medias`, socialMedias);
 }

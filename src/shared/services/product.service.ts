@@ -9,12 +9,14 @@ const COMPANY_ID_NUMBER = Number(COMPANY_ID)
 export async function getProducts(
     page: number = 0,
     size: number = 10,
+    search: string = ""
 ) {
   const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
   const {data} = await styleAppApiClient.get<ProductHttpResponse>(`/products/${companyId}/company?sort=name,asc`,
         {params: {
             page,
-            size
+            size,
+            name: search || undefined
         }}
     );
 

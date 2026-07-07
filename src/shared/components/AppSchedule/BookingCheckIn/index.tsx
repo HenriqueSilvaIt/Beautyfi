@@ -141,7 +141,7 @@ export function BookingCheckIn({
                 </Text>
                 {employeeCheckIn.map((employee) => (
                   <>
-                    <Text className="text-gray-400 text-sm ">
+                    <Text className="text-gray-600 text-sm ">
                       Duração: {employee.duration} min
                     </Text>
 

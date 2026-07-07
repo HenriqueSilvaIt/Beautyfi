@@ -176,7 +176,7 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
         </View>
       )}
 
-      <Text className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 px-5">
+      <Text className="text-gray-600 text-xs font-bold uppercase tracking-wider mb-4 px-5">
         {searchMode === "buscar" ? "Estabelecimentos Encontrados" : "Estabelecimentos Recomendados"}
       </Text>
 

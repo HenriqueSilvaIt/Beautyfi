@@ -67,16 +67,27 @@ export default function PublicLayout() {
           },
         }}
       />
-
+      <Tabs.Screen
+        name="companies-details/[id]/index"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="register"
         options={{
           href: null,
         }}
       />
-      
+
       <Tabs.Screen
         name="password-recover"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="company-register"
         options={{
           href: null,
         }}

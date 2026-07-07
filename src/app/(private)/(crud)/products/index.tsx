@@ -5,9 +5,11 @@ import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useProductViewModel } from "@/viewModel/Admin/Products/useProductViewModel";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppInput } from "@/shared/components/AppInput";
+import { View } from "react-native";
 
 export default function ProductPageList() {
-      const {safePush} = useSafeNavigation()
+  const {safePush} = useSafeNavigation()
 
   const {
     productDataPagged,
@@ -17,13 +19,14 @@ export default function ProductPageList() {
     productFechNextPage,
     productHasNextPage,
     productIsFetchingNextPage,
+    searchValue,
+    setSearchValue,
   } = useProductViewModel(undefined);
 
   if (isProductLoading) {
     return <Loading />;
   }
 
-  
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader
@@ -32,6 +35,14 @@ export default function ProductPageList() {
         action={() => safePush(`/products/product-create`)}
         iconRight={{ icon: true, path: "/products/product-create" }}
       />
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <AppInput
+          placeholder="Buscar produto por nome..."
+          leftIcon="search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+        />
+      </View>
       <AppCard
         data={productDataPagged.map((s) => ({
           id: s.id,

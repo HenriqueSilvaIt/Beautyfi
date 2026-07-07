@@ -67,7 +67,7 @@ export function BlockAgendaView() {
             className="flex-1"
           >
             <View className="flex-row items-center gap-3 mx-2 p-3 rounded-xl bg-background-secondary border border-white/20 shadow">
-              <Ionicons name="calendar" size={22} color={colors.white} />
+              <Ionicons name="calendar" size={22} color={colors.black} />
 
               <View className="flex-1">
                 <Text className="text-font-primary text-xs opacity-70">Início</Text>
@@ -88,7 +88,7 @@ export function BlockAgendaView() {
             className="flex-1"
           >
             <View className="flex-row items-center gap-3 mx-2 p-3 rounded-xl bg-background-secondary border border-white/20 shadow">
-              <Ionicons name="calendar" size={22} color={colors.white} />
+              <Ionicons name="calendar" size={22} color={colors.black} />
 
               <View className="flex-1">
                 <Text className="text-font-primary text-xs opacity-70">Fim</Text>
@@ -110,7 +110,7 @@ export function BlockAgendaView() {
             activeOpacity={0.8}
             className=" h-[40px]  items-center justify-center w-[200px] rounded-md  bg-app-theme-primary"
           >
-            <Text className="text-font-primary text-center text-base font-bold ">
+            <Text className="text-font-secundary text-center text-base font-bold ">
               Bloquear Período
             </Text>
           </TouchableOpacity>

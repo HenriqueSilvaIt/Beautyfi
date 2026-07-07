@@ -94,7 +94,7 @@ export function ListModal<T extends ListModalItemBase>({
               </Text>
 
               {item.description && (
-                <Text className="text-gray-400 mt-1 text-sm" numberOfLines={1}>
+                <Text className="text-gray-600 mt-1 text-sm" numberOfLines={1}>
                   {item.description}
                 </Text>
               )}
@@ -138,7 +138,7 @@ export function ListModal<T extends ListModalItemBase>({
         ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-400">Nenhum item encontrado</Text>
+            <Text className="text-gray-600">Nenhum item encontrado</Text>
           </View>
         }
       />

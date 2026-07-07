@@ -6,6 +6,8 @@ import { EvStatus } from "@/shared/interfaces/http/whatsapp";
 import { useWhatsAppMutation } from "@/shared/queries/zap/use-wt-send-message.mutation";
 import { connectionState } from "@/shared/services/ev.service";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserLoggedQuery, useUserUserUpdatePreferences } from "@/shared/queries/user/use-user-logged.mutation";
 
 export function useWhatsAppViewModel() {
   const [status, setStatus] = useState<EvStatus>(null);
@@ -13,7 +15,12 @@ export function useWhatsAppViewModel() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [minutesBefore, setMinutesBefore] = useState(60);
+  const [bookingConfirmationEnabled, setBookingConfirmationEnabled] = useState(true);
+  const [companyType, setCompanyType] = useState<"MULTI_TENANT" | "WHITE_LABEL" | null>(null);
   const [isSavingReminder, setIsSavingReminder] = useState(false);
+  const [isSavingConfirmation, setIsSavingConfirmation] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [isSavingPush, setIsSavingPush] = useState(false);
 
   const { notify } = useSnackbarContext();
   const { handleError } = useErrorHandler();
@@ -25,8 +32,13 @@ export function useWhatsAppViewModel() {
     useConnectionStateQuery,
   } = useWhatsAppMutation();
 
-  // ✅ usa a mutation já existente
-  const { updateReminderConfigMutation } = useCompanyDetailsMutation();
+  // ✅ usa a mutation e query existentes
+  const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
+  const { useGetCompanyDetailsQuery, updateReminderConfigMutation } = useCompanyDetailsMutation();
+  const { data: companyDetails } = useGetCompanyDetailsQuery(selectedCompanyId || undefined);
+
+  const { data: userLogged } = useUserLoggedQuery();
+  const { userUpdatePreferencesMutation } = useUserUserUpdatePreferences();
 
   const isAwaitingConnection = status === "QRCODE" || status === "CONNECTING";
   const { data: connectionData, isRefetching: isPolling } =
@@ -50,7 +62,27 @@ export function useWhatsAppViewModel() {
   // ─── Load status ao entrar na tela ────────────────────────────────────────
 
   useEffect(() => {
+    if (companyDetails) {
+      setReminderEnabled(!!companyDetails.reminderEnabled);
+      setMinutesBefore(companyDetails.reminderMinutesBefore ?? 60);
+      setBookingConfirmationEnabled(companyDetails.bookingConfirmationEnabled !== false);
+      setCompanyType(companyDetails.type ?? "MULTI_TENANT");
+    }
+  }, [companyDetails]);
+
+  useEffect(() => {
+    if (userLogged) {
+      setPushEnabled(userLogged.allowPushNotifications !== false);
+    }
+  }, [userLogged]);
+
+  useEffect(() => {
     async function loadInitialStatus() {
+      if (companyDetails?.type === "MULTI_TENANT") {
+        setStatus("CONNECTED");
+        setIsInitialLoading(false);
+        return;
+      }
       try {
         setIsInitialLoading(true);
         const res = await connectionState();
@@ -62,8 +94,10 @@ export function useWhatsAppViewModel() {
       }
     }
 
-    loadInitialStatus();
-  }, []);
+    if (companyDetails) {
+      loadInitialStatus();
+    }
+  }, [companyDetails]);
 
   // ─── Atualiza status pelo polling ─────────────────────────────────────────
 
@@ -162,6 +196,60 @@ export function useWhatsAppViewModel() {
     }
   }
 
+  // ─── Confirmation — toggle ───────────────────────────────────────────────
+
+  async function handleToggleConfirmation(value: boolean) {
+    const previous = bookingConfirmationEnabled;
+    setBookingConfirmationEnabled(value); // ✅ optimistic update
+    try {
+      setIsSavingConfirmation(true);
+      await updateReminderConfigMutation.mutateAsync({
+        bookingConfirmationEnabled: value,
+      });
+      notify({
+        message: value ? "Confirmação ativada!" : "Confirmação desativada!",
+        type: "SUCCESS",
+      });
+    } catch (error) {
+      setBookingConfirmationEnabled(previous); // ✅ reverte se falhar
+      handleError(error, "Erro ao salvar configuração");
+    } finally {
+      setIsSavingConfirmation(false);
+    }
+  }
+
+  const [remindersCount, setRemindersCount] = useState(84);
+  const [remindersLimit, setRemindersLimit] = useState(100);
+
+  async function handleBuyMessages() {
+    try {
+      notify({ message: "Direcionando para o Stripe Checkout...", type: "WARNING" });
+      setTimeout(() => {
+        setRemindersLimit((prev) => prev + 200);
+        notify({ message: "+200 lembretes adicionados à sua cota!", type: "SUCCESS" });
+      }, 2000);
+    } catch (error) {
+      handleError(error, "Erro ao processar checkout do Stripe");
+    }
+  }
+
+  async function handleTogglePush(value: boolean) {
+    const previous = pushEnabled;
+    setPushEnabled(value);
+    setIsSavingPush(true);
+    try {
+      await userUpdatePreferencesMutation.mutateAsync({
+        allowPushNotifications: value
+      });
+      notify({ message: "Preferência de notificação push salva!", type: "SUCCESS" });
+    } catch (err) {
+      setPushEnabled(previous);
+      handleError(err, "Erro ao salvar preferência de push");
+    } finally {
+      setIsSavingPush(false);
+    }
+  }
+
   return {
     // whatsapp
     status,
@@ -182,5 +270,18 @@ export function useWhatsAppViewModel() {
     isSavingReminder,
     handleToggleReminder,
     handleChangeMinutesBefore,
+    // confirmation
+    bookingConfirmationEnabled,
+    companyType,
+    isSavingConfirmation,
+    handleToggleConfirmation,
+    // usage & Stripe integration
+    remindersCount,
+    remindersLimit,
+    handleBuyMessages,
+    // push notifications
+    pushEnabled,
+    isSavingPush,
+    handleTogglePush,
   };
 }

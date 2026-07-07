@@ -146,44 +146,41 @@ export function BottomSheetProvider({ children }: PropsWithChildren) {
         </TouchableWithoutFeedback>
       )}
 
-      <BottomSheet
-        handleIndicatorStyle={{
-    backgroundColor: colors.white, // ✅ a barrinha do handle
-  }}
-        ref={bottomSheetRef} /*passandro atributo que criamos usando useRef */
-        enableDynamicSizing={false}
-        snapPoints={
-          snapPoints
-        } /*esse atributo vai passar o limite da tela que o 
-                bottom sheet vai poder ocupar quando abrirmos o bottomSheet ele vai iniciar com 70% 
-                podendendo se estender até 90%  caso seja um componente maior ou caso nós arraste ele para cima*/
-        style={{
-          zIndex: 2,
-        }} /*Aqui é como o traze para frente do powert point */
-        /*Como colocamos BottomSheetContext dentro do APP.tsx tudo que passarmos aqui
-                dentro do provider, ficara disponível em toda aplicação, inclusive esse bottom sheet */
-        index={index}
-        enablePanDownToClose /*Para conseguirmos fechar o bottomSheet arrastando para baixo
-            com mouse ou  dedo */
-        backgroundStyle={{
-          backgroundColor:
-            colors["background-quartenary"] /*estamos usando nosso colors */,
-          borderTopLeftRadius: 32 /*borda superior a esquerda */,
-          borderTopRightRadius: 32 /*borda superior a esquerda */,
-          elevation: 9 /*Cria um sombreado no componente */,
-        }}
-        onChange={
-          handleSheetChanges
-        } /*para fechar o botão quando fechar botão quando clicarmos foram
-            do nosso bottom sheet */
-      >
-
-          /*bottomSheetScroview cria uma barra de rolagem caso
-            o coponente seja muita grande e o content é  o componente
-            que vamos passar para ser exibido no bottom sheet */
-   
+      {isOpen && (
+        <BottomSheet
+          handleIndicatorStyle={{
+            backgroundColor: colors.white, // ✅ a barrinha do handle
+          }}
+          ref={bottomSheetRef} /*passandro atributo que criamos usando useRef */
+          enableDynamicSizing={false}
+          snapPoints={
+            snapPoints
+          } /*esse atributo vai passar o limite da tela que o 
+                  bottom sheet vai poder ocupar quando abrirmos o bottomSheet ele vai iniciar com 70% 
+                  podendendo se estender até 90%  caso seja um componente maior ou caso nós arraste ele para cima*/
+          style={{
+            zIndex: 2,
+          }} /*Aqui é como o traze para frente do powert point */
+          /*Como colocamos BottomSheetContext dentro do APP.tsx tudo que passarmos aqui
+                  dentro do provider, ficara disponível em toda aplicação, inclusive esse bottom sheet */
+          index={index}
+          enablePanDownToClose /*Para conseguirmos fechar o bottomSheet arrastando para baixo
+              com mouse ou  dedo */
+          backgroundStyle={{
+            backgroundColor:
+              colors["background-quartenary"] /*estamos usando nosso colors */,
+            borderTopLeftRadius: 32 /*borda superior a esquerda */,
+            borderTopRightRadius: 32 /*borda superior a esquerda */,
+            elevation: 9 /*Cria um sombreado no componente */,
+          }}
+          onChange={
+            handleSheetChanges
+          } /*para fechar o botão quando fechar botão quando clicarmos foram
+              do nosso bottom sheet */
+        >
           {content}
-      </BottomSheet>
+        </BottomSheet>
+      )}
     </BottomSheetContext.Provider>
   );
 }

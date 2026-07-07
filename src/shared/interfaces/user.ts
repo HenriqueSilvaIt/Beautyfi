@@ -4,6 +4,7 @@ export interface UserProps {
   lastName?: string;
   avatarUrl: string;
   birthDate?: string;
+  companyId?: number;
   email: string;
   google_id?: string;
   appleId?: string;
@@ -15,6 +16,7 @@ export interface UserProps {
   askWhatsappConfirmation?: boolean;
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
+  allowPushNotifications?: boolean;
   subscriptionExpired?: boolean;
 }
 
@@ -27,6 +29,7 @@ export interface UserInterface {
   askWhatsappConfirmation?: boolean;
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
+  allowPushNotifications?: boolean;
 }
 
 export interface UserChangePasswordInterface {
@@ -43,6 +46,7 @@ export interface UpdateUserPreferencesInterface {
   allowWhatsAppNotifications?: boolean;
   askWhatsappConfirmation?: boolean;
   whatsappAskedOnce?: boolean;
+  allowPushNotifications?: boolean;
 }
 
 

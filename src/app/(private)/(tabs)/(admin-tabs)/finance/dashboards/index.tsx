@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
         <View className="mt-8 items-center justify-center gap-6 px-2">
           <AppButton
-            className="" /*tem que passar como prop o className */
+            className=""
             leftIcon="storefront-outline"
             rightIcon="chevron-forward"
             variant="admin"
@@ -31,21 +31,36 @@ export default function DashboardPage() {
           >
             Dashboard Profissional
           </AppButton>
-            {/*
+
           <AppButton
-            className="" 
+            className=""
             leftIcon="stats-chart"
             rightIcon="chevron-forward"
             variant="admin"
             activeOpacity={0.8}
             size={true}
-            description="Visualize relatórios de estabelecimento, profissionais e agendendamentos"
+            description="Visualize o relatório mensal de vendas e faturamento"
             onPress={() =>
               safePush("/(private)/(tabs)/(admin-tabs)/finance/dashboards/total-monthly")
             }
           >
-            Vendas
-          </AppButton>*/ }
+            Relatório de Vendas
+          </AppButton>
+
+          <AppButton
+            className=""
+            leftIcon="calendar-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Visualize relatórios de quantidade e status de agendamentos"
+            onPress={() =>
+              safePush("/(private)/(tabs)/(admin-tabs)/finance/dashboards/appointments-report")
+            }
+          >
+            Relatório de Agendamentos
+          </AppButton>
         </View>
       </View>
     </SafeAreaView>

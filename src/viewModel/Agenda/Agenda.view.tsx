@@ -156,13 +156,13 @@ export function AgendaView({
               className="bg-app-theme-primary px-4 py-3 rounded-xl mb-2 shadow"
               onPress={() => {}}
             >
-              <Text className="text-font-primary font-semibold">Novo agendamento</Text>
+              <Text className="text-font-secundary font-semibold">Novo agendamento</Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="bg-white px-4 py-3 rounded-xl mb-2 shadow"
               onPress={handleBlockAgendaButton}
             >
-              <Text className="text-font-secundary font-semibold">Bloquear horário</Text>
+              <Text className="text-font-primary font-semibold">Bloquear horário</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

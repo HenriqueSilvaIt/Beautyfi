@@ -5,6 +5,7 @@ export default function AgendaLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="new-booking" />
+      <Stack.Screen name="booking-details/[id]" />
     </Stack>
   );
 }

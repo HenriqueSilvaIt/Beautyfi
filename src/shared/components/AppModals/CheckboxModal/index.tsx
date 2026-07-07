@@ -69,7 +69,7 @@ export function CheckboxModal<T extends CheckboxItemsProps>({
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-400">Nenhum item encontrado</Text>
+            <Text className="text-gray-600">Nenhum item encontrado</Text>
           </View>
         }
       />

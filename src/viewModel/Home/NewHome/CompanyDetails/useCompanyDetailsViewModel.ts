@@ -4,10 +4,12 @@ import { useProductMutation } from "@/shared/queries/company/use-product.mutatio
 import { useGetSubscriptionPlansQuery } from "@/shared/queries/stripe/use-stripe-mutataion";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
+import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 
-export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Assinaturas" | "Pacotes";
+export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Avaliações" | "Assinaturas" | "Pacotes";
 
 export const mockPackages = [
   {
@@ -41,13 +43,21 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     useGetCompanyDetailsQuery,
     useGetFavoritedIdsQuery,
     toggleFavoriteMutation,
+    createCompanyReviewMutation,
   } = useCompanyDetailsMutation();
 
   const { useGetServiceMutation } = useCompanyServicesMutation();
   const { useGetProductsMutation } = useProductMutation();
 
   const access_token = useUserStore((state) => state.access_token);
+  const user = useUserStore((state) => state.user);
   const isLoggedIn = !!access_token;
+  const isAdmin = user?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
+
+  // Review states
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Load details
   const {
@@ -91,6 +101,16 @@ export function useCompanyDetailsViewModel(companyId?: number) {
 
   // Load favorites if logged in
   const { data: favoritedIds } = useGetFavoritedIdsQuery(isLoggedIn);
+
+  // Load employees
+  const { useGetEmployeeMutation } = useEmployeeMutation();
+  const { data: employeesData, isLoading: employeesIsLoading } = useGetEmployeeMutation({ companyId } as any);
+  const employeesList = employeesData?.pages.flatMap((page) => page.content ?? []) ?? [];
+
+  // Load reviews
+  const { useGetCompanyReviewsQuery } = useCompanyDetailsMutation();
+  const { data: reviewsData, isLoading: reviewsIsLoading } = useGetCompanyReviewsQuery(companyId || 0);
+  const reviewsList = reviewsData?.content ?? [];
 
   useEffect(() => {
     if (favoritedIds) {
@@ -174,6 +194,31 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     }
   };
 
+  const handleSubmitReview = async () => {
+    if (!companyId) return;
+    if (!newComment.trim()) {
+      Alert.alert("Erro", "Por favor, digite um comentário.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      await createCompanyReviewMutation.mutateAsync({
+        companyId,
+        rating: newRating,
+        comment: newComment.trim(),
+      });
+      setNewComment("");
+      setNewRating(5);
+      Alert.alert("Sucesso", "Sua avaliação foi enviada com sucesso!");
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erro", "Erro ao enviar avaliação.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   // Extract content arrays from paginated data
   const servicesList = serviceData?.pages.flatMap((page) => page.content ?? []) ?? [];
   const productsList = productData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -209,5 +254,16 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     productIsFetchingNextPage,
     productIsLoading,
     isProductRefetching: productIsLoading,
+    employeesList,
+    reviewsList,
+    reviewsIsLoading,
+    user,
+    isAdmin,
+    newRating,
+    setNewRating,
+    newComment,
+    setNewComment,
+    isSubmittingReview,
+    handleSubmitReview,
   };
 }

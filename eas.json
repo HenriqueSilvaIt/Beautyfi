@@ -25,7 +25,7 @@
       "env": {
         "EXPO_PUBLIC_COMPANY_ID": "1",
         "GOOGLE_IOS_CLIENT_ID": "645475131288-ak8pi4js4hai3infs363t8l5j1bo3j0n.apps.googleusercontent.com",
-        "GOOGLE_ANDROID_CLIENT_ID": "210442128359-7hh3rnn4402iafqisif2nb0n89vh7h34.apps.googleusercontent.com",
+        "GOOGLE_ANDROID_CLIENT_ID": "645475131288-drsa55r7v1cptqtep3afki6ala16ie2u.apps.googleusercontent.com",
         "GOOGLE_WEB_CLIENT_ID": "645475131288-gigbn4r2husaqvft1lao7vncp25kv507.apps.googleusercontent.com",
         "STRIPE_PUBLIC_KEY_TEST": "pk_test_51SG7HcD0zP58uYkc4OWGYdIXKClmM2u3cygJDki4tgxEdrLyRpvZNq7zTwtJez0CKg8dg290y1UIUCTShPZFEEeC00tfu3Pojk",
         "STRIPE_PUBLIC_KEY_PROD": "pk_live_51SIH0TEgtTLa8LmGjmtcr69eAHdITJQUlV2m68y6aePYYW5uF8p3JuAFe7suvdORiZei4UHFQeUI8PRIwQLzwpgU00SEmLqr5c",

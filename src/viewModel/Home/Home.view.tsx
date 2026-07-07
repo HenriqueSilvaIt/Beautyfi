@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { AppButton } from "@/shared/components/AppButton";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { CompanyEmployees } from "@/shared/components/CompanyTabs/CompanyEmployees";
+import { TrialBanner } from "@/shared/components/TrialBanner";
 
 export function HomeView() {
   const {
@@ -74,6 +75,13 @@ export function HomeView() {
         ListHeaderComponent={
           <>
             <AppHeader user={user} token={access_token} />
+
+            {/* Banner de trial — aparece apenas para admins nos primeiros 14 dias */}
+            {isAdmin && (
+              <TrialBanner
+                companyCreatedAt={(company as any)?.createdAt}
+              />
+            )}
 
             <Text className="text-gray-200 text-base font-semibold my-5  text-center">
               Novidades

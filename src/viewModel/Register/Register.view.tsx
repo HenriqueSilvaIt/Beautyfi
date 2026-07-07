@@ -7,14 +7,13 @@ import { AppButton } from "../../shared/components/AppButton";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { colors } from "@/styles/colors";
 import { useMask } from "@/shared/hooks/useMask";
-import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
-import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
+import { Ionicons } from "@expo/vector-icons";
 
 export function RegisterView({
   onSubmit,
   control,
 }: ReturnType<typeof useRegisterViewModel>) {
-  const { safeReplace } = useSafeNavigation();
+  const { safeReplace, safePush } = useSafeNavigation();
   const { maskPhone } = useMask();
   return (
     <KeyboardContainer>
@@ -72,7 +71,7 @@ export function RegisterView({
           Registrar
         </AppButton>
 
-        <View className="mt-16">
+        <View className="mt-8">
           <Text className="text-base text-gray-500 mb-4 text-center">
             Já tem uma conta?
           </Text>
@@ -83,6 +82,41 @@ export function RegisterView({
             Login
           </AppButton>
         </View>
+
+        {/* CTA Cadastro de Empresa */}
+        <TouchableOpacity
+          onPress={() => safePush("/(public)/company-register")}
+          activeOpacity={0.85}
+          className="mt-8 mb-12 rounded-2xl overflow-hidden border border-app-theme-primary/40 bg-background-tertiary"
+        >
+          <View className="p-5 gap-3">
+            <View className="flex-row items-center gap-3">
+              <View
+                className="p-2.5 rounded-xl"
+                style={{ backgroundColor: colors["app-theme-primary"] + "25" }}
+              >
+                <Ionicons
+                  name="storefront-outline"
+                  size={22}
+                  color={colors["app-theme-primary"]}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-font-primary font-bold text-base">
+                  Tem um negócio?
+                </Text>
+                <Text className="text-font-primary text-xs mt-0.5">
+                  Crie sua empresa gratuitamente
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors["app-theme-primary"]} />
+            </View>
+            <Text className="text-font-primary text-xs leading-4">
+              Cadastre sua empresa em minutos e comece a receber agendamentos
+              online. Experimente 14 dias grátis.
+            </Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardContainer>
   );

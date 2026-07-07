@@ -131,7 +131,7 @@ export function AppCardCompany({
                 <Text className="text-gray-900 font-semibold text-sm ml-1">
                   {(item.rating ?? 5.0).toFixed(1)}
                 </Text>
-                <Text className="text-gray-400 text-sm ml-1">
+                <Text className="text-gray-600 text-sm ml-1">
                   ({item.reviewsCount ?? 0} avaliações)
                 </Text>
               </View>
@@ -167,7 +167,7 @@ export function AppCardCompany({
             {/* Services List */}
             {item.services && item.services.length > 0 && (
               <View className="border-t border-gray-100 pt-3">
-                <Text className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-2">
+                <Text className="text-gray-600 font-semibold text-xs uppercase tracking-wider mb-2">
                   Serviços Populares
                 </Text>
                 {item.services.map((service) => (

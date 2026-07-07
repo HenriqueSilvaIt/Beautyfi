@@ -44,6 +44,17 @@ export function useServiceViewModel(serviceId: number | undefined) {
 
   const { data: serviceContent } = useGetCompanyServiceById(Number(serviceId));
 
+  // Search states for debounce
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
   const {
     data: services,
     error: serviceError,
@@ -52,7 +63,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
     hasNextPage: serviceHasNextPage,
     fetchNextPage: serviceFetchNextPage,
     isRefetching: serviceIsRefetching,
-  } = useGetServiceMutation();
+  } = useGetServiceMutation(debouncedSearch);
 
   const serviceDataPagged =
     services?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -304,5 +315,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
     setAvailableInApp,
     availableInApp,
     handleToggleAvailableInApp,
+    searchValue,
+    setSearchValue,
   };
 }

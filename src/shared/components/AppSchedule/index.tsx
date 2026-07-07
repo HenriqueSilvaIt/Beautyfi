@@ -82,6 +82,7 @@ interface AppScheduleProps {
       Error
     >
   >;
+  handleJoinWaitList?: () => void;
 }
 
 export function AppSchedule({
@@ -103,6 +104,7 @@ export function AppSchedule({
   createIsLoading,
   appointmentFetchNextPage,
   setCurrentDate,
+  handleJoinWaitList,
 }: AppScheduleProps) {
   if (appointmentIsLoading || appointmentIsRefetching) {
     return (
@@ -184,14 +186,23 @@ export function AppSchedule({
               return null;
             }}
             ListEmptyComponent={
-              <AppEmptyList
-                name="agendamento"
-                iconName="cut-outline"
-                title="Nenhum horário disponível"
-                description=" Não há nenhum horário disponível na agenda deste profissional
-                  neste dia. Tente escolher outra data ou entre na lista de
-                  espera"
-              />
+              <View className="items-center px-4">
+                <AppEmptyList
+                  name="agendamento"
+                  iconName="cut-outline"
+                  title="Nenhum horário disponível"
+                  description="Não há horários disponíveis para este profissional neste dia. Tente outra data ou entre na lista de espera."
+                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleJoinWaitList}
+                  className="mt-2 px-6 py-3 bg-app-theme-primary rounded-full items-center justify-center w-full"
+                >
+                  <Text className="text-white font-bold text-base">
+                    Entrar na lista de espera
+                  </Text>
+                </TouchableOpacity>
+              </View>
             }
             renderItem={({ item }) => (
               <View className="w-1/3 my-3 items-center">

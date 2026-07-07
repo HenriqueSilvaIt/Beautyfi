@@ -96,7 +96,7 @@ export function NewBookingView() {
             className={`flex-row gap-3 items-center justify-between  px-4 py-2 rounded-md
         ${fitIn ? "bg-green-600" : "bg-gray-800"}`}
           >
-            <Text className="text-base text-font-primary">
+            <Text className="text-base text-font-secundary">
               {fitIn ? "Encaixe ativado" : "Encaixe desativado"}
             </Text>
           </View>
@@ -218,7 +218,7 @@ export function NewBookingView() {
             activeOpacity={0.8}
             className="px-6 py-2 rounded-md bg-app-theme-primary items-center justify-center"
           >
-            <Text className="text-font-primary text-center text-base font-bold">
+            <Text className="text-font-secundary text-center text-base font-bold">
               Agendar
             </Text>
           </TouchableOpacity>
