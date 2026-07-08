@@ -5,6 +5,7 @@ import { Loading } from "@/shared/components/Loading";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useAgendaStore } from "@/shared/store/agenda-store";
 import { useClientViewModel } from "@/viewModel/Admin/Clients/useClientViewModel";
+import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +20,8 @@ export default function ClientPageList() {
     clientFetchNextPage,
     clientIsFetchingNextPage,
     isLoading,
+    searchValue,
+    setSearchValue,
   } = useClientViewModel(undefined);
 
   if (isLoading) {
@@ -34,6 +37,14 @@ export default function ClientPageList() {
         action={() => safePush(`/clients/client-create`)}
         iconRight={{ icon: true, path: "/clients/client-create" }}
       />
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <AppInput
+          placeholder="Buscar cliente por nome..."
+          leftIcon="search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+        />
+      </View>
       <AppCard
         data={clientDataPagged
           .filter((c) => c.id !== undefined)

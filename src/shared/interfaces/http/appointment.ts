@@ -2,6 +2,7 @@ import { UserInterface, UserProps } from "../user";
 import { ClientInterface } from "./client";
 import { CompanyServicesProps } from "./company-services";
 import { EmployeeProps } from "./employee";
+import { EOrderStatus } from "./order";
 
 export enum AppointmentStatus {
   AVAILABLE = "AVAILABLE",
@@ -39,6 +40,9 @@ export interface AppointmentProps {
   dateEnd?: Date;
   type?: EAppointmentType;
   client?: ClientInterface;
+  orderId?: number;
+  orderNumber?: string;
+  orderStatus?: EOrderStatus;
   usingSubscription?: boolean;
 }
 
@@ -72,6 +76,16 @@ export interface AppointmentHttpParams {
   schedulingFitIn?: boolean;
   usingSubscription?: boolean;
   client?: ClientInterface;
+}
+
+export interface AppointmentUpdateHttpParams {
+  dateScheduled?: string;      
+  additionalInfo?: string;      
+  status?: AppointmentStatus;    // opcional — só se mudou o status
+  employeeId?: number | null;    // opcional — só se mudou o profissional
+  services?: AppointmentServicesHttpParams[]; // opcional — só se mudou o serviço
+  clientId?: number;           
+  schedulingFitIn?: boolean;     
 }
 
 export interface AppointmentBlockHttpParams {

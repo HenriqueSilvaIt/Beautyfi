@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { colors } from "@/styles/colors";
 import { useCompanyEditViewModel } from "./useCompanyEditViewModel";
+import { AppDateTimePicker } from "@/shared/components/AppDateTimePicker";
 
 export function CompanyEditView() {
   const {
@@ -34,22 +35,26 @@ export function CompanyEditView() {
     getFormatTime,
     handlePickAndUploadImage,
     handleRemoveImage,
+    activeHourEdit,
+    setActiveHourEdit,
+    openTimePicker,
+    handleConfirmTime,
   } = useCompanyEditViewModel();
 
   const themeColor = colors["app-theme-primary"];
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-background-primary justify-center items-center">
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
         <ActivityIndicator size="large" color={themeColor} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header com botão Salvar integrado */}
-      <View className="flex-row items-center justify-between px-5 py-2 border-b border-gray-800">
+      <View className="flex-row items-center justify-between px-5 py-3 border-b border-slate-100">
         <AppAdminHeader
           title="Editar Empresa"
           iconRight={{ icon: false, path: "" }}
@@ -58,17 +63,17 @@ export function CompanyEditView() {
           onPress={handleSave}
           disabled={saving}
           activeOpacity={0.8}
-          className="px-4 py-2 rounded-xl"
+          className="px-5 py-2.5 rounded-full"
           style={{ backgroundColor: themeColor }}
         >
-          <Text className="text-font-secundary text-xs font-bold">
+          <Text className="text-white text-xs font-bold">
             {saving ? "Salvando..." : "Salvar"}
           </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        className="flex-1 px-5 py-4"
+        className="flex-1 px-5 py-4 bg-white"
         showsVerticalScrollIndicator={false}
       >
         {/* Dados Principais */}
@@ -88,34 +93,34 @@ export function CompanyEditView() {
               { label: "Endereço", value: address, onChange: setAddress, placeholder: "Ex: Av. Paulista, 1000" },
             ].map(({ label, value, onChange, placeholder }) => (
               <View key={label}>
-                <Text className="text-gray-500 text-xs mb-1">{label}</Text>
+                <Text className="text-slate-500 text-xs font-semibold mb-1">{label}</Text>
                 <TextInput
                   value={value}
                   onChangeText={onChange}
                   placeholder={placeholder}
-                  placeholderTextColor="#9ca3af"
-                  className="bg-background-tertiary border border-gray-700 p-3 rounded-xl text-font-primary text-sm"
+                  placeholderTextColor="#94a3b8"
+                  className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
                 />
               </View>
             ))}
 
             <View>
-              <Text className="text-gray-500 text-xs mb-1">Descrição</Text>
+              <Text className="text-slate-500 text-xs font-semibold mb-1">Descrição</Text>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
                 placeholder="Descrição curta..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#94a3b8"
                 multiline
                 numberOfLines={3}
-                className="bg-background-tertiary border border-gray-700 p-3 rounded-xl text-font-primary text-sm min-h-[60px]"
+                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm min-h-[60px]"
               />
             </View>
           </View>
         </View>
 
         {/* Carousel de Fotos */}
-        <View className="mb-6 border-t border-gray-800 pt-6">
+        <View className="mb-6 border-t border-slate-100 pt-6">
           <Text
             className="text-xs font-bold uppercase tracking-wider mb-2"
             style={{ color: themeColor }}
@@ -130,7 +135,7 @@ export function CompanyEditView() {
               .map((url) => url.trim())
               .filter((url) => url.length > 0)
               .map((url, idx) => (
-                <View key={idx} className="relative w-[30%] aspect-square rounded-xl overflow-hidden bg-gray-900 border border-gray-800">
+                <View key={idx} className="relative w-[30%] aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                   <Image source={{ uri: url }} className="w-full h-full object-cover" />
                   <TouchableOpacity
                     onPress={() => handleRemoveImage(idx)}
@@ -143,7 +148,7 @@ export function CompanyEditView() {
               ))}
 
             {imagesUrl.split(",").map(url => url.trim()).filter(url => url.length > 0).length === 0 && (
-              <Text className="text-gray-500 text-xs py-2">Nenhuma imagem no portfólio.</Text>
+              <Text className="text-slate-400 text-xs py-2">Nenhuma imagem no portfólio.</Text>
             )}
           </View>
 
@@ -153,35 +158,35 @@ export function CompanyEditView() {
               onPress={handlePickAndUploadImage}
               disabled={uploading}
               activeOpacity={0.8}
-              className="bg-background-tertiary border border-gray-700 py-3 rounded-xl flex-row justify-center items-center gap-2"
+              className="bg-slate-50 border border-slate-200 py-3 rounded-xl flex-row justify-center items-center gap-2"
             >
               {uploading ? (
                 <ActivityIndicator size="small" color={themeColor} />
               ) : (
                 <>
                   <Ionicons name="image-outline" size={16} color={themeColor} />
-                  <Text className="text-font-primary text-xs font-bold">Enviar Foto da Galeria</Text>
+                  <Text className="text-slate-700 text-xs font-bold">Enviar Foto da Galeria</Text>
                 </>
               )}
             </TouchableOpacity>
 
             <View className="mt-1">
-              <Text className="text-gray-500 text-[10px] mb-1">Ou edite as URLs manualmente:</Text>
+              <Text className="text-slate-500 text-[10px] font-semibold mb-1">Ou edite as URLs manualmente:</Text>
               <TextInput
                 value={imagesUrl}
                 onChangeText={setImagesUrl}
                 placeholder="Ex: https://img1.com, https://img2.com"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#94a3b8"
                 multiline
                 numberOfLines={3}
-                className="bg-background-tertiary border border-gray-700 p-3 rounded-xl text-font-primary text-xs min-h-[60px]"
+                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-xs min-h-[60px]"
               />
             </View>
           </View>
         </View>
 
         {/* Redes Sociais */}
-        <View className="mb-6 border-t border-gray-800 pt-6">
+        <View className="mb-6 border-t border-slate-100 pt-6">
           <Text
             className="text-xs font-bold uppercase tracking-wider mb-4"
             style={{ color: themeColor }}
@@ -196,13 +201,13 @@ export function CompanyEditView() {
               { label: "Website URL", value: website, onChange: setWebsite, placeholder: "https://seusite.com.br" },
             ].map(({ label, value, onChange, placeholder }) => (
               <View key={label}>
-                <Text className="text-gray-500 text-xs mb-1">{label}</Text>
+                <Text className="text-slate-500 text-xs font-semibold mb-1">{label}</Text>
                 <TextInput
                   value={value}
                   onChangeText={onChange}
                   placeholder={placeholder}
-                  placeholderTextColor="#9ca3af"
-                  className="bg-background-tertiary border border-gray-700 p-3 rounded-xl text-font-primary text-sm"
+                  placeholderTextColor="#94a3b8"
+                  className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
                 />
               </View>
             ))}
@@ -210,7 +215,7 @@ export function CompanyEditView() {
         </View>
 
         {/* Horários de Atendimento */}
-        <View className="mb-12 border-t border-gray-800 pt-6">
+        <View className="mb-12 border-t border-slate-100 pt-6">
           <Text
             className="text-xs font-bold uppercase tracking-wider mb-4"
             style={{ color: themeColor }}
@@ -221,63 +226,59 @@ export function CompanyEditView() {
           {hoursList.map((hour) => (
             <View
               key={hour.id}
-              className="border-b border-gray-800/50 py-3 gap-2"
+              className="border-b border-slate-100 py-3 gap-2"
             >
-              <Text className="text-font-primary font-bold text-sm">
+              <Text className="text-slate-700 font-bold text-sm">
                 {hour.dayWeek}
               </Text>
               <View className="flex-row gap-4">
                 <View className="flex-1">
-                  <Text className="text-gray-500 text-[10px] mb-1">
+                  <Text className="text-slate-400 text-[10px] font-semibold mb-1">
                     1º Turno (Início - Fim)
                   </Text>
                   <View className="flex-row items-center gap-2">
-                    <TextInput
-                      value={getFormatTime(hour.firstHour)}
-                      onChangeText={(val) =>
-                        handleHourChange(hour.id, "firstHour", val)
-                      }
-                      placeholder="09:00"
-                      placeholderTextColor={themeColor}
-                      className="bg-background-tertiary border border-gray-700 p-2 rounded-lg text-font-primary text-xs flex-1 text-center"
-                    />
-                    <Text className="text-gray-500 text-xs">-</Text>
-                    <TextInput
-                      value={getFormatTime(hour.secondHour)}
-                      onChangeText={(val) =>
-                        handleHourChange(hour.id, "secondHour", val)
-                      }
-                      placeholder="12:00"
-                      placeholderTextColor={themeColor}
-                      className="bg-background-tertiary border border-gray-700 p-2 rounded-lg text-font-primary text-xs flex-1 text-center"
-                    />
+                    <TouchableOpacity
+                      onPress={() => openTimePicker(hour.id, "firstHour", hour.firstHour)}
+                      className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex-1 items-center justify-center"
+                    >
+                      <Text className="text-slate-800 text-xs font-semibold">
+                        {getFormatTime(hour.firstHour) || "09:00"}
+                      </Text>
+                    </TouchableOpacity>
+                    <Text className="text-slate-400 text-xs">-</Text>
+                    <TouchableOpacity
+                      onPress={() => openTimePicker(hour.id, "secondHour", hour.secondHour)}
+                      className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex-1 items-center justify-center"
+                    >
+                      <Text className="text-slate-800 text-xs font-semibold">
+                        {getFormatTime(hour.secondHour) || "12:00"}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-gray-500 text-[10px] mb-1">
+                  <Text className="text-slate-400 text-[10px] font-semibold mb-1">
                     2º Turno (Início - Fim)
                   </Text>
                   <View className="flex-row items-center gap-2">
-                    <TextInput
-                      value={getFormatTime(hour.thirdHour)}
-                      onChangeText={(val) =>
-                        handleHourChange(hour.id, "thirdHour", val)
-                      }
-                      placeholder="13:00"
-                      placeholderTextColor={themeColor}
-                      className="bg-background-tertiary border border-gray-700 p-2 rounded-lg text-font-primary text-xs flex-1 text-center"
-                    />
-                    <Text className="text-gray-500 text-xs">-</Text>
-                    <TextInput
-                      value={getFormatTime(hour.lastHour)}
-                      onChangeText={(val) =>
-                        handleHourChange(hour.id, "lastHour", val)
-                      }
-                      placeholder="18:00"
-                      placeholderTextColor={themeColor}
-                      className="bg-background-tertiary border border-gray-700 p-2 rounded-lg text-font-primary text-xs flex-1 text-center"
-                    />
+                    <TouchableOpacity
+                      onPress={() => openTimePicker(hour.id, "thirdHour", hour.thirdHour)}
+                      className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex-1 items-center justify-center"
+                    >
+                      <Text className="text-slate-800 text-xs font-semibold">
+                        {getFormatTime(hour.thirdHour) || "13:00"}
+                      </Text>
+                    </TouchableOpacity>
+                    <Text className="text-slate-400 text-xs">-</Text>
+                    <TouchableOpacity
+                      onPress={() => openTimePicker(hour.id, "lastHour", hour.lastHour)}
+                      className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex-1 items-center justify-center"
+                    >
+                      <Text className="text-slate-800 text-xs font-semibold">
+                        {getFormatTime(hour.lastHour) || "18:00"}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -285,6 +286,17 @@ export function CompanyEditView() {
           ))}
         </View>
       </ScrollView>
+
+      {/* DateTime Picker Modal */}
+      {activeHourEdit && (
+        <AppDateTimePicker
+          open={!!activeHourEdit}
+          date={activeHourEdit.dateValue}
+          mode="time"
+          onConfirm={handleConfirmTime}
+          onCancel={() => setActiveHourEdit(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }

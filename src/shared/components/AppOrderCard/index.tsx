@@ -1,6 +1,5 @@
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import {
-  EOrderStatus,
   OrderHttpResponse,
   OrderInterface,
 } from "@/shared/interfaces/http/order";
@@ -52,7 +51,7 @@ export function AppOrderCard({
   const { safePush } = useSafeNavigation();
 
   const renderItem = useCallback(
-    ({ item, index }: { item: OrderInterface; index: number }) => (
+    ({ item }: { item: OrderInterface; index: number }) => (
       <TouchableOpacity
         onPress={() =>
           safePush(`/(private)/(tabs)/(admin-tabs)/finance/order/order-details/${item.id}`)
@@ -60,18 +59,21 @@ export function AppOrderCard({
         activeOpacity={0.8}
       >
         <View
-          className="flex-row justify-between items-center p-5 rounded-md w-full"
+          className="flex-row justify-between items-center p-5 rounded-xl w-full bg-white mb-3 border border-gray-100 shadow-sm"
         >
           <View className="flex-1 pr-3">
             {item.orderNumber && (
-              <Text className="text-font-primary text-sm font-semibold">
-                Nº {item.orderNumber}
+              <Text className="text-font-primary text-sm font-bold">
+                Comanda Nº {item.orderNumber}
               </Text>
             )}
-            <Text className="text-font-primary   text-sm">Valor:</Text>
-            {item.user?.id && (
+            <Text className="text-gray-400 text-xs mt-1">Valor Total:</Text>
+            <Text className="text-accent-orange font-bold text-lg mt-0.5">
+              R$ {moneyMapper(getOrderTotal(item))}
+            </Text>
+            {item.user?.name && (
               <Text
-                className="text-font-primary text-sm"
+                className="text-gray-500 text-xs mt-2"
                 ellipsizeMode="tail"
                 numberOfLines={1}
               >
@@ -79,32 +81,34 @@ export function AppOrderCard({
               </Text>
             )}
           </View>
-          <View className="items-end max-w-[45%]">
+
+          <View className="items-end max-w-[48%] justify-between h-full">
             {item.moment && (
-              <Text className="text-font-primary text-sm">
+              <Text className="text-gray-400 text-xs">
                 {formatIsoDateAndTimeToBR(item.moment)}
               </Text>
             )}
-            {item.status && (
-              <Text className="text-app-theme-primary font-bold text-base">
-                R$ {moneyMapper(getOrderTotal(item))}
-              </Text>
-            )}
+
             {item.employee?.name && (
               <Text
-                className="text-gray-500  text-sm"
+                className="text-gray-500 text-xs text-right mt-1"
                 ellipsizeMode="tail"
-                numberOfLines={2}
+                numberOfLines={1}
               >
-                Profissional criador: {item.employee?.name}
+                Por: {item.employee?.name}
               </Text>
             )}
+
             {item.status && (
               <View
-                className={`rounded-full gap-2 px-3    mt-2 bg-blue-500/20`}
+                className={`rounded-full px-3 py-1 mt-2 self-end ${
+                  item.status === "OPEN" ? "bg-green-500/10" : "bg-red-500/10"
+                }`}
               >
-                <Text className={`text-sm  text-font-primary`}>
-                  {item.  status === "OPEN" ? "Aberta" : ""}
+                <Text className={`text-xs font-semibold ${
+                  item.status === "OPEN" ? "text-green-600" : "text-red-500"
+                }`}>
+                  {item.status === "OPEN" ? "Aberta" : "Fechada"}
                 </Text>
               </View>
             )}
@@ -119,8 +123,9 @@ export function AppOrderCard({
     <FlatList
       style={{ flex: 1 }}
       contentContainerStyle={{
-        borderRadius: 10,
-        borderColor: "#AEAEAE",
+        paddingHorizontal: 16,
+        paddingTop: 8,
+        paddingBottom: 80,
       }}
       data={data}
       refreshControl={
@@ -140,13 +145,10 @@ export function AppOrderCard({
       ListFooterComponent={
         orderIsFetchingNextPage ? <ActivityIndicator /> : null
       }
-      ItemSeparatorComponent={() => (
-        <View className="border-b border-accent-brand-background-primary mx-5" />
-      )}
       ListEmptyComponent={
         <AppEmptyList
           title="Comandas"
-          description="Não há comandas em aberto"
+          description="Nenhuma comanda encontrada para os filtros selecionados"
           iconName="receipt-outline"
         />
       }

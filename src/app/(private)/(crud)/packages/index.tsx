@@ -2,6 +2,8 @@ import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { AppCard } from "@/shared/components/AppCard";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { usePackageViewModel } from "@/viewModel/Admin/Packages/usePackageViewModel";
+import { AppInput } from "@/shared/components/AppInput";
+import { View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,6 +11,8 @@ export default function PackagePageList() {
   const {
     packages,
     isLoading,
+    searchValue,
+    setSearchValue,
   } = usePackageViewModel(undefined);
 
   const { safePush } = useSafeNavigation();
@@ -21,13 +25,21 @@ export default function PackagePageList() {
         action={() => safePush(`/packages/package-create`)}
         iconRight={{ icon: true, path: "/packages/package-create" }}
       />
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <AppInput
+          placeholder="Buscar pacote por nome..."
+          leftIcon="search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+        />
+      </View>
       <AppCard
         data={packages.map((p) => ({
           id: p.id,
           title: p.name,
           description: p.description,
           imgUrl: p.imgUrl,
-          price: p.price,
+          price: Number(p.price),
         }))}
         onItemPress={(item) => {
           router.push({

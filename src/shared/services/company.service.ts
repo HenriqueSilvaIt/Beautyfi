@@ -1,5 +1,6 @@
 import { styleAppApiClient } from "../api/styleAppBackend";
 import { useCompanyStore } from "../store/company-store";
+import { useUserStore } from "../store/user-store";
 import {
   CompanyHttpResponse,
   CompanyInterface,
@@ -9,10 +10,14 @@ import {
   CompanyReviewProps,
 } from "../interfaces/http/company";
 
-const COMPANY_ID_NUMBER = 1; // Fallback default ID
+function getCompanyId() {
+  const user = useUserStore.getState().user;
+  if (user?.companyId) return user.companyId;
+  return useCompanyStore.getState().selectedCompanyId || 0;
+}
 
 export async function companyDetails(companyId?: number) {
-  const id = companyId || useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
+  const id = companyId || getCompanyId();
   const { data } =
     await styleAppApiClient.get<CompanyProps>(`/companies/${id}/details`);
 

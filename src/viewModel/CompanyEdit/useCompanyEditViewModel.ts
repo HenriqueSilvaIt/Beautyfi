@@ -167,6 +167,33 @@ export function useCompanyEditViewModel() {
     return parts[1].substring(0, 5); // HH:MM
   };
 
+  const [activeHourEdit, setActiveHourEdit] = useState<{ id: number; field: string; dateValue: Date } | null>(null);
+
+  const openTimePicker = (id: number, field: string, isoString: string) => {
+    let dateVal = new Date();
+    if (isoString) {
+      try {
+        // Se a string ISO for válida
+        dateVal = new Date(isoString);
+        if (isNaN(dateVal.getTime())) {
+          dateVal = new Date();
+        }
+      } catch {
+        dateVal = new Date();
+      }
+    }
+    setActiveHourEdit({ id, field, dateValue: dateVal });
+  };
+
+  const handleConfirmTime = (selectedDate: Date) => {
+    if (activeHourEdit) {
+      const hours = String(selectedDate.getHours()).padStart(2, "0");
+      const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+      handleHourChange(activeHourEdit.id, activeHourEdit.field, `${hours}:${minutes}`);
+      setActiveHourEdit(null);
+    }
+  };
+
   const uploadSelectedImage = async (uri: string) => {
     setUploading(true);
     try {
@@ -175,8 +202,11 @@ export function useCompanyEditViewModel() {
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : `image/jpeg`;
 
+      // Formatar URI para Android se necessário
+      const formattedUri = Platform.OS === "android" && !uri.startsWith("file://") ? `file://${uri}` : uri;
+
       formData.append("file", {
-        uri: uri,
+        uri: formattedUri,
         name: filename,
         type: type,
       } as any);
@@ -193,7 +223,8 @@ export function useCompanyEditViewModel() {
       }
     } catch (err: any) {
       console.error(err);
-      Alert.alert("Erro", "Não foi possível enviar a imagem. Verifique a conexão.");
+      const serverMsg = err.response?.data?.message || err.response?.data || err.message;
+      Alert.alert("Erro", `Não foi possível enviar a imagem. Detalhe: ${serverMsg}`);
     } finally {
       setUploading(false);
     }
@@ -259,5 +290,9 @@ export function useCompanyEditViewModel() {
     getFormatTime,
     handlePickAndUploadImage,
     handleRemoveImage,
+    activeHourEdit,
+    setActiveHourEdit,
+    openTimePicker,
+    handleConfirmTime,
   };
 }

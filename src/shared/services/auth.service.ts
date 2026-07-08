@@ -10,10 +10,11 @@ import { useUserStore } from "../store/user-store";
 import { useCompanyStore } from "../store/company-store";
 import { AxiosRequestConfig } from "axios";
 import { GoogleAuthResponseDTO } from "../interfaces/http/authenticate-reposnse";
-import { COMPANY_ID } from "@env";
-  const COMPANY_ID_NUMBER = Number(COMPANY_ID)
-    ? Number(COMPANY_ID)
-    : (Number(process.env.EXPO_PUBLIC_COMPANY_ID) ?? 0);
+function getCompanyId() {
+  const user = useUserStore.getState().user;
+  if (user?.companyId) return user.companyId;
+  return useCompanyStore.getState().selectedCompanyId || 0;
+}
 
 export async function register(userData: RegisterHttpParams) {
   const { data } = await styleAppApiClient.post<RegisterHttpResponse>(
@@ -53,7 +54,7 @@ export async function recoverPassword(email: string) {
 
 
 export async function googleAuth(token: string) {
-  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
+  const companyId = getCompanyId();
   const { data } = await styleAppApiClient.post<GoogleAuthResponseDTO>(
     `/auth/${companyId}/google`,
     {
@@ -65,7 +66,7 @@ export async function googleAuth(token: string) {
 }
 
 export async function appleAuth(token: string, name: string) {
-  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
+  const companyId = getCompanyId();
   const { data } = await styleAppApiClient.post<GoogleAuthResponseDTO>(
     `/auth/${companyId}/apple`,
     {

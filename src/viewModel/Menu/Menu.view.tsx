@@ -65,6 +65,21 @@ export function MenuView({
             Dados Pessoais
           </AppButton>
 
+          {!isAdmin && !isEmployee && (
+            <AppButton
+              className=""
+              leftIcon="heart"
+              rightIcon="chevron-forward"
+              variant="admin"
+              activeOpacity={0.8}
+              size={true}
+              description="Visualize seus estabelecimentos favoritos."
+              onPress={() => safePush("/(private)/(tabs)/(client-tabs)/(menu)/favorites")}
+            >
+              Favoritos
+            </AppButton>
+          )}
+
           {/*{isAdmin && (
             <AppButton
               className="" /*tem que passar como prop o className 

@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { format } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +39,10 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const handleSubmitReview = async () => {
+    if (!newComment.trim()) {
+      Alert.alert("Erro", "Por favor, digite um comentário.");
+      return;
+    }
     setIsSubmittingReview(true);
     try {
       await createCompanyReviewMutation.mutateAsync({
@@ -47,10 +52,11 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
       });
       setNewComment("");
       setNewRating(5);
-      alert("Avaliação enviada com sucesso!");
-    } catch (err) {
+      Alert.alert("Sucesso", "Sua avaliação foi enviada com sucesso!");
+    } catch (err: any) {
       console.error(err);
-      alert("Erro ao enviar avaliação.");
+      const msg = err instanceof Error ? err.message : "Erro ao enviar avaliação.";
+      Alert.alert("Erro", msg);
     } finally {
       setIsSubmittingReview(false);
     }

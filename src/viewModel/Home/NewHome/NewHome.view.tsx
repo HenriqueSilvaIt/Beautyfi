@@ -7,6 +7,7 @@ import { AppHeader } from "@/shared/components/AppHeader";
 import { useUserStore } from "@/shared/store/user-store";
 import { Ionicons } from "@expo/vector-icons";
 import { AppMapModal } from "@/shared/components/AppMapModal";
+import { colors } from "@/styles/colors";
 
 export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
   const {
@@ -75,7 +76,8 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
               <Ionicons name="search-outline" size={20} color="#9ca3af" className="mr-2" />
               <TextInput
                 placeholder="Buscar por estabelecimento..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors["app-theme-primary"]}
+
                 value={searchText}
                 onChangeText={setSearchText}
                 className="flex-1 text-gray-800 text-sm p-0 h-5"
@@ -135,7 +137,8 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
               <Ionicons name="location-outline" size={20} color="#9ca3af" className="mr-2" />
               <TextInput
                 placeholder="Digite seu endereço (ex: Av. Paulista)"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors["app-theme-primary"]}
+
                 value={addressText}
                 onChangeText={setAddressText}
                 className="flex-1 text-gray-800 text-sm p-0 h-6"

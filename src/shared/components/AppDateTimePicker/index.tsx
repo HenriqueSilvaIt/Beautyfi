@@ -6,6 +6,7 @@ type Props = {
   onConfirm: (date: Date) => void;
   onCancel: () => void;
   minimumDate?: Date;
+  mode?: "date" | "time" | "datetime";
 };
 export function AppDateTimePicker({
   open,
@@ -13,13 +14,15 @@ export function AppDateTimePicker({
   onConfirm,
   onCancel,
   minimumDate,
+  mode,
 }: Props) {
   return (
     <DatePicker
       modal
       open={open}
       date={date || new Date()}
-      mode="datetime"
+      mode={mode || "datetime"}
+      locale="pt-BR"
       is24hourSource="locale"
       minimumDate={minimumDate}
       onConfirm={onConfirm}

@@ -3,9 +3,8 @@ import { AppCard } from "@/shared/components/AppCard";
 import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useAdvertisementViewModel } from "@/viewModel/Admin/Advertisements/useAdvertisementViewModel";
-
+import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
-
 import { View } from "react-native";
 
 export default function AdvertisementPageList() {
@@ -18,6 +17,8 @@ export default function AdvertisementPageList() {
     advertisementFetchNextPage,
     advertisementIsRefetching,
     isRefreshing,
+    searchValue,
+    setSearchValue,
   } = useAdvertisementViewModel(undefined);
 
   const {safePush} = useSafeNavigation()
@@ -34,6 +35,14 @@ export default function AdvertisementPageList() {
               path: "/advertisements/advertisement-create",
             }}
           />
+          <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+            <AppInput
+              placeholder="Buscar anúncio por nome..."
+              leftIcon="search"
+              value={searchValue}
+              onChangeText={setSearchValue}
+            />
+          </View>
           <AppCard
             data={adversetmentPagged.map((s) => ({
               id: s.id,

@@ -12,6 +12,7 @@ import { AppButton } from "@/shared/components/AppButton";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { CompanyEmployees } from "@/shared/components/CompanyTabs/CompanyEmployees";
 import { TrialBanner } from "@/shared/components/TrialBanner";
+import { AppInput } from "@/shared/components/AppInput";
 
 export function HomeView() {
   const {
@@ -56,6 +57,8 @@ export function HomeView() {
     isAdmin,
     openBottomSheet,
     company,
+    searchValue,
+    setSearchValue,
   } = useHomeViewModel();
   const { user, access_token } = useUserStore();
 
@@ -121,6 +124,16 @@ export function HomeView() {
               />
               </>
             )}
+
+            <View style={{ paddingHorizontal: 20, marginVertical: 10 }}>
+              <AppInput
+                placeholder="Buscar serviços ou produtos..."
+                leftIcon="search"
+                value={searchValue}
+                onChangeText={setSearchValue}
+              />
+            </View>
+
             {productDataPagged && memoCompanyServices ? (
               <BusinessTabs
                 activeMenu={menuBusiness}

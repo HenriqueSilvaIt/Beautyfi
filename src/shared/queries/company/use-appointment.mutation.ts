@@ -3,11 +3,13 @@ import {
   cancelAppointmentById,
   deleteAppointment,
   getAppointmentAdmin,
+  getAppointmentById,
   getAppointments,
   getAvailableAppointments,
+  udpdateAppointment,
   getMonthlyAppointments,
 } from "../../services/appointment.service";
-import { AppointmentHttpStatusParams } from "@/shared/interfaces/http/appointment";
+import { AppointmentHttpStatusParams, AppointmentProps, AppointmentUpdateHttpParams } from "@/shared/interfaces/http/appointment";
 import { queryClient } from "../../../../queryClient";
 import { AvailableAppointmentsHttpParams } from "@/shared/interfaces/http/available-appointments";
 export interface AppointmentsAgendaProps {
@@ -25,10 +27,27 @@ export function useAppointmentMutation() {
         if (lastPage.last) return undefined;
         return lastPage.number + 1;
       },
-      staleTime: 1000 * 60 * 3, // 5 minutos em cache, evita refetch imediato
+      staleTime: 0, // 5 minutos em cache, evita refetch imediato
+      gcTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
     });
   }
+
+
+    function useGetAppointmentById(id: number) {
+      return useQuery<AppointmentProps>({
+        queryKey: ["appointments", id],
+        queryFn: () => {
+          if (!id) throw new Error("Id is required");
+          return getAppointmentById(id);
+        },
+  
+        enabled: Number.isFinite(id) && id > 0,
+        staleTime: 0, // ✅ sempre considera dado stale — notifica mudanças
+        gcTime: 1000 * 60 * 5, // ✅ mantém no cache por 5 min sem refetch desnecessário
+        refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
+      });
+    } 
 
   function useGetAvailableAppointmentMutation(
     params: AvailableAppointmentsHttpParams,
@@ -50,6 +69,7 @@ export function useAppointmentMutation() {
       refetchOnWindowFocus: false,
     });
   }
+
 
   function useGetAgendaQuery(date: string, employeeId?: number | null) {
     return useQuery({
@@ -79,6 +99,22 @@ export function useAppointmentMutation() {
     onSuccess: (response) => {},
     onError: (error) => {
       console.log(error);
+    },
+  });
+
+  const updateAppointmentMutation = useMutation({
+    mutationFn: ({ id, dataBody }: { id: number; dataBody: AppointmentUpdateHttpParams }) =>
+      udpdateAppointment(id, dataBody),
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["agenda"] });
+      queryClient.invalidateQueries({ queryKey: ["available-appointments"] });
+      if (variables?.id) {
+        queryClient.invalidateQueries({ queryKey: ["appointments", variables.id] });
+      }
+    },
+    onError: (error) => {
+      console.error(error);
     },
   });
 
@@ -114,7 +150,9 @@ export function useAppointmentMutation() {
     cancelAppointmentById,
     useGetAppointmentMutation,
     useGetAvailableAppointmentMutation,
+    useGetAppointmentById,
     cancelAppointmentByIdMutation,
+    updateAppointmentMutation,
     useGetMonthlyAppointmentsQuery,
   };
 }

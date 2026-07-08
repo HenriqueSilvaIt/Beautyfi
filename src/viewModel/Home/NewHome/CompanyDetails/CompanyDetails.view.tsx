@@ -8,6 +8,7 @@ import { CompanyDetails } from "@/shared/components/CompanyTabs/CompanyDetails";
 import { CompanyServices } from "@/shared/components/BusinessTabs/CompanyServices";
 import { CompanyProduct } from "@/shared/components/BusinessTabs/CompanyProduct";
 import { FlatList } from "react-native-gesture-handler";
+import { AppInput } from "@/shared/components/AppInput";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -74,6 +75,14 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
       case "Serviços":
         return (
           <View className="flex-1 min-h-[300px]">
+            <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+              <AppInput
+                placeholder="Buscar serviços por nome..."
+                leftIcon="search"
+                value={props.searchValue}
+                onChangeText={props.setSearchValue}
+              />
+            </View>
             {servicesList.length > 0 ? (
               <CompanyServices
                 data={servicesList}
@@ -94,6 +103,14 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
       case "Produtos":
         return (
           <View className="flex-1 min-h-[300px]">
+            <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+              <AppInput
+                placeholder="Buscar produtos por nome..."
+                leftIcon="search"
+                value={props.searchValue}
+                onChangeText={props.setSearchValue}
+              />
+            </View>
             {productsList.length > 0 ? (
               <CompanyProduct
                 data={productsList}
@@ -153,7 +170,8 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
 
                 <TextInput
                   placeholder="Escreva seu comentário aqui..."
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={colors["app-theme-primary"]}
+
                   value={props.newComment}
                   onChangeText={props.setNewComment}
                   multiline

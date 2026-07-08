@@ -99,7 +99,7 @@ export function useCompanyRegisterViewModel() {
     ),
   );
 
-  // Busca do CEP via API do ViaCEP
+  // Busca do CEP via API do ViaCEP do Backend
   const searchCep = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, "");
     updateData({ cep: cleanCep });
@@ -107,11 +107,9 @@ export function useCompanyRegisterViewModel() {
     if (cleanCep.length === 8) {
       setAddressLoading(true);
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-        if (!response.ok) throw new Error("Erro de rede");
-        const json = await response.json();
+        const { data: json } = await styleAppApiClient.get(`/cep/${cleanCep}`);
 
-        if (json.erro) {
+        if (!json || !json.cep) {
           Alert.alert("CEP não encontrado", "Por favor, preencha o endereço manualmente.");
           return;
         }

@@ -40,6 +40,7 @@ export function useAdvertisementViewModel(advertisementId: number | undefined) {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const uploadAdvertisementAvatarMutation =
     useUploadAvatarGenericMutation<AdvertisementInterface>();
 
@@ -66,6 +67,10 @@ export function useAdvertisementViewModel(advertisementId: number | undefined) {
 
   const adversetmentPagged =
     adversetments?.pages.flatMap((page) => page.content ?? []) ?? [];
+
+  const filteredAdvertisements = adversetmentPagged.filter((ad) =>
+    (ad.title ?? "").toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   const {
     control,
@@ -259,7 +264,9 @@ await advertisementRefetch()
     onSubmit,
     onAdvertisementDelete,
     isRefreshing,
-    adversetmentPagged,
+    adversetmentPagged: filteredAdvertisements,
+    searchValue,
+    setSearchValue,
     isEditMode,
     reset,
     advertisementContent,

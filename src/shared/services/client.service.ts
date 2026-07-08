@@ -1,22 +1,23 @@
 import { styleAppApiClient } from "../api/styleAppBackend";
 import { ClientHttpResponse, ClientInterface } from "../interfaces/http/client";
-import { AxiosRequestConfig } from "axios";
-import { useUserStore } from "../store/user-store";
 import { useCompanyStore } from "../store/company-store";
-import { COMPANY_ID } from "@env";
+import { useUserStore } from "../store/user-store";
 
-const COMPANY_ID_NUMBER = Number(COMPANY_ID)
-  ? Number(COMPANY_ID)
-  : (Number(process.env.EXPO_PUBLIC_COMPANY_ID) ?? 0);
+function getCompanyId() {
+  const user = useUserStore.getState().user;
+  if (user?.companyId) return user.companyId;
+  return useCompanyStore.getState().selectedCompanyId || 0;
+}
 
-export async function getClients(page: number = 0, size: number = 10) {
-  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
+export async function getClients(page: number = 0, size: number = 10, name?: string) {
+  const companyId = getCompanyId();
   const { data } = await styleAppApiClient.get<ClientHttpResponse>(
     `/clients?companyId=${companyId}&sort=name,asc`,
     {
       params: {
         page,
         size,
+        name,
       },
     },
   );

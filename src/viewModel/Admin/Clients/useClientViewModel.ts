@@ -48,6 +48,16 @@ export function useClientViewModel(clientId: number | undefined) {
     clientUpdateMutation,
   } = useClientMutation();
 
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
   const { data: clientContent } = useGetClientById(Number(clientId));
   const {
     data: clientData,
@@ -58,7 +68,7 @@ export function useClientViewModel(clientId: number | undefined) {
     hasNextPage: clientHasNextPage,
     fetchNextPage: clientFetchNextPage,
     isFetchingNextPage: clientIsFetchingNextPage,
-  } = useGetClientMutation();
+  } = useGetClientMutation(debouncedSearch);
 
   const clientDataPagged =
     clientData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -297,5 +307,7 @@ export function useClientViewModel(clientId: number | undefined) {
     clientHasNextPage,
     clientFetchNextPage,
     clientIsFetchingNextPage,
+    searchValue,
+    setSearchValue,
   };
 }

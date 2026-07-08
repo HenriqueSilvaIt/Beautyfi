@@ -38,6 +38,15 @@ export const mockPackages = [
 export function useCompanyDetailsViewModel(companyId?: number) {
   const [activeTab, setActiveTab] = useState<CompanyDetailTab>("Serviços");
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
 
   const {
     useGetCompanyDetailsQuery,
@@ -84,7 +93,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     fetchNextPage: serviceFetchNextPage,
     hasNextPage: serviceHasNextPage,
     isFetchingNextPage: serviceIsFetchingNextPage,
-  } = useGetServiceMutation();
+  } = useGetServiceMutation(debouncedSearch);
 
   // Load products
   const {
@@ -94,7 +103,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     fetchNextPage: productFetchNextPage,
     hasNextPage: productHasNextPage,
     isFetchingNextPage: productIsFetchingNextPage,
-  } = useGetProductsMutation();
+  } = useGetProductsMutation(debouncedSearch);
 
   // Load subscription plans
   const { data: subscriptionPlans, isLoading: isPlansLoading } = useGetSubscriptionPlansQuery();
@@ -211,9 +220,10 @@ export function useCompanyDetailsViewModel(companyId?: number) {
       setNewComment("");
       setNewRating(5);
       Alert.alert("Sucesso", "Sua avaliação foi enviada com sucesso!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      Alert.alert("Erro", "Erro ao enviar avaliação.");
+      const msg = err instanceof Error ? err.message : "Erro ao enviar avaliação.";
+      Alert.alert("Erro", msg);
     } finally {
       setIsSubmittingReview(false);
     }
@@ -248,6 +258,8 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     serviceHasNextPage,
     serviceIsFetchingNextPage,
     serviceIsLoading,
+    searchValue,
+    setSearchValue,
     productFetchNextPage,
     refetchProduct,
     productHasNextPage,

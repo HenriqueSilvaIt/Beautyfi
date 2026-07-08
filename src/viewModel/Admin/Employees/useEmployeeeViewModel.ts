@@ -52,6 +52,16 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
   const { handleError } = useErrorHandler();
 
 
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
   const {
     data: employeeData,
     error: employeeError,
@@ -61,7 +71,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
     hasNextPage: employeeHasNextPage,
     fetchNextPage: employeeFetchNextPage,
     isFetchingNextPage: employeeIsFetchingNextPage,
-  } = useGetEmployeeMutation();
+  } = useGetEmployeeMutation({ name: debouncedSearch });
 
   const employeeDataPagged =
     employeeData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -347,5 +357,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
     employeeFetchNextPage,
     employeeIsFetchingNextPage,
     isLoading,
+    searchValue,
+    setSearchValue,
   };
 }

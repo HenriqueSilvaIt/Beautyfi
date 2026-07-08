@@ -1,10 +1,13 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useSettingsStore } from "@/shared/store/settings-store";
 
 export default function PreferencesMenuScreen() {
+  const { allowInAppNewAppointmentModal, setAllowInAppNewAppointmentModal } = useSettingsStore();
+
   return (
     <SafeAreaView className="flex-1 bg-background-primary px-5 py-4">
       {/* Header */}
@@ -18,7 +21,7 @@ export default function PreferencesMenuScreen() {
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">Preferências</Text>
       </View>
-
+ 
       {/* Menu Options */}
       <View className="gap-4">
         {/* WhatsApp Button */}
@@ -38,7 +41,7 @@ export default function PreferencesMenuScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
-
+ 
         {/* Company Data Button */}
         <TouchableOpacity
           onPress={() => router.push("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/company-edit")}
@@ -56,6 +59,25 @@ export default function PreferencesMenuScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
+
+        {/* Switch Toggle for in-app modals */}
+        <View className="bg-white/5 border border-gray-700/60 p-4 rounded-2xl flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1 pr-4">
+            <View className="bg-blue-500/10 p-3 rounded-xl mr-4">
+              <Ionicons name="notifications" size={24} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white text-base font-bold">Alertas de Agendamento</Text>
+              <Text className="text-gray-600 text-xs mt-1">Exibir balão flutuante para novos agendamentos com app aberto</Text>
+            </View>
+          </View>
+          <Switch
+            value={allowInAppNewAppointmentModal}
+            onValueChange={setAllowInAppNewAppointmentModal}
+            trackColor={{ false: "#374151", true: "#CBA35D" }}
+            thumbColor={allowInAppNewAppointmentModal ? "#ffffff" : "#9ca3af"}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );

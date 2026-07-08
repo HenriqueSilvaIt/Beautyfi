@@ -30,6 +30,9 @@ export interface UserInterface {
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
   allowPushNotifications?: boolean;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UserChangePasswordInterface {

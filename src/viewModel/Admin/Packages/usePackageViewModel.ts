@@ -11,6 +11,12 @@ export function usePackageViewModel(packageId: number | undefined) {
   const { notify } = useSnackbarContext();
   
   const { packages, addPackage, updatePackage, deletePackage } = usePackageStore();
+  const [searchValue, setSearchValue] = useState("");
+
+  const filteredPackages = packages.filter((p) =>
+    p.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
   const packageContent = packages.find((p) => p.id === packageId);
 
   const {
@@ -54,7 +60,7 @@ export function usePackageViewModel(packageId: number | undefined) {
           servicesIncluded: formData.servicesIncluded || "",
           imgUrl: formData.imgUrl || ""
         });
-        notify("Pacote atualizado com sucesso!", "success");
+        notify({message: "Pacote atualizado com sucesso!", type: "SUCCESS"});
       } else {
         addPackage({
           name: formData.name,
@@ -64,11 +70,13 @@ export function usePackageViewModel(packageId: number | undefined) {
           servicesIncluded: formData.servicesIncluded || "",
           imgUrl: formData.imgUrl || ""
         });
-        notify("Pacote criado com sucesso!", "success");
+        notify( {message: "Pacote criado com sucesso!",  type: "SUCCESS" }
+
+        );
       }
       router.back();
     } catch (err) {
-      notify("Erro ao salvar pacote", "error");
+      notify({message: "Erro ao salvar pacote", type: "ERROR"});
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +85,7 @@ export function usePackageViewModel(packageId: number | undefined) {
   const onPackageDelete = async () => {
     if (isEditMode && packageId) {
       deletePackage(packageId);
-      notify("Pacote excluído com sucesso!", "success");
+      notify({message: "Pacote excluído com sucesso!", type: "SUCCESS"});
       router.back();
     }
   };
@@ -90,6 +98,8 @@ export function usePackageViewModel(packageId: number | undefined) {
     packageId,
     isLoading,
     onPackageDelete,
-    packages,
+    packages: filteredPackages,
+    searchValue,
+    setSearchValue,
   };
 }

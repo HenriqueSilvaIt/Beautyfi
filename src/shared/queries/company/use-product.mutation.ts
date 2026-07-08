@@ -31,10 +31,10 @@ export function useProductMutation() {
     });
   }
 
-  function useGetProductsMutation(search: string = "") {
+  function useGetProductsMutation(name?: string) {
     return useInfiniteQuery({
-      queryKey: ["products", search],
-      queryFn: ({ pageParam = 0 }) => getProducts(pageParam, 10, search),
+      queryKey: ["products", name],
+      queryFn: ({ pageParam = 0 }) => getProducts(pageParam, 10, name),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;

@@ -4,6 +4,7 @@ import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { Loading } from "@/shared/components/Loading";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useEmployeeViewModel } from "@/viewModel/Admin/Employees/useEmployeeeViewModel";
+import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,13 +18,15 @@ export default function EmployeesPageList() {
     employeeHasNextPage,
     employeeFetchNextPage,
     employeeIsFetchingNextPage,
+    searchValue,
+    setSearchValue,
   } = useEmployeeViewModel(undefined);
 
   if (employeeIsLoading) {
-    <Loading/>
+    return <Loading />;
   }
 
-  const {safePush} = useSafeNavigation()
+  const {safePush} = useSafeNavigation();
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader
@@ -32,6 +35,14 @@ export default function EmployeesPageList() {
         action={() => safePush(`/employees/employee-create`)}
         iconRight={{ icon: true, path: "/employees/employee-create" }}
       />
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <AppInput
+          placeholder="Buscar profissional por nome..."
+          leftIcon="search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+        />
+      </View>
       <AppCard
         data={employeeDataPagged
           .filter((e) => e.id !== undefined)

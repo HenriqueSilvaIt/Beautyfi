@@ -1,8 +1,13 @@
-import { AxiosRequestConfig } from "axios";
 import { styleAppApiClient } from "../api/styleAppBackend";
 import { CompanyServiceHttpResponse, CompanyServicesInterface, CreateServiceDTO } from "../interfaces/http/company-services";
-import { useUserStore } from "../store/user-store";
 import { useCompanyStore } from "../store/company-store";
+import { useUserStore } from "../store/user-store";
+
+function getCompanyId() {
+  const user = useUserStore.getState().user;
+  if (user?.companyId) return user.companyId;
+  return useCompanyStore.getState().selectedCompanyId || 0;
+}
 
 export async function getServiceById(serviceId: number) {
 
@@ -16,16 +21,16 @@ export async function getServiceById(serviceId: number) {
 export async function getServices (
     page: number = 0,
     size: number = 10,
-    search: string = ""
+    name?: string,
 ) {
-    const companyId = useCompanyStore.getState().selectedCompanyId;
+    const companyId = getCompanyId();
     const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>("/services?sort=name,asc", 
          {
     params: {
       page,
       size,
-      name: search || undefined,
-      ...(companyId ? { companyId } : {})
+      companyId,
+      name
     }
   } ) 
         return data;
@@ -35,8 +40,12 @@ export async function getServices (
 
 
 export async function getServicesByEmployeeId (employeeId?: number) {
-
-    const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>(`/services/employee/${employeeId}`) 
+    const companyId = getCompanyId();
+    const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>(`/services/employee/${employeeId}`, {
+        params: {
+        companyId
+      }
+    }) 
         return data;
     
 

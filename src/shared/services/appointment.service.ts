@@ -1,8 +1,11 @@
 import { AxiosRequestConfig } from "axios";
 import { styleAppApiClient } from "../api/styleAppBackend";
 import {
+  AppointmentHttpParams,
   AppointmentHttpResponse,
   AppointmentHttpStatusParams,
+  AppointmentProps,
+  AppointmentUpdateHttpParams,
 } from "../interfaces/http/appointment";
 import { useUserStore } from "../store/user-store";
 import {
@@ -66,6 +69,24 @@ export async function getAvailableAppointments(
     "elementos",
     data.content?.length,
     "content",
+  );
+
+  return data;
+}
+
+export  async function getAppointmentById(id: number) {
+  const { data }  = await styleAppApiClient.get<AppointmentProps>(
+    `/appointments/${id}`,
+  );    
+  
+  return data;
+}
+
+
+export async function udpdateAppointment(id: number, dataBody: AppointmentUpdateHttpParams) {
+  const { data } = await styleAppApiClient.put<AppointmentProps>(
+    `/appointments/${id}`,
+    dataBody,
   );
 
   return data;

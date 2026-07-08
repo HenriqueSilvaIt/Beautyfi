@@ -33,7 +33,17 @@ export interface LocalImage {
 
 export function useHomeViewModel() {
   const { useGetAdvertisementsQuery } = useAdvertisementMutation();
-const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
   const {
     data: adversetmentData,
     error: adversetmentError,
@@ -56,7 +66,7 @@ const [selectedServices, setSelectedServices] = useState<number[]>([]);
     isLoading: serviceIsLoading,
     isRefetching: serviceIsRefetching,
     fetchNextPage: serviceFetchNextPage,
-  } = useGetServiceMutation();
+  } = useGetServiceMutation(debouncedSearch);
 
 
   const serviceDataPagged =
@@ -72,7 +82,7 @@ const [selectedServices, setSelectedServices] = useState<number[]>([]);
     hasNextPage: productHasNextPage,
     fetchNextPage: productFetchNextPage,
     isLoading: isProductLoading,
-  } = useGetProductsMutation();
+  } = useGetProductsMutation(debouncedSearch);
 
   const productDataPagged =
     productData?.pages.flatMap((pages) => pages.content ?? []) 
@@ -342,6 +352,8 @@ const productsInStock = productDataPagged.filter(
     isAdmin,
     setSelectedServices,
     selectedServices,
-    handleAgendar
+    handleAgendar,
+    searchValue,
+    setSearchValue,
   };
 }

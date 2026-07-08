@@ -1,6 +1,6 @@
-import { COMPANY_ID } from "@env";
 import { styleAppApiClient } from "../api/styleAppBackend";
 import { useCompanyStore } from "../store/company-store";
+import { useUserStore } from "../store/user-store";
 import {
   EmployeeHttpRepsonse,
   EmployeeInterface,
@@ -10,9 +10,11 @@ import {
   ServiceEmployeeParams,
 } from "../interfaces/http/employee";
 
-const COMPANY_ID_NUMBER = Number(COMPANY_ID)
-  ? Number(COMPANY_ID)
-  : (Number(process.env.EXPO_PUBLIC_COMPANY_ID) ?? 0);
+function getCompanyId() {
+  const user = useUserStore.getState().user;
+  if (user?.companyId) return user.companyId;
+  return useCompanyStore.getState().selectedCompanyId || 0;
+}
 
 export async function getEmployees(
   page: number = 0,
@@ -20,7 +22,7 @@ export async function getEmployees(
   employeeId?: number,
   name?: string,
 ) {
-  const companyId = useCompanyStore.getState().selectedCompanyId || COMPANY_ID_NUMBER;
+  const companyId = getCompanyId();
   const { data } = await styleAppApiClient.get<EmployeeHttpRepsonse>(
     `/employees?companyId=${companyId}&sort=name,asc`,
     {

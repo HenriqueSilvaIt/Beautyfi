@@ -24,10 +24,16 @@ import {
   UserSubscriptionDTO,
 } from "../interfaces/http/stripe";
 
+import { useUserStore } from "../store/user-store";
+
 export async function fetchSubscriptionPlans() {
   const { data } =
     await styleAppApiClient.get<StripePlanDTO[]>(`/subscriptions/plans`);
 
+  const loggedInCompanyId = useUserStore.getState().user?.companyId;
+  if (loggedInCompanyId) {
+    return data.filter((plan) => plan.companyId === loggedInCompanyId);
+  }
   return data;
 }
 

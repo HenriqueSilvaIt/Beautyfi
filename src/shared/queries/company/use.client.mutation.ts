@@ -33,10 +33,10 @@ export function useClientMutation() {
     });
   }
 
-  function useGetClientMutation() {
+  function useGetClientMutation(name?: string) {
     return useInfiniteQuery({
-      queryKey: ["clients"],
-      queryFn: ({ pageParam = 0 }) => getClients(pageParam, 10),
+      queryKey: ["clients", name],
+      queryFn: ({ pageParam = 0 }) => getClients(pageParam, 10, name),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;

@@ -28,8 +28,8 @@ interface UpdateCustomServiceVariables {
 }
 
 interface FetchCustomServiceVariables {
-  employeeId: number
-  serviceId: number
+  employeeId: number;
+  serviceId: number;
 }
 
 export const employeeKeys = {
@@ -59,21 +59,22 @@ export function useEmployeeMutation() {
     },
   });
 
-  function useGetEmployeeMutation(
-    params?: {
-  name?: string;
-  companyId?: string;
-  employeeId?: number;
-    }  ) {
+  function useGetEmployeeMutation(params?: {
+    name?: string;
+    companyId?: string;
+    employeeId?: number;
+  }) {
     return useInfiniteQuery({
       queryKey: ["employees", params],
-      queryFn: ({ pageParam = 0 }) => getEmployees(pageParam, 30, params?.employeeId),
+      queryFn: ({ pageParam = 0 }) =>
+        getEmployees(pageParam, 30, params?.employeeId, params?.name),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;
         return lastPage.number + 1;
       },
-      staleTime: 1000 * 60 * 5, // 5 minutos em cache, evita refetch imediato
+      staleTime: 0, // 5 minutos em cache, evita refetch imediato
+      gcTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
     });
   }
@@ -126,41 +127,33 @@ export function useEmployeeMutation() {
   });
 
   const findByEmployeeAndServiceMutation = useMutation({
-    mutationFn: ( {
-      employeeId,
-      serviceId
-    } : FetchCustomServiceVariables) => findByEmployeeAndService(
-      employeeId, serviceId
-    ),
+    mutationFn: ({ employeeId, serviceId }: FetchCustomServiceVariables) =>
+      findByEmployeeAndService(employeeId, serviceId),
     onSuccess: (response) => {
-      console.log(response)
+      console.log(response);
     },
     onError: (error) => {
       console.log(error);
-    }
-  })
+    },
+  });
 
   const customServiceDetailsInsertMutation = useMutation({
     mutationFn: (data: ServiceEmployeeParams) =>
       customServiceDetailsInsert(data),
-    onSuccess: (response) => {
-    },
+    onSuccess: (response) => {},
     onError: (error) => {
       console.error(error);
     },
   });
 
-  
   const customServiceDetailsUpdateMutation = useMutation({
-    mutationFn: ({dataBody, id}: UpdateCustomServiceVariables) =>
-      customServiceDetailsUpdate( dataBody, id ),
-    onSuccess: (response) => {
-    },
+    mutationFn: ({ dataBody, id }: UpdateCustomServiceVariables) =>
+      customServiceDetailsUpdate(dataBody, id),
+    onSuccess: (response) => {},
     onError: (error) => {
       console.error(error);
     },
   });
-
 
   const employeeDeleteByIdMutation = useMutation({
     mutationFn: (employeeId: number) => deleteEmployeeById(employeeId),
