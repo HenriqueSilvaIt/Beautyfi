@@ -81,7 +81,7 @@ export function AmountModal({
         className={`h-[40px] w-full bg-app-theme-primary rounded-md items-center justify-center 
                       ${isLoading ? "justify-between" : ""}`}
       >
-        <Text className="text-center text-xl text-font-primary font-bold">
+        <Text className="text-center text-xl text-font-secundary font-bold">
           {isLoading ? <ActivityIndicator /> : buttonTitle}
         </Text>
       </TouchableOpacity>

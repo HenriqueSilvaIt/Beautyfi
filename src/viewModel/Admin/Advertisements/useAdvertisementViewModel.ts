@@ -11,6 +11,8 @@ import {
   useAdvertisementMutation,
 } from "@/shared/queries/company/use-advertisement.mutation";
 import { useUploadAvatarGenericMutation } from "@/shared/queries/company/use-uploadAvatar.mutation";
+import { useUserStore } from "@/shared/store/user-store";
+import { useCompanyStore } from "@/shared/store/company-store";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { CameraType } from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
@@ -55,6 +57,10 @@ export function useAdvertisementViewModel(advertisementId: number | undefined) {
     Number(advertisementId),
   );
 
+  const currentUser = useUserStore.getState().user;
+  const selectedCompanyId = useCompanyStore.getState().selectedCompanyId;
+  const companyId = currentUser?.companyId ?? selectedCompanyId ?? 1;
+
   const {
     data: adversetments,
     isLoading: advertisementIsLoading,
@@ -63,7 +69,7 @@ export function useAdvertisementViewModel(advertisementId: number | undefined) {
     hasNextPage: advertisementHasNextPage,
     fetchNextPage: advertisementFetchNextPage,
     isRefetching: advertisementIsRefetching,
-  } = useGetAdvertisementsQuery();
+  } = useGetAdvertisementsQuery(companyId);
 
   const adversetmentPagged =
     adversetments?.pages.flatMap((page) => page.content ?? []) ?? [];

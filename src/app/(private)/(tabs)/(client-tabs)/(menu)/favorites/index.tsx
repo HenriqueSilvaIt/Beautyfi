@@ -25,17 +25,14 @@ export default function FavoritesScreen() {
         const details = await Promise.all(ids.map(id => getCompanyById(id)));
         // Map CompanyInterface to CompanyDTO structure
         const mapped: CompanyDTO[] = details.map(c => ({
-          id: c.id,
+          id: Number(c.id),
           name: c.name,
           description: c.description || "",
           cnpj: c.cnpj || "",
           logoUrl: c.logoUrl || "",
-          createdAt: c.createdAt || "",
-          updatedAt: c.updatedAt || "",
           address: c.address || "",
           latitude: c.latitude || 0,
           longitude: c.longitude || 0,
-          subdomain: c.subdomain || "",
           phone: c.phone || "",
           rating: c.rating || 5,
           reviewsCount: c.reviewsCount || 0,

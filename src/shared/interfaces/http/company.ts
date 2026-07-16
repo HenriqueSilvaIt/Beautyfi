@@ -35,6 +35,16 @@ export interface CompanyInterface {
   imagesUrl?: string;
   services?: any[];
   companyCategories?: any[];
+  latitude?: number;
+  longitude?: number;
+  distanceKm?: number;
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number;
+  bookingConfirmationEnabled?: boolean;
+  type?: "MULTI_TENANT" | "WHITE_LABEL";
+  createdAt?: string;
+  updatedAt?: string;
+  subdomain?: string;
 }
 
 export interface CompanyProps {
@@ -52,6 +62,12 @@ export interface CompanyProps {
   reviewsCount?: number;
   imagesUrl?: string;
   services?: any[];
+  latitude?: number;
+  longitude?: number;
+  distanceKm?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  subdomain?: string;
   companyCategories?: any[];
   reminderEnabled?: boolean;
   reminderMinutesBefore?: number;
@@ -65,10 +81,10 @@ export interface CompanyDTO {
   description: string;
   cnpj: string;
   logoUrl: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   address: string;
-  subdomain: string;
+  subdomain?: string;
   phone: string;
   rating?: number;
   reviewsCount?: number;

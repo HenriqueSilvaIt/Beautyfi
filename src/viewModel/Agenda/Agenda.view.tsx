@@ -7,6 +7,8 @@ import { Loading } from "@/shared/components/Loading";
 import { colors } from "@/styles/colors";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppHeader } from "@/shared/components/AppHeader";
+import { useUserStore } from "@/shared/store/user-store";
 
 export function AgendaView({
   employeeDataPagged,
@@ -65,6 +67,7 @@ export function AgendaView({
     setOpenMenu(false);
     safePush("/(private)/(tabs)/(admin-tabs)/agenda/new-booking");
   }
+  const { user, access_token } = useUserStore();
 
   if (agendaLoading) {
     return <Loading />;
@@ -84,6 +87,9 @@ export function AgendaView({
         barStyle="dark-content" // ícones escuros, bom para fundo branco
         backgroundColor={colors["background-primary"]} // funciona só no Android
       />
+      
+      <AppHeader user={user} token={access_token} />
+
       <View className=" pt-3 justify-center pb-3 bg-background-primary">
         <AppDaySelector
           selectedDay={selectedDay}
@@ -156,13 +162,17 @@ export function AgendaView({
               className="bg-app-theme-primary px-4 py-3 rounded-xl mb-2 shadow"
               onPress={() => {}}
             >
-              <Text className="text-font-secundary font-semibold">Novo agendamento</Text>
+              <Text className="text-font-secundary font-semibold">
+                Novo agendamento
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="bg-white px-4 py-3 rounded-xl mb-2 shadow"
               onPress={handleBlockAgendaButton}
             >
-              <Text className="text-font-primary font-semibold">Bloquear horário</Text>
+              <Text className="text-font-primary font-semibold">
+                Bloquear horário
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

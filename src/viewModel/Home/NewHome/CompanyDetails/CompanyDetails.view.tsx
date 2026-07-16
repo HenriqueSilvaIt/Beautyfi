@@ -1,7 +1,19 @@
 import React from "react";
-import { ActivityIndicator, Dimensions, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { CompanyDetailTab, mockPackages, useCompanyDetailsViewModel } from "./useCompanyDetailsViewModel";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  CompanyDetailTab,
+  useCompanyDetailsViewModel,
+} from "./useCompanyDetailsViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { CompanyDetails } from "@/shared/components/CompanyTabs/CompanyDetails";
@@ -9,6 +21,7 @@ import { CompanyServices } from "@/shared/components/BusinessTabs/CompanyService
 import { CompanyProduct } from "@/shared/components/BusinessTabs/CompanyProduct";
 import { FlatList } from "react-native-gesture-handler";
 import { AppInput } from "@/shared/components/AppInput";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -18,7 +31,9 @@ const defaultCarouselImages = [
   "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
 ];
 
-export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsViewModel>) {
+export function CompanyDetailsView(
+  props: ReturnType<typeof useCompanyDetailsViewModel>,
+) {
   const {
     companyDetailsData,
     companyDetailsLoading,
@@ -32,11 +47,13 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
     setSelectedServices,
     servicesList,
     productsList,
+    packagesList,
     subscriptionPlans,
     handleBookSelectedServices,
     handleBookPackage,
     handleGoToSubscriptionTab,
   } = props;
+  const insets = useSafeAreaInsets();
 
   if (companyDetailsLoading && !companyDetailsData) {
     return (
@@ -64,25 +81,35 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
 
   // Parse db images or fallback to high-quality mock carousel images
   const dbImages = companyDetailsData.imagesUrl
-    ? companyDetailsData.imagesUrl.split(",").map((x: string) => x.trim()).filter(Boolean)
+    ? companyDetailsData.imagesUrl
+        .split(",")
+        .map((x: string) => x.trim())
+        .filter(Boolean)
     : [];
   const images = dbImages.length > 0 ? dbImages : defaultCarouselImages;
 
-  const tabs: CompanyDetailTab[] = ["Serviços", "Produtos", "Detalhes", "Avaliações", "Assinaturas", "Pacotes"];
+  const tabs: CompanyDetailTab[] = [
+    "Serviços",
+    "Produtos",
+    "Pacotes",
+    "Detalhes",
+    "Avaliações",
+    "Assinaturas",
+  ];
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case "Serviços":
         return (
           <View className="flex-1 min-h-[300px]">
-            <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-              <AppInput
-                placeholder="Buscar serviços por nome..."
-                leftIcon="search"
+            <View className="px-4 mb-4">
+              <AppSearchBar
                 value={props.searchValue}
                 onChangeText={props.setSearchValue}
+                placeholder="Buscar serviços por nome..."
               />
             </View>
+
             {servicesList.length > 0 ? (
               <CompanyServices
                 data={servicesList}
@@ -96,19 +123,20 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                 setSelectedServices={setSelectedServices}
               />
             ) : (
-              <Text className="text-center text-gray-500 my-8">Nenhum serviço disponível.</Text>
+              <Text className="text-center text-gray-600 my-8">
+                Nenhum serviço disponível.
+              </Text>
             )}
           </View>
         );
       case "Produtos":
         return (
           <View className="flex-1 min-h-[300px]">
-            <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-              <AppInput
-                placeholder="Buscar produtos por nome..."
-                leftIcon="search"
+            <View className="px-4 mb-4">
+              <AppSearchBar
                 value={props.searchValue}
                 onChangeText={props.setSearchValue}
+                placeholder="Buscar produtos por nome..."
               />
             </View>
             {productsList.length > 0 ? (
@@ -122,7 +150,9 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                 isLoading={props.productIsLoading}
               />
             ) : (
-              <Text className="text-center text-gray-500 my-8">Nenhum produto disponível.</Text>
+              <Text className="text-center text-gray-600 my-8">
+                Nenhum produto disponível.
+              </Text>
             )}
           </View>
         );
@@ -138,27 +168,38 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
         return (
           <View className="px-1 py-3">
             <View className="flex-row justify-between items-center mb-6 border-b border-gray-100 pb-3">
-              <Text className="text-gray-900 font-bold text-base">Avaliações dos Clientes</Text>
-              <View className="flex-row items-center bg-[#fbbf24]/10 px-3 py-1.5 rounded-full">
-                <Ionicons name="star" size={16} color="#fbbf24" />
-                <Text className="text-gray-900 font-bold text-sm ml-1">
-                  {(companyDetailsData.rating ?? 5.0).toFixed(1)}
-                </Text>
-                <Text className="text-gray-500 text-xs ml-1">
-                  ({companyDetailsData.reviewsCount ?? 0})
-                </Text>
-              </View>
+              <Text className="text-gray-900 font-bold text-base">
+                Avaliações dos Clientes
+              </Text>
+              {companyDetailsData.rating !== undefined && (
+                <View className="flex-row items-center bg-[#fbbf24]/10 px-3 py-1.5 rounded-full">
+                  <Ionicons name="star" size={16} color="#fbbf24" />
+
+                  <Text className="text-gray-900 font-bold text-sm ml-1">
+                    {(companyDetailsData.rating ?? 0).toFixed(1)}
+                  </Text>
+                  <Text className="text-gray-600 text-xs ml-1">
+                    ({companyDetailsData.reviewsCount ?? 0})
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Form to leave a review (if logged in as client) */}
             {props.user && !props.isAdmin && (
               <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-6 shadow-sm">
-                <Text className="text-gray-900 font-bold text-sm mb-2">Deixe sua Avaliação</Text>
-                
+                <Text className="text-gray-900 font-bold text-sm mb-2">
+                  Deixe sua Avaliação
+                </Text>
+
                 {/* Star Selector */}
                 <View className="flex-row gap-2 mb-3">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <TouchableOpacity key={star} onPress={() => props.setNewRating(star)} activeOpacity={0.7}>
+                    <TouchableOpacity
+                      key={star}
+                      onPress={() => props.setNewRating(star)}
+                      activeOpacity={0.7}
+                    >
                       <Ionicons
                         name={star <= props.newRating ? "star" : "star-outline"}
                         size={28}
@@ -187,7 +228,9 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                   className="bg-[#12294A] py-3.5 rounded-xl items-center mt-4"
                 >
                   <Text className="text-white text-sm font-bold">
-                    {props.isSubmittingReview ? "Enviando..." : "Enviar Avaliação"}
+                    {props.isSubmittingReview
+                      ? "Enviando..."
+                      : "Enviar Avaliação"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -197,19 +240,27 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
             {props.reviewsList && props.reviewsList.length > 0 ? (
               <View className="gap-4">
                 {props.reviewsList.map((rev) => (
-                  <View key={rev.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                  <View
+                    key={rev.id}
+                    className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm"
+                  >
                     <View className="flex-row justify-between items-start mb-2">
                       <View className="flex-row items-center">
                         {rev.userAvatarUrl ? (
-                          <Image source={{ uri: rev.userAvatarUrl }} className="w-8 h-8 rounded-full" />
+                          <Image
+                            source={{ uri: rev.userAvatarUrl }}
+                            className="w-[40px] h-[40px] rounded-full"
+                          />
                         ) : (
-                          <View className="w-8 h-8 rounded-full bg-gray-100 justify-center items-center border border-gray-200">
+                          <View className="w-[40px] h-[40px] rounded-full bg-gray-100 justify-center items-center border border-gray-200">
                             <Ionicons name="person" size={14} color="#6b7280" />
                           </View>
                         )}
-                        <Text className="text-gray-900 font-bold text-sm ml-2">{rev.userFirstName}</Text>
+                        <Text className="text-gray-900 font-bold text-sm ml-2">
+                          {rev.userFirstName}
+                        </Text>
                       </View>
-                      
+
                       <View className="flex-row gap-0.5">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Ionicons
@@ -225,77 +276,149 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                       {new Date(rev.createdAt).toLocaleDateString("pt-BR")}
                     </Text>
                     {rev.comment ? (
-                      <Text className="text-gray-700 text-sm leading-relaxed">{rev.comment}</Text>
+                      <Text className="text-gray-700 text-sm leading-relaxed">
+                        {rev.comment}
+                      </Text>
                     ) : null}
                   </View>
                 ))}
               </View>
             ) : (
-              <Text className="text-center text-gray-500 my-8">Nenhuma avaliação ainda.</Text>
+              <Text className="text-center text-gray-600 my-8">
+                Nenhuma avaliação ainda.
+              </Text>
             )}
           </View>
         );
       case "Assinaturas":
         return (
           <View className="px-1 py-3">
-            <Text className="text-gray-900 font-bold text-base mb-4">Planos de Assinatura Disponíveis</Text>
+            <Text className="text-gray-900 font-bold text-base mb-4">
+              Planos de Assinatura Disponíveis
+            </Text>
             {subscriptionPlans.length > 0 ? (
               subscriptionPlans.map((plan) => (
-                <View key={plan.id} className="bg-white p-5 rounded-2xl border border-gray-100 mb-4 shadow-sm">
+                <View
+                  key={plan.id}
+                  className="bg-white p-5 rounded-2xl border border-gray-100 mb-4 shadow-sm"
+                >
                   <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-gray-900 font-bold text-base flex-1 mr-2">{plan.name}</Text>
-                    <View className="bg-green-50 px-2 py-1 rounded">
-                      <Text className="text-green-700 font-bold text-xs">Ativo</Text>
-                    </View>
+                    <Text className="text-gray-900 font-bold text-base flex-1 mr-2">
+                      {plan.name}
+                    </Text>
+                    {plan.userSubscriptions &&
+                      plan.userSubscriptions.length > 0 && (
+                        <View className="bg-green-50 px-2 py-1 rounded">
+                          <Text className="text-green-700 font-bold text-xs">
+                            Ativo
+                          </Text>
+                        </View>
+                      )}
                   </View>
-                  <Text className="text-gray-500 text-sm leading-relaxed mb-4">{plan.description}</Text>
+                  <Text className="text-gray-600 text-sm leading-relaxed mb-4">
+                    {plan.description}
+                  </Text>
                   <View className="flex-row justify-between items-center pt-3 border-t border-gray-50">
                     <Text className="text-gray-900 font-extrabold text-base">
-                      R$ {Number(plan.amount).toFixed(2).replace(".", ",")} <Text className="text-gray-600 font-normal text-xs">/mês</Text>
+                      R$ {Number(plan.amount).toFixed(2).replace(".", ",")}{" "}
+                      <Text className="text-gray-600 font-normal text-xs">
+                        /mês
+                      </Text>
                     </Text>
                     <TouchableOpacity
                       onPress={handleGoToSubscriptionTab}
                       className="bg-[#12294A] px-4 py-2 rounded-xl"
                     >
-                      <Text className="text-white text-xs font-bold">Assinar Plano</Text>
+                      <Text className="text-white text-xs font-bold">
+                        Assinar Plano
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               ))
             ) : (
-              <Text className="text-center text-gray-500 my-8">Nenhum plano disponível.</Text>
+              <Text className="text-center text-gray-600 my-8">
+                Nenhum plano disponível.
+              </Text>
             )}
           </View>
         );
-      case "Pacotes":
+      case "Pacotes": {
         return (
           <View className="px-1 py-3">
-            <Text className="text-gray-900 font-bold text-base mb-4">Combos e Pacotes Promocionais</Text>
-            {mockPackages.map((pkg) => (
-              <View key={pkg.id} className="bg-white p-5 rounded-2xl border border-gray-100 mb-4 shadow-sm">
-                <Text className="text-gray-900 font-bold text-base mb-1">{pkg.name}</Text>
-                <Text className="text-gray-500 text-sm leading-relaxed mb-4">{pkg.description}</Text>
-                <View className="flex-row justify-between items-center pt-3 border-t border-gray-50">
-                  <Text className="text-gray-900 font-extrabold text-base">
-                    R$ {Number(pkg.price).toFixed(2).replace(".", ",")}
+            <Text className="text-gray-900 font-bold text-base mb-4">
+              Combos e Pacotes Promocionais
+            </Text>
+            {packagesList.length === 0 ? (
+              <Text className="text-center text-gray-600 my-8">
+                Nenhum pacote disponível.
+              </Text>
+            ) : (
+              packagesList.map((pkg) => (
+                <View
+                  key={pkg.id}
+                  className="bg-white p-5 rounded-2xl border border-gray-100 mb-4 shadow-sm"
+                >
+                  {pkg.imgUrl ? (
+                    <Image
+                      source={{ uri: pkg.imgUrl }}
+                      className="w-full h-[140px] rounded-xl mb-3"
+                      resizeMode="cover"
+                    />
+                  ) : null}
+                  <Text className="text-gray-900 font-bold text-base mb-1">
+                    {pkg.name}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => handleBookPackage(pkg.services)}
-                    className="bg-[#12294A] px-4 py-2 rounded-xl"
-                  >
-                    <Text className="text-white text-xs font-bold">Agendar Combo</Text>
-                  </TouchableOpacity>
+                  {pkg.description ? (
+                    <Text className="text-gray-600 text-sm leading-relaxed mb-3">
+                      {pkg.description}
+                    </Text>
+                  ) : null}
+                  {pkg.items && pkg.items.length > 0 && (
+                    <View className="mb-3">
+                      <Text className="text-gray-500 text-xs font-semibold mb-1">Inclui:</Text>
+                      {pkg.items.map((item) => (
+                        <Text key={item.serviceId} className="text-gray-600 text-xs">
+                          • {item.serviceName ?? `Serviço #${item.serviceId}`}{item.quantity > 1 ? ` × ${item.quantity}` : ""}
+                        </Text>
+                      ))}
+                    </View>
+                  )}
+                  <View className="flex-row justify-between items-center pt-3 border-t border-gray-50">
+                    <View>
+                      <Text className="text-gray-900 font-extrabold text-base">
+                        R$ {Number(pkg.price).toFixed(2).replace(".", ",")}
+                      </Text>
+                      {pkg.duration ? (
+                        <Text className="text-gray-400 text-xs">{pkg.duration} min</Text>
+                      ) : null}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleBookPackage(pkg.items?.map((i) => i.serviceId) ?? [])
+                      }
+                      className="bg-[#12294A] px-4 py-2 rounded-xl"
+                    >
+                      <Text className="text-white text-xs font-bold">
+                        Agendar Combo
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         );
+      }
     }
   };
 
   return (
-    <View className="flex-1 bg-background-primary">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+    <SafeAreaView className="flex-1 bg-background-primary">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
         {/* Cover Carousel */}
         <View style={{ height: 260, width: "100%", position: "relative" }}>
           <FlatList
@@ -343,15 +466,18 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
               {companyDetailsData.name}
             </Text>
             {/* Star Badge */}
-            <View className="flex-row items-center bg-[#fbbf24]/10 px-2.5 py-1 rounded-lg">
-              <Ionicons name="star" size={14} color="#fbbf24" />
-              <Text className="text-gray-900 font-bold text-xs ml-1">
-                {(companyDetailsData.rating ?? 5.0).toFixed(1)}
-              </Text>
-            </View>
+            {companyDetailsData.rating !== undefined && (
+              <View className="flex-row items-center bg-[#fbbf24]/10 px-2.5 py-1 rounded-lg">
+                <Ionicons name="star" size={14} color="#fbbf24" />
+
+                <Text className="text-gray-900 font-bold text-xs ml-1">
+                  {(companyDetailsData.rating ?? 5.0).toFixed(1)}
+                </Text>
+              </View>
+            )}
           </View>
 
-          <Text className="text-gray-500 text-sm mb-5 leading-relaxed">
+          <Text className="text-gray-600 text-sm mb-5 leading-relaxed">
             {companyDetailsData.description || "Nenhuma descrição fornecida."}
           </Text>
 
@@ -370,11 +496,17 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
                     onPress={() => setActiveTab(item)}
                     activeOpacity={0.8}
                     className="pb-2"
-                    style={isSelected ? { borderBottomWidth: 3, borderBottomColor: "#12294A" } : {}}
+                    style={
+                      isSelected
+                        ? { borderBottomWidth: 3, borderBottomColor: "#12294A" }
+                        : {}
+                    }
                   >
                     <Text
                       className={`text-sm ${
-                        isSelected ? "text-[#12294A] font-extrabold" : "text-gray-600 font-semibold"
+                        isSelected
+                          ? "text-[#12294A] font-extrabold"
+                          : "text-gray-600 font-semibold"
                       }`}
                     >
                       {item}
@@ -394,7 +526,7 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
       <View
         style={{
           position: "absolute",
-          bottom: 0,
+          bottom: Math.max(12, (insets?.bottom ?? 0) + 8),
           left: 0,
           right: 0,
           backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -402,21 +534,31 @@ export function CompanyDetailsView(props: ReturnType<typeof useCompanyDetailsVie
           borderTopColor: "#f3f4f6",
           paddingHorizontal: 20,
           paddingVertical: 15,
+          paddingBottom: Math.max(30, (insets?.bottom ?? 0) + 20),
           zIndex: 999,
         }}
       >
-        {activeTab === "Serviços" && selectedServices.length > 0 && (
+        {activeTab === "Serviços" && selectedServices.length === 0 ? (
+          <View
+            className="bg-gray-100 h-[54px] rounded-xl items-center justify-center border border-gray-200"
+          >
+            <Text className="text-gray-400 font-bold text-base">
+              Escolha um serviço
+            </Text>
+          </View>
+        ) : selectedServices.length > 0 ? (
           <TouchableOpacity
             onPress={handleBookSelectedServices}
             activeOpacity={0.8}
             className="bg-[#12294A] h-[54px] rounded-xl items-center justify-center shadow-lg"
           >
             <Text className="text-white font-bold text-base">
-              Agendar {selectedServices.length} Serviço{selectedServices.length > 1 ? "s" : ""}
+              Agendar {selectedServices.length} Serviço
+              {selectedServices.length > 1 ? "s" : ""}
             </Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

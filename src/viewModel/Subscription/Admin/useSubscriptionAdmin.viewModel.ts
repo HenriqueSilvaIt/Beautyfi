@@ -21,6 +21,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { set } from "date-fns";
 import { router } from "expo-router";
 import { moneyMapper, parseMoney, parseQuantity } from "@/utils/moneyMapper";
+import { useUserStore } from "@/shared/store/user-store";
 
 export function useSubscriptionAdminViewModel(stripePlanId?: number) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -30,7 +31,10 @@ export function useSubscriptionAdminViewModel(stripePlanId?: number) {
   const [loading, setLoading] = useState(false);
   const [priceId, setPriceId] = useState<string>();
 
-  const { data, isLoading, error, refetch } = useGetSubscriptionPlansQuery();
+  const user = useUserStore((state) => state.user);
+  const companyId = user?.companyId;
+
+  const { data, isLoading, error, refetch } = useGetSubscriptionPlansQuery(companyId ?? undefined);
   // Função para atualizar manualmente os dados
   // Função para refresh manual (pull-to-refresh)
   const onGetSubscriptions = async () => {

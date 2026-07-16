@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { OneSignal } from "react-native-onesignal";
 import { Alert } from "react-native";
-import { useSettingsStore } from "@/shared/store/settings-store";
+import { usePreferencesStore } from "@/shared/store/preferences-store";
 import { useNotificationStore } from "@/shared/store/notification-store";
 import { useUserStore } from "@/shared/store/user-store";
 import { styleAppApiClient } from "@/shared/api/styleAppBackend";
@@ -9,7 +9,7 @@ import { styleAppApiClient } from "@/shared/api/styleAppBackend";
 const ONESIGNAL_APP_ID = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID;
 
 export function useOneSignal() {
-  const { allowInAppNewAppointmentModal } = useSettingsStore();
+  const { showInAppNewAppointmentModal } = usePreferencesStore();
   const { addNotification } = useNotificationStore();
   const { user } = useUserStore();
 
@@ -45,14 +45,17 @@ export function useOneSignal() {
       OneSignal.User.pushSubscription.addEventListener('change', onSubscriptionChange);
 
       // Initial check on mount
-      setTimeout(() => {
-        const subId = (OneSignal.User.pushSubscription as any).getSubscriptionId 
-          ? (OneSignal.User.pushSubscription as any).getSubscriptionId()
-          : (OneSignal.User.pushSubscription as any).getPushSubscriptionId?.();
+      const checkSubscriptionId = () => {
+        const subId = (OneSignal.User.pushSubscription as any).id;
         if (subId) {
           syncPushToken(subId);
+        } else {
+          // If not registered yet, check again shortly
+          setTimeout(checkSubscriptionId, 2000);
         }
-      }, 3000);
+      };
+
+      setTimeout(checkSubscriptionId, 1000);
 
       // Event listener para quando o app está aberto em primeiro plano (foreground)
       OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event: any) => {
@@ -67,10 +70,9 @@ export function useOneSignal() {
         });
 
         if (data && data.type === 'NEW_APPOINTMENT') {
-          // Previne a notificação push padrão e mostra o modal se habilitado nas configurações
-          event.preventDefault();
-          
-          if (allowInAppNewAppointmentModal) {
+          if (showInAppNewAppointmentModal) {
+            // Previne a notificação push padrão e mostra o modal se habilitado nas configurações
+            event.preventDefault();
             Alert.alert(
               "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
               notification.getBody() || "",
@@ -108,7 +110,7 @@ export function useOneSignal() {
     } catch (e) {
       console.warn("OneSignal init error:", e);
     }
-  }, [user?.id, allowInAppNewAppointmentModal]);
+  }, [user?.id, showInAppNewAppointmentModal]);
 
   return {};
 }

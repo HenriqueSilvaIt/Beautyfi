@@ -67,7 +67,7 @@ export function useEmployeeMutation() {
     return useInfiniteQuery({
       queryKey: ["employees", params],
       queryFn: ({ pageParam = 0 }) =>
-        getEmployees(pageParam, 30, params?.employeeId, params?.name),
+        getEmployees(pageParam, 30, params?.employeeId, params?.name, params?.companyId ? Number(params.companyId) : undefined),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;

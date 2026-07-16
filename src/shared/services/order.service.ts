@@ -10,11 +10,12 @@ import {
 } from "../interfaces/http/order";
 import { useUserStore } from "../store/user-store";
 
-export async function getOrders(page: number = 0, size: number = 10) {
+export async function getOrders(page: number = 0, size: number = 10, companyId?: number) {
   const { data } = await styleAppApiClient.get<OrderHttpResponse>("/orders", {
     params: {
       page,
       size,
+      companyId,
     },
   });
 

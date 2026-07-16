@@ -66,7 +66,7 @@ export function useHomeViewModel() {
     isLoading: serviceIsLoading,
     isRefetching: serviceIsRefetching,
     fetchNextPage: serviceFetchNextPage,
-  } = useGetServiceMutation(debouncedSearch);
+  } = useGetServiceMutation(undefined, debouncedSearch);
 
 
   const serviceDataPagged =
@@ -82,7 +82,7 @@ export function useHomeViewModel() {
     hasNextPage: productHasNextPage,
     fetchNextPage: productFetchNextPage,
     isLoading: isProductLoading,
-  } = useGetProductsMutation(debouncedSearch);
+  } = useGetProductsMutation(undefined,debouncedSearch);
 
   const productDataPagged =
     productData?.pages.flatMap((pages) => pages.content ?? []) 

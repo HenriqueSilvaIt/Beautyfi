@@ -17,7 +17,6 @@ import { useAgendaStore } from "@/shared/store/agenda-store";
 import { InfiniteData } from "@tanstack/react-query";
 import { queryClient } from "../../../../queryClient";
 import { useUserStore } from "@/shared/store/user-store";
-import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 
 export function useEmployeeViewModel(employeeId: number | undefined) {
   console.log("🔎 ID employee recebido no hook:", employeeId);
@@ -75,21 +74,27 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
 
   const employeeDataPagged =
     employeeData?.pages.flatMap((page) => page.content ?? []) ?? [];
-  const {
-    control,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useFormContext<EmployeeFormData>();
+
+  let formContext: ReturnType<typeof useFormContext<EmployeeFormData>> | undefined;
+  try {
+    formContext = useFormContext<EmployeeFormData>();
+  } catch {
+    formContext = undefined;
+  }
+
+  const control = formContext?.control;
+  const handleSubmit = formContext?.handleSubmit;
+  const reset = formContext?.reset;
+  const watch = formContext?.watch;
+  const setValue = formContext?.setValue;
+  const errors = formContext?.formState?.errors;
 
   const { user } = useUserStore();
   const employeeEmail =
     user?.employeeId === employeeContent?.id ? user?.email : undefined;
   // Função para atualizar os dados da empresa
 
-  const onEmployeeUpdate = handleSubmit(async (employeeData) => {
+  const onEmployeeUpdate = handleSubmit ? handleSubmit(async (employeeData) => {
     try {
       setIsLoading(true);
 
@@ -140,7 +145,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
     } finally {
       setIsLoading(false);
     }
-  });
+  }) : undefined;
 
   // Hook global para seleção de imagem (camera ou galeria)
 
@@ -159,7 +164,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
   }
 
   // Função para criar employee
-  const onSubmit = handleSubmit(async (employeeData) => {
+  const onSubmit = handleSubmit ? handleSubmit(async (employeeData) => {
     try {
         console.log("🚨 SCHEDULE ENVIADO:", JSON.stringify(employeeData.schedule, null, 2));
 
@@ -275,7 +280,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
     } finally {
       setIsLoading(false);
     }
-  });
+  }) : undefined;
 
   // Função para deletar Profissional
 
@@ -310,31 +315,35 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
 
   useEffect(() => {
     if (!isEditMode || !employeeContent || hasInitialized.current) return;
-    reset({
-      name: employeeContent.name,
-      email: employeeEmail || employeeContent.email,
-      password: employeeContent.password,
-      description: employeeContent.description,
-      avatarUrl: avatarUri ?? employeeContent.avatarUrl,
-      phone: employeeContent.phone ? maskPhone(employeeContent.phone) : "",
-      services: employeeContent.services,
-      schedule: employeeContent.schedule ?? [],
-    });
+    if (reset) {
+      reset({
+        name: employeeContent.name,
+        email: employeeEmail || employeeContent.email,
+        password: employeeContent.password,
+        description: employeeContent.description,
+        avatarUrl: avatarUri ?? employeeContent.avatarUrl,
+        phone: employeeContent.phone ? maskPhone(employeeContent.phone) : "",
+        services: employeeContent.services,
+        schedule: employeeContent.schedule ?? [],
+      });
+    }
   }, [employeeContent?.id]);
 
   useEffect(() => {
     if (isEditMode) return;
 
-    reset({
-      name: "",
-      email: "",
-      password: "",
-      description: "",
-      avatarUrl: "",
-      phone: "",
-      schedule: [],
-      services: [],
-    });
+    if (reset) {
+      reset({
+        name: "",
+        email: "",
+        password: "",
+        description: "",
+        avatarUrl: "",
+        phone: "",
+        schedule: [],
+        services: [],
+      });
+    }
   }, [isEditMode]);
 
   return {

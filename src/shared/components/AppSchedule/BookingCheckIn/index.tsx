@@ -102,7 +102,7 @@ export function BookingCheckIn({
                 >
                   {data.name}
                 </Text>
-                <Text className=" mt-1 text-sm text-gray-600">
+                <Text className=" mt-1 text-sm text-font-primary">
                   {" "}
                   {newDateWeek} de {format(new Date(), "MMM", { locale: ptBR })}{" "}
                   {format(new Date(), "yyyy", { locale: ptBR })}
@@ -141,7 +141,7 @@ export function BookingCheckIn({
                 </Text>
                 {employeeCheckIn.map((employee) => (
                   <>
-                    <Text className="text-gray-600 text-sm ">
+                    <Text className="text-font-primary text-sm ">
                       Duração: {employee.duration} min
                     </Text>
 
@@ -153,7 +153,7 @@ export function BookingCheckIn({
                           : employee.price.toFixed(2)}
                       </Text>
                     )}
-                    <Text key={employee.id} className="text-gray-600  text-sm">
+                    <Text key={employee.id} className="text-font-primary  text-sm">
                       Profissional: {employee.name}
                     </Text>
                   </>
@@ -173,7 +173,7 @@ export function BookingCheckIn({
                   </React.Fragment>
                 ))}
                 <Text
-                  className="text-gray-600 text-center"
+                  className="text-font-primary text-center"
                   adjustsFontSizeToFit
                   numberOfLines={1}
                   style={{ fontSize: 16 }}
@@ -190,7 +190,7 @@ export function BookingCheckIn({
               className={`h-[60px] bg-app-theme-primary rounded-md items-center justify-center 
                 ${isLoadingMessage ? "justify-between" : ""}`}
             >
-              <Text className="text-center text-base text-font-primary font-bold">
+              <Text className="text-center text-base text-font-secundary font-bold">
                 {isLoadingMessage || createIsLoading ? (
                   <ActivityIndicator />
                 ) : (

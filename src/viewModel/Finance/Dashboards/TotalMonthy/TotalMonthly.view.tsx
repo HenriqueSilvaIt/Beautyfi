@@ -7,18 +7,78 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Modal,
 } from "react-native";
 import { SellingHeader } from "./SellingHeader";
 import { useEffect, useMemo, useState } from "react";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { useOrderMutation } from "@/shared/queries/finance/use-order-mutation";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
+import { useUserStore } from "@/shared/store/user-store";
+import { useCompanyStore } from "@/shared/store/company-store";
 import { moneyMapper } from "@/utils/moneyMapper";
 import { Ionicons } from "@expo/vector-icons";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { AppDate } from "@/shared/components/AppDate";
 import { router } from "expo-router";
+import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
+import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
+
+// Subcomponente de seleção de profissional para o BottomSheet
+function EmployeeSelectorForm({
+  employees,
+  selectedId,
+  onSelect,
+  onClose,
+  themeColor,
+}: {
+  employees: any[];
+  selectedId: number | null;
+  onSelect: (id: number | null, name: string) => void;
+  onClose: () => void;
+  themeColor: string;
+}) {
+  return (
+    <View className="p-6 gap-4 bg-background-quartenary flex-1 rounded-t-3xl border-t border-slate-800">
+      <View className="flex-row justify-between items-center border-b border-slate-800 pb-3 mb-2">
+        <Text className="text-font-primary font-bold text-lg">
+          Filtrar por profissional
+        </Text>
+        <TouchableOpacity onPress={onClose}>
+          <Ionicons name="close" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          className="py-4 border-b border-slate-800"
+          onPress={() => {
+            onSelect(null, "Todos");
+          }}
+        >
+          <Text className="text-font-primary text-sm font-semibold">Todos</Text>
+        </TouchableOpacity>
+        {employees.map((emp) => (
+          <TouchableOpacity
+            key={emp.id}
+            className="py-4 border-b border-slate-800"
+            onPress={() => {
+              onSelect(emp.id ?? null, emp.name);
+            }}
+          >
+            <Text
+              style={{
+                color: selectedId === emp.id ? themeColor : colors["font-primary"],
+                fontWeight: selectedId === emp.id ? "700" : "400",
+              }}
+              className="text-sm"
+            >
+              {emp.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 export function TotalMonthlyView({
   totalMonthly,
@@ -33,31 +93,7 @@ export function TotalMonthlyView({
   }
 
   const [selectedBar, setSelectedBar] = useState<number | null>(null);
-
-  const barData = useMemo(() => {
-    return totalMonthly.map((item) => ({
-      value: item.totalSold,
-      label: formatMonthYear(item.monthYear),
-      rawMonthYear: item.monthYear,
-    }));
-  }, [totalMonthly]);
-
   const [highlightValue, setHighlightValue] = useState(0);
-
-  useEffect(() => {
-    if (barData.length > 0 && selectedBar === null) {
-      setSelectedBar(barData.length - 1);
-      setHighlightValue(barData[barData.length - 1].value);
-    }
-  }, [barData]);
-
-  useEffect(() => {
-    if (selectedBar !== null && barData[selectedBar]) {
-      setHighlightValue(barData[selectedBar].value);
-    }
-  }, [selectedBar]);
-
-  const maxBarValue = Math.max(...barData.map((b) => b.value), 1);
 
   // ─── Filtros ─────────────────────────────────────────────
   const [dateStart, setDateStart] = useState<Date>(startOfMonth(new Date()));
@@ -66,15 +102,59 @@ export function TotalMonthlyView({
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
   const [selectedEmployeeName, setSelectedEmployeeName] = useState<string>("Todos");
-  const [showEmployeePicker, setShowEmployeePicker] = useState(false);
+
+  const currentUser = useUserStore((s) => s.user);
+  const selectedCompanyId = useCompanyStore((s) => s.selectedCompanyId);
+  const companyId = currentUser?.companyId ?? selectedCompanyId ?? 1;
+
+  const isAdmin = currentUser?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
+  const myEmployeeId = currentUser?.employeeId ?? null;
+
+  const { useGetCompanyPreferencesQuery } = useCompanyDetailsMutation();
+  const companyPreferencesQuery = useGetCompanyPreferencesQuery?.();
+  const { data: preferencesData } = companyPreferencesQuery ?? { data: undefined };
+
+  const showAll = isAdmin || (preferencesData?.showAllEmployeeDashboardsToEmployees === true);
 
   // Carrega profissionais
   const { useGetEmployeeMutation } = useEmployeeMutation();
-  const { data: employeeData } = useGetEmployeeMutation();
+  const { data: employeeData } = useGetEmployeeMutation({ companyId: String(companyId) });
   const employeeList = useMemo(
     () => employeeData?.pages.flatMap((p) => p.content ?? []) ?? [],
     [employeeData],
   );
+
+  useEffect(() => {
+    if (preferencesData) {
+      const showAllPref = isAdmin || (preferencesData.showAllEmployeeDashboardsToEmployees === true);
+      if (!showAllPref && myEmployeeId !== null) {
+        setSelectedEmployeeId(myEmployeeId);
+        const emp = employeeList.find(e => e.id === myEmployeeId);
+        setSelectedEmployeeName(emp ? emp.name : "Meu Perfil");
+      }
+    }
+  }, [preferencesData, isAdmin, myEmployeeId, employeeList]);
+
+  const { openBottomSheet, closeBottomSheet } = useBottomSheetContext();
+  const themeColor = colors["app-theme-primary"];
+
+  const handleOpenEmployeeSheet = () => {
+    openBottomSheet(
+      <EmployeeSelectorForm
+        employees={employeeList}
+        selectedId={selectedEmployeeId}
+        onSelect={(id, name) => {
+          setSelectedEmployeeId(id);
+          setSelectedEmployeeName(name);
+          setSelectedBar(null);
+          closeBottomSheet();
+        }}
+        onClose={closeBottomSheet}
+        themeColor={themeColor}
+      />,
+      0
+    );
+  };
 
   // ─── Comandas (carrega TODAS as páginas) ─────────────────
   const { useGetOrdersMutation } = useOrderMutation();
@@ -83,7 +163,7 @@ export function TotalMonthlyView({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetOrdersMutation();
+  } = useGetOrdersMutation(companyId);
 
   // Auto-load all pages
   useEffect(() => {
@@ -96,6 +176,47 @@ export function TotalMonthlyView({
     () => ordersData?.pages.flatMap((page) => page.content ?? []) ?? [],
     [ordersData],
   );
+
+  const barData = useMemo(() => {
+    const grouped: Record<string, number> = {};
+    let filteredOrders = allOrders;
+    if (selectedEmployeeId !== null) {
+      filteredOrders = filteredOrders.filter(
+        (order) => order.employee?.id === selectedEmployeeId,
+      );
+    }
+    filteredOrders.forEach((order) => {
+      if (!order.moment) return;
+      const d = new Date(order.moment);
+      if (d >= dateStart && d <= dateEnd) {
+        const monthStr = order.moment.substring(0, 7); // "YYYY-MM"
+        grouped[monthStr] = (grouped[monthStr] || 0) + (order.total || 0);
+      }
+    });
+
+    return totalMonthly.map((item) => ({
+      value: grouped[item.monthYear] || 0,
+      label: formatMonthYear(item.monthYear),
+      rawMonthYear: item.monthYear,
+    }));
+  }, [totalMonthly, allOrders, selectedEmployeeId, dateStart, dateEnd]);
+
+  useEffect(() => {
+    if (barData.length > 0 && selectedBar === null) {
+      setSelectedBar(barData.length - 1);
+      setHighlightValue(barData[barData.length - 1].value);
+    }
+  }, [barData]);
+
+  useEffect(() => {
+    if (selectedBar !== null && barData[selectedBar]) {
+      setHighlightValue(barData[selectedBar].value);
+    }
+  }, [selectedBar, barData]);
+
+  const maxBarValue = useMemo(() => {
+    return Math.max(...barData.map((b) => b.value), 1);
+  }, [barData]);
 
   // Filtra comandas pelo bar selecionado + filtros de data e profissional
   const ordersList = useMemo(() => {
@@ -126,15 +247,13 @@ export function TotalMonthlyView({
     return filtered;
   }, [allOrders, selectedBar, barData, dateStart, dateEnd, selectedEmployeeId]);
 
-  const themeColor = colors["app-theme-primary"];
-
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader title="Faturamento" iconRight={{ icon: false, path: "" }} />
       <SellingHeader value={highlightValue} />
 
       {/* Gráfico Estilo Nubank */}
-      <View className="mt-8 px-4 h-[220px]">
+      <View className="mt-8 px-4 h-[150px]">
         <Text className="text-gray-600 text-xs mb-3 font-semibold">EVOLUÇÃO MENSAL</Text>
         <ScrollView
           horizontal
@@ -143,7 +262,7 @@ export function TotalMonthlyView({
         >
           {barData.map((item, index) => {
             const isSelected = selectedBar === index;
-            const barHeight = (item.value / maxBarValue) * 130 + 10;
+            const barHeight = (item.value / maxBarValue) * 80 + 10;
             return (
               <TouchableOpacity
                 key={index}
@@ -181,13 +300,15 @@ export function TotalMonthlyView({
         <Text className="text-gray-600 text-xs font-semibold">FILTROS</Text>
         <View className="flex-row gap-2 flex-wrap">
           {/* Profissional */}
-          <TouchableOpacity
-            onPress={() => setShowEmployeePicker(true)}
-            className="flex-row items-center gap-1 bg-background-tertiary px-3 py-2 rounded-lg"
-          >
-            <Ionicons name="person-outline" size={14} color={themeColor} />
-            <Text className="text-font-primary text-xs">{selectedEmployeeName}</Text>
-          </TouchableOpacity>
+          {showAll && (
+            <TouchableOpacity
+              onPress={handleOpenEmployeeSheet}
+              className="flex-row items-center gap-1 bg-background-tertiary px-3 py-2 rounded-lg"
+            >
+              <Ionicons name="person-outline" size={14} color={themeColor} />
+              <Text className="text-font-primary text-xs">{selectedEmployeeName}</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Data início */}
           <TouchableOpacity
@@ -199,7 +320,7 @@ export function TotalMonthlyView({
               {format(dateStart, "dd/MM/yy")}
             </Text>
           </TouchableOpacity>
-          <Text className="text-gray-600 self-center text-xs">→</Text>
+          <Text className="text-gray-400 self-center text-xs">→</Text>
           {/* Data fim */}
           <TouchableOpacity
             onPress={() => setShowEndPicker(true)}
@@ -247,64 +368,6 @@ export function TotalMonthlyView({
           onCancel={() => setShowEndPicker(false)}
         />
       )}
-
-      {/* Modal seleção de profissional */}
-      <Modal
-        visible={showEmployeePicker}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowEmployeePicker(false)}
-      >
-        <View className="flex-1 bg-black/60 justify-end">
-          <View className="bg-background-primary rounded-t-2xl p-4 max-h-[60%]">
-            <Text className="text-font-primary font-semibold text-base mb-3">
-              Filtrar por profissional
-            </Text>
-            <ScrollView>
-              <TouchableOpacity
-                className="py-3 border-b border-gray-800"
-                onPress={() => {
-                  setSelectedEmployeeId(null);
-                  setSelectedEmployeeName("Todos");
-                  setShowEmployeePicker(false);
-                }}
-              >
-                <Text className="text-font-primary">Todos</Text>
-              </TouchableOpacity>
-              {employeeList.map((emp) => (
-                <TouchableOpacity
-                  key={emp.id}
-                  className="py-3 border-b border-gray-800"
-                  onPress={() => {
-                    setSelectedEmployeeId(emp.id ?? null);
-                    setSelectedEmployeeName(emp.name);
-                    setShowEmployeePicker(false);
-                  }}
-                >
-                  <Text
-                    style={{
-                      color:
-                        selectedEmployeeId === emp.id
-                          ? themeColor
-                          : colors["font-primary"],
-                      fontWeight:
-                        selectedEmployeeId === emp.id ? "700" : "400",
-                    }}
-                  >
-                    {emp.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              onPress={() => setShowEmployeePicker(false)}
-              className="mt-4 bg-gray-800 py-3 rounded-xl items-center"
-            >
-              <Text className="text-font-primary">Fechar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* ─── Lista de Comandas ─────────────────────────────────── */}
       <View className="flex-1 px-4 mt-4 border-t border-gray-800 pt-4">

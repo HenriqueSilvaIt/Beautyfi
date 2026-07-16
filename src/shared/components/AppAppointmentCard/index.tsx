@@ -174,7 +174,7 @@ export function AppAppointmentCard({
                           {service.service.name}
                         </Text>
 
-                        <Text className="text-gray-600 text-sm">
+                        <Text className="text-font-primary text-sm">
                           {service.service.duration} min
                         </Text>
 
@@ -183,8 +183,8 @@ export function AppAppointmentCard({
                         </Text>
                         {employees.map((employee) => (
                           <Text
-                            key={employee.id}
-                            className="text-gray-500 text-xs"
+                            key={employee.id} 
+                            className="text-font-primary text-xs"
                             numberOfLines={1}
                           >
                             Profissional: {employee.name}
@@ -197,7 +197,7 @@ export function AppAppointmentCard({
                             statusColorMap[item.status],
                           )}
                         >
-                          <Text className="text-font-primary ">
+                          <Text className="text-font-secundary ">
                             {statusLabelMap.pt[item.status]}
                           </Text>
                         </View>

@@ -43,7 +43,7 @@ export function DashboardEmployeeView({
         <View className="flex-row justify-between w-full mt-2">
           <Text className="text-font-primary text-sm ">Comissão gerada</Text>
           <Text className="text-font-primary font-bold text-base">
-            R$ {moneyMapper(Number(item.totalOrder))}
+            R$ {moneyMapper(Number(item.totalCommission))}
           </Text>
         </View>
 
@@ -63,10 +63,36 @@ export function DashboardEmployeeView({
           </Text>
         </View>
 
-        <View className="flex-row justify-between w-full">
-          <Text className="text-font-primary text-sm  ">
-            Total descontado do profissional
+        <View className="flex-row justify-between w-full mt-2">
+          <Text className="text-font-primary text-sm font-semibold">Total do profissional (Bruto)</Text>
+          <Text className="text-font-primary font-bold text-base">
+            R$ {moneyMapper(Number(item.totalEmployee))}
           </Text>
+        </View>
+
+        <View className="flex-row justify-between w-full mt-1">
+          <Text className="text-gray-400 text-xs ">Desconto Taxa Cartão (50% Split)</Text>
+          <Text className="text-gray-400 text-xs font-semibold">
+            - R$ {moneyMapper(Math.max(0, Number(item.totalEmployee) - Number(item.totalEmployeeNet)))}
+          </Text>
+        </View>
+
+        <View className="flex-row justify-between w-full">
+          <Text className="text-app-theme-primary text-sm font-semibold">Total do profissional (Líquido 50/50)</Text>
+          <Text className="text-app-theme-primary font-bold text-base">
+            R$ {moneyMapper(Number(item.totalEmployeeNet))}
+          </Text>
+        </View>
+
+        <View className="flex-row justify-between w-full mt-1 border-t border-zinc-800 pt-1">
+          <Text className="text-gray-400 text-xs ">Desconto Taxa Cartão (100% Prof.)</Text>
+          <Text className="text-gray-400 text-xs font-semibold">
+            - R$ {moneyMapper(Math.max(0, Number(item.totalEmployee) - Number(item.totalEmployeeDiscount)))}
+          </Text>
+        </View>
+
+        <View className="flex-row justify-between w-full">
+          <Text className="text-font-primary text-sm ">Total do profissional (Líquido 100%)</Text>
           <Text className="text-font-primary font-bold text-base">
             R$ {moneyMapper(Number(item.totalEmployeeDiscount))}
           </Text>
@@ -79,14 +105,7 @@ export function DashboardEmployeeView({
           </Text>
         </View>
 
-        <View className="flex-row justify-between w-full mt-2">
-          <Text className="text-font-primary  text-sm ">Total do profissional</Text>
-          <Text className="text-font-primary font-bold text-base">
-            R$ {moneyMapper(Number(item.totalEmployee))}
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between w-full mt-2">
+        <View className="flex-row justify-between w-full mt-2 border-t border-zinc-800 pt-1">
           <Text className="text-font-primary text-sm ">Total da empresa</Text>
           <Text className="text-font-primary font-bold text-base">
             R$ {moneyMapper(Number(item.totalCompany))}
@@ -132,13 +151,13 @@ export function DashboardEmployeeView({
         </TouchableOpacity>
       </View>
 
-      <View className="justify-center items-center my-6 ">
+      <View className="justify-center items-center my-6 mx-10 ">
         <TouchableOpacity
           onPress={onGetReportData}
           activeOpacity={0.8}
-          className="px-6 py-2 rounded-md w-full bg-app-theme-primary items-center justify-center"
+          className="px-6  py-2 rounded-md w-full bg-app-theme-primary items-center justify-center"
         >
-          <Text className="text-font-primary  text-center text-xl font-bold">
+          <Text className="text-font-secundary  text-center text-xl font-bold">
             Buscar
           </Text>
         </TouchableOpacity>

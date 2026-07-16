@@ -86,6 +86,19 @@ export function CrudView() {
           </AppButton>
 
           <AppButton
+            className=""
+            leftIcon="card-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Cadastre métodos de pagamento e bandeiras de cartão"
+            onPress={() => safePush("/(private)/(crud)/finance")}
+          >
+            Financeiro
+          </AppButton>
+
+          <AppButton
             className="" /*tem que passar como prop o className */
             leftIcon="cash-outline"
             rightIcon="chevron-forward"

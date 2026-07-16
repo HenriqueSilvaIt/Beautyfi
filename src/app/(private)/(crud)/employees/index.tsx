@@ -8,6 +8,7 @@ import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function EmployeesPageList() {
   const {
@@ -22,11 +23,12 @@ export default function EmployeesPageList() {
     setSearchValue,
   } = useEmployeeViewModel(undefined);
 
+  const { safePush } = useSafeNavigation();
+
   if (employeeIsLoading) {
     return <Loading />;
   }
 
-  const {safePush} = useSafeNavigation();
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader
@@ -35,12 +37,12 @@ export default function EmployeesPageList() {
         action={() => safePush(`/employees/employee-create`)}
         iconRight={{ icon: true, path: "/employees/employee-create" }}
       />
-      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-        <AppInput
-          placeholder="Buscar profissional por nome..."
-          leftIcon="search"
+      <View className="px-4 mb-4">
+
+        <AppSearchBar
           value={searchValue}
           onChangeText={setSearchValue}
+          placeholder="Buscar profissional por nome..."
         />
       </View>
       <AppCard

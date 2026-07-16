@@ -17,11 +17,11 @@ export function AppFormHeader({title, subTitle} : AppFormHeaderProps) {
             <Image 
                 source={require("@assets/images/logo.png")}
                 resizeMode="contain"
-                className="w-[100px] h-[100px] mb-8"
+                className="w-[180px] h-[180px] mb-8"
                 />
 
                 <Text className="text-3xl font-bold mb-3 text-center text-font-primary">{title}</Text>
-                <Text className="text-base text-center   text-gray-500">{subTitle}</Text>
+                <Text className="text-base text-center   text-gray-600">{subTitle}</Text>
         </View>
    )
 }

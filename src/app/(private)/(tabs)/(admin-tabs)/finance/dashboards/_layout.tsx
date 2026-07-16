@@ -5,6 +5,9 @@ export default function  DashboardsLayout() {
     <Stack screenOptions={{headerShown: false}}>
       <Stack.Screen name="index" />
       <Stack.Screen name="total-monthly/index" />
+      <Stack.Screen name="employee-report/index" />
+      <Stack.Screen name="appointments-report/index" />
+      <Stack.Screen name="comandas-report/index" />
     </Stack>
   );
 }

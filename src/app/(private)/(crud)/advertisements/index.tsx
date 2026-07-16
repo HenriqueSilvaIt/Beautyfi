@@ -6,6 +6,7 @@ import { useAdvertisementViewModel } from "@/viewModel/Admin/Advertisements/useA
 import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
 import { View } from "react-native";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function AdvertisementPageList() {
   const {
@@ -21,7 +22,7 @@ export default function AdvertisementPageList() {
     setSearchValue,
   } = useAdvertisementViewModel(undefined);
 
-  const {safePush} = useSafeNavigation()
+  const { safePush } = useSafeNavigation();
   return (
     <View className="flex-1  bg-background-primary  ">
       <KeyboardContainer>
@@ -35,12 +36,11 @@ export default function AdvertisementPageList() {
               path: "/advertisements/advertisement-create",
             }}
           />
-          <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-            <AppInput
-              placeholder="Buscar anúncio por nome..."
-              leftIcon="search"
+          <View className="px-4 mb-4">
+            <AppSearchBar
               value={searchValue}
               onChangeText={setSearchValue}
+              placeholder="Buscar anúncio por nome..."
             />
           </View>
           <AppCard

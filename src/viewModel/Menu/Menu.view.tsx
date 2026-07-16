@@ -24,7 +24,7 @@ export function MenuView({
     user?.roles?.some((role) => role.authority === "ROLE_MODERATOR") ?? false;
 
   const term =
-    "https://dom-palagani.notion.site/Pol-tica-de-Privacidade-Dom-Palagani-Barber-2f5522fee97c80c2a85dd2049901538d";
+    "https://www.beautyfi.com.br/politica-de-privacidade";
   return (
     <KeyboardContainer>
       <ScrollView

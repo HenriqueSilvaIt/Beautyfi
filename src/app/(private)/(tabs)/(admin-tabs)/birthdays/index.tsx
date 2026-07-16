@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ScrollView, Text, View, ActivityIndicator, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
-import { useUserStore } from "@/shared/store/user-store";
-
-import { styleAppApiClient } from "@/shared/api/styleAppBackend";
-
-interface ClientBirthday {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  birthDate: string;
-  profileUrl?: string;
-}
+import { useBirthdaysViewModel } from "@/viewModel/Admin/Birthdays/useBirthdaysViewModel";
+import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 
 const MONTHS = [
   { value: 1, label: "Janeiro" },
@@ -32,66 +22,44 @@ const MONTHS = [
 ];
 
 export default function BirthdaysScreen() {
-  const user = useUserStore((s) => s.user);
-  const companyId = user?.companyId || 1;
-
-  const currentMonthVal = new Date().getMonth() + 1;
-  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthVal);
-  const [birthdays, setBirthdays] = useState<ClientBirthday[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    loadBirthdays();
-  }, [selectedMonth]);
-
-  const loadBirthdays = async () => {
-    setLoading(true);
-    try {
-      const response = await styleAppApiClient.get<ClientBirthday[]>(
-        `/clients/birthdays?companyId=${companyId}&month=${selectedMonth}`
-      );
-      setBirthdays(response.data);
-    } catch (e) {
-      // Fallback mocks
-      setBirthdays([
-        { id: "1", name: "Maria Oliveira", email: "maria@gmail.com", phone: "(11) 98888-7777", birthDate: `1992-${selectedMonth.toString().padStart(2, '0')}-12` },
-        { id: "2", name: "Pedro Henrique", email: "pedro@gmail.com", phone: "(11) 96666-5555", birthDate: `1988-${selectedMonth.toString().padStart(2, '0')}-25` },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getDayOfBirth = (dateStr: string) => {
-    if (!dateStr) return "";
-    const parts = dateStr.split("-");
-    if (parts.length < 3) return "";
-    return `${parts[2]}/${parts[1]}`;
-  };
+  const {
+    selectedMonth,
+    setSelectedMonth,
+    birthdays,
+    loading,
+    dropdownOpen,
+    setDropdownOpen,
+    companyLogo,
+    getDayOfBirth,
+    handleSendWhatsApp,
+  } = useBirthdaysViewModel();
 
   return (
     <KeyboardContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }} style={{ backgroundColor: "#FFFFFF" }}>
         {/* Header */}
-        <View className="mb-6" style={{ marginTop: 40 }}>
-          <Text className="text-white text-2xl font-bold font-serif">Aniversariantes</Text>
-          <Text className="text-slate-400 text-xs mt-1">Clientes celebrando aniversário</Text>
-        </View>
+ <AppAdminHeader
+          title="Aniversariantes"
+          leftIconShown={false}
+          iconRight={{
+            icon: false,
+            path: "",
+          }}
+        />          <Text className="text-font-primary text-xs mt-1">Clientes celebrando aniversário</Text>
 
         {/* Month Selector dropdown toggle */}
         <TouchableOpacity
           onPress={() => setDropdownOpen(!dropdownOpen)}
-          className="bg-background-quartenary p-4 rounded-xl border border-slate-800 flex-row justify-between items-center mb-6"
+          className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex-row justify-between items-center mb-6"
         >
-          <Text className="text-white font-bold text-sm">
+          <Text className="text-gray-800 font-bold text-sm">
             Mês: {MONTHS.find((m) => m.value === selectedMonth)?.label}
           </Text>
-          <Ionicons name={dropdownOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.white} />
+          <Ionicons name={dropdownOpen ? "chevron-up" : "chevron-down"} size={20} color="#12294A" />
         </TouchableOpacity>
 
         {dropdownOpen && (
-          <View className="bg-background-quartenary rounded-xl border border-slate-800 p-2 mb-6 gap-1">
+          <View className="bg-white rounded-xl border border-gray-200 p-2 mb-6 gap-1 shadow-sm">
             {MONTHS.map((m) => (
               <TouchableOpacity
                 key={m.value}
@@ -99,9 +67,9 @@ export default function BirthdaysScreen() {
                   setSelectedMonth(m.value);
                   setDropdownOpen(false);
                 }}
-                className={`p-3 rounded-lg ${m.value === selectedMonth ? "bg-beauty-gold/10" : ""}`}
+                className={`p-3 rounded-lg ${m.value === selectedMonth ? "bg-[#CBA35D]/10" : ""}`}
               >
-                <Text className={m.value === selectedMonth ? "text-beauty-gold font-bold" : "text-slate-300"}>
+                <Text className={m.value === selectedMonth ? "text-[#092D5D] font-bold" : "text-gray-600"}>
                   {m.label}
                 </Text>
               </TouchableOpacity>
@@ -111,43 +79,60 @@ export default function BirthdaysScreen() {
 
         {/* Birthdays List */}
         {loading ? (
-          <ActivityIndicator size="large" color={colors.white} />
+          <ActivityIndicator size="large" color="#12294A" />
         ) : birthdays.length > 0 ? (
           birthdays.map((item) => (
             <View
               key={item.id}
-              className="bg-background-quartenary p-4 rounded-xl mb-3 flex-row items-center gap-4 border border-slate-800"
+              className="bg-white p-4 rounded-xl mb-3 flex-row items-center gap-4 border border-gray-600 shadow-sm"
             >
               {item.profileUrl ? (
                 <Image
                   source={{ uri: item.profileUrl }}
                   style={{ width: 48, height: 48, borderRadius: 24 }}
                 />
+              ) : companyLogo ? (
+                <Image
+                  source={{ uri: companyLogo }}
+                  style={{ width: 48, height: 48, borderRadius: 24 }}
+                />
               ) : (
-                <View className="w-12 h-12 bg-beauty-gold/10 rounded-full items-center justify-center border border-beauty-gold/20">
+                <View className="w-12 h-12 bg-[#CBA35D]/10 rounded-full items-center justify-center border border-[#CBA35D]/20">
                   <Ionicons name="person" size={22} color="#CBA35D" />
                 </View>
               )}
 
               <View className="flex-1">
-                <Text className="text-white font-bold text-sm">{item.name}</Text>
+                <Text className="text-gray-900 font-bold text-sm">{item.name}</Text>
                 {item.phone ? (
-                  <Text className="text-slate-400 text-xs mt-1">📞 {item.phone}</Text>
+                  <Text className="text-font-primary text-xs mt-1">📞 {item.phone}</Text>
                 ) : null}
                 {item.birthDate ? (
-                  <Text className="text-slate-500 text-[11px] mt-0.5">🎂 {getDayOfBirth(item.birthDate)}</Text>
+                  <Text className="text-gray-600 text-[11px] mt-0.5">🎂 {getDayOfBirth(item.birthDate)}</Text>
                 ) : null}
               </View>
 
-              <View className="bg-beauty-gold/10 px-2 py-1 rounded-md">
-                <Text className="text-beauty-gold font-bold text-xs">
-                  Dia {getDayOfBirth(item.birthDate).split("/")[0]}
-                </Text>
+              <View className="flex-row items-center gap-2">
+                {item.phone ? (
+                  <TouchableOpacity
+                    onPress={() => handleSendWhatsApp(item.phone, item.name)}
+                    activeOpacity={0.7}
+                    className="bg-emerald-50 border border-emerald-200/60 p-2.5 rounded-xl items-center justify-center"
+                  >
+                    <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+                  </TouchableOpacity>
+                ) : null}
+
+                <View className="bg-[#FAF8EF] border border-[#CBA35D]/30 px-3 py-1.5 rounded-lg">
+                  <Text className="text-[#092D5D] font-extrabold text-sm">
+                    Dia {getDayOfBirth(item.birthDate).split("/")[0]}
+                  </Text>
+                </View>
               </View>
             </View>
           ))
         ) : (
-          <Text className="text-slate-400 text-xs text-center py-8">Nenhum aniversariante neste mês.</Text>
+          <Text className="text-font-primary text-xs text-center py-8">Nenhum aniversariante neste mês.</Text>
         )}
       </ScrollView>
     </KeyboardContainer>

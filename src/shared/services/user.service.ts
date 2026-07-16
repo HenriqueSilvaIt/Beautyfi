@@ -87,3 +87,11 @@ export async function uploadAvatar(avatarUri: string) {
   return data; 
 }
 
+export async function dismissOnboarding() {
+  const { data } = await styleAppApiClient.patch<UserProps>(
+    `/users/me/dismiss-onboarding`
+  );
+  return data;
+}
+
+

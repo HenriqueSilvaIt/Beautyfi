@@ -7,9 +7,10 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppInput } from "@/shared/components/AppInput";
 import { View } from "react-native";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function ProductPageList() {
-  const {safePush} = useSafeNavigation()
+  const { safePush } = useSafeNavigation();
 
   const {
     productDataPagged,
@@ -35,12 +36,11 @@ export default function ProductPageList() {
         action={() => safePush(`/products/product-create`)}
         iconRight={{ icon: true, path: "/products/product-create" }}
       />
-      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-        <AppInput
-          placeholder="Buscar produto por nome..."
-          leftIcon="search"
+      <View className="px-4 mb-4">
+        <AppSearchBar
           value={searchValue}
           onChangeText={setSearchValue}
+          placeholder="Buscar produto por nome..."
         />
       </View>
       <AppCard
@@ -52,7 +52,7 @@ export default function ProductPageList() {
           price: s.price,
         }))}
         path="/products/"
-         isRefetching={isProductRefetching}
+        isRefetching={isProductRefetching}
         fetchNextPage={productFechNextPage}
         hasNextPage={productHasNextPage}
         isFetchingNextPage={productIsFetchingNextPage}

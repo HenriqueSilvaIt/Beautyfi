@@ -113,8 +113,8 @@ export function useLoginViewModel() {
           role.authority === "ROLE_MODERATOR",
       ) ?? false;
 
-    // Enviar para rota de cadatro de telefone + data de nascimento se é novo cliente google
-    if (!userLogged.phone || !userLogged.birthDate) {
+    // Enviar para rota de cadastro se falta phone, birthDate ou firstName (Google/Apple)
+    if (!userLogged.phone || !userLogged.birthDate || !userLogged.firstName) {
       safeReplace("/(private)/google-signup");
       return;
     }

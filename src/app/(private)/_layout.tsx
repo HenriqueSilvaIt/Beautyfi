@@ -9,6 +9,7 @@ export default function PrivateLayout() {
       <Stack.Screen name="schedule/[id]" />
       <Stack.Screen name="company/[id]" />
       <Stack.Screen name="google-signup" />
+      <Stack.Screen name="companies-details/[id]/index" />
     </Stack>
   );
 }

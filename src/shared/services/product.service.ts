@@ -13,9 +13,10 @@ export async function getProducts(
     page: number = 0,
     size: number = 10,
     name?: string,
+    companyId?: number,
 ) {
-    const companyId = getCompanyId();
-    const {data} = await styleAppApiClient.get<ProductHttpResponse>(`/products/${companyId}/company?sort=name,asc`,
+    const resolvedCompanyId = companyId || getCompanyId();
+    const {data} = await styleAppApiClient.get<ProductHttpResponse>(`/products/${resolvedCompanyId}/company?sort=name,asc`,
         {params: {
             page,
             size,

@@ -6,11 +6,17 @@ import { AppInput } from "@/shared/components/AppInput";
 import { View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function PackagePageList() {
   const {
     packages,
-    isLoading,
+    packagesIsLoading,
+    packageRefetch,
+    packageFetchNextPage,
+    packageHasNextPage,
+    packageIsFetchingNextPage,
+    packageIsRefetching,
     searchValue,
     setSearchValue,
   } = usePackageViewModel(undefined);
@@ -25,12 +31,12 @@ export default function PackagePageList() {
         action={() => safePush(`/packages/package-create`)}
         iconRight={{ icon: true, path: "/packages/package-create" }}
       />
-      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-        <AppInput
-          placeholder="Buscar pacote por nome..."
-          leftIcon="search"
+      <View className="px-4 mb-4">
+  
+        <AppSearchBar
           value={searchValue}
           onChangeText={setSearchValue}
+          placeholder="Buscar pacote por nome..."
         />
       </View>
       <AppCard
@@ -48,10 +54,12 @@ export default function PackagePageList() {
           });
         }}
         path="/packages/"
-        isRefetching={false}
-        hasNextPage={false}
-        isFetchingNextPage={false}
-        isLoading={isLoading}
+        isRefetching={packageIsRefetching}
+        hasNextPage={packageHasNextPage}
+        isFetchingNextPage={packageIsFetchingNextPage}
+        isLoading={packagesIsLoading}
+        fetchNextPage={packageFetchNextPage}
+        onRefetch={packageRefetch}
       />
     </SafeAreaView>
   );

@@ -1,42 +1,77 @@
 import { useFormContext } from "react-hook-form";
 import { PackageFormData } from "./package.scheme";
-import { usePackageStore } from "@/shared/store/package-store";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserStore } from "@/shared/store/user-store";
+import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
+import { packageKeys, usePackageMutation } from "@/shared/queries/company/use-package.mutation";
+import { PackageInterface } from "@/shared/interfaces/http/package";
 import { router } from "expo-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { parseMoney, parseQuantity } from "@/utils/moneyMapper";
+import { queryClient } from "../../../../queryClient";
 
 export function usePackageViewModel(packageId: number | undefined) {
-  const isEditMode = Number.isFinite(packageId);
+  const isEditMode = Number.isFinite(packageId) && packageId !== undefined;
   const [isLoading, setIsLoading] = useState(false);
   const { notify } = useSnackbarContext();
-  
-  const { packages, addPackage, updatePackage, deletePackage } = usePackageStore();
+  const { handleError } = useErrorHandler();
+
+  // Search with debounce
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchValue), 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
 
-  const filteredPackages = packages.filter((p) =>
-    p.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
-
-  const packageContent = packages.find((p) => p.id === packageId);
+  const currentUser = useUserStore.getState().user;
+  const selectedCompanyId = useCompanyStore.getState().selectedCompanyId;
+  const currentCompanyId = currentUser?.companyId ?? selectedCompanyId ?? undefined;
 
   const {
-    control,
-    handleSubmit,
-    reset,
-  } = useFormContext<PackageFormData>();
+    useGetPackageById,
+    useGetPackagesMutation,
+    packagePostMutation,
+    packageUpdateMutation,
+    packageDeleteByIdMutation,
+  } = usePackageMutation();
+
+  // List of packages (paginated)
+  const {
+    data: packageData,
+    isLoading: packagesIsLoading,
+    refetch: packageRefetch,
+    fetchNextPage: packageFetchNextPage,
+    hasNextPage: packageHasNextPage,
+    isFetchingNextPage: packageIsFetchingNextPage,
+    isRefetching: packageIsRefetching,
+  } = useGetPackagesMutation(currentCompanyId, debouncedSearch);
+
+  const packageDataPagged =
+    packageData?.pages.flatMap((page) => page.content ?? []) ?? [];
+
+  // Single package for edit
+  const { data: packageContent } = useGetPackageById(
+    isEditMode && packageId ? packageId : 0,
+  );
+
+  const { control, handleSubmit, reset } = useFormContext<PackageFormData>();
 
   // Prepopulate form in edit mode
   useEffect(() => {
     if (isEditMode && packageContent) {
       reset({
         name: packageContent.name,
-        price: packageContent.price,
-        duration: packageContent.duration,
-        description: packageContent.description,
-        servicesIncluded: packageContent.servicesIncluded || "",
-        imgUrl: packageContent.imgUrl || "",
+        price: String(packageContent.price ?? ""),
+        duration: String(packageContent.duration ?? ""),
+        description: packageContent.description ?? "",
+        servicesIncluded: packageContent.items
+          ?.map((i) => i.serviceName ?? i.serviceId)
+          .join(", ") ?? "",
+        imgUrl: packageContent.imgUrl ?? "",
       });
-    } else {
+    } else if (!isEditMode) {
       reset({
         name: "",
         price: "",
@@ -51,42 +86,48 @@ export function usePackageViewModel(packageId: number | undefined) {
   const onSubmit = handleSubmit(async (formData) => {
     setIsLoading(true);
     try {
-      if (isEditMode && packageId) {
-        updatePackage(packageId, {
-          name: formData.name,
-          price: formData.price,
-          duration: formData.duration,
-          description: formData.description || "",
-          servicesIncluded: formData.servicesIncluded || "",
-          imgUrl: formData.imgUrl || ""
-        });
-        notify({message: "Pacote atualizado com sucesso!", type: "SUCCESS"});
-      } else {
-        addPackage({
-          name: formData.name,
-          price: formData.price,
-          duration: formData.duration,
-          description: formData.description || "",
-          servicesIncluded: formData.servicesIncluded || "",
-          imgUrl: formData.imgUrl || ""
-        });
-        notify( {message: "Pacote criado com sucesso!",  type: "SUCCESS" }
+      const payload: PackageInterface = {
+        name: formData.name,
+        description: formData.description ?? "",
+        price: parseMoney(formData.price ?? ""),
+        duration: parseInt(formData.duration ?? "0", 10) || 0,
+        imgUrl: formData.imgUrl ?? "",
+        availableInApp: true,
+        companyId: currentCompanyId,
+        // items are managed separately via the relational editor
+        items: [],
+      };
 
-        );
+      if (isEditMode && packageId) {
+        await packageUpdateMutation.mutateAsync({
+          packageId,
+          dataBody: payload,
+        });
+        notify({ message: "Pacote atualizado com sucesso!", type: "SUCCESS" });
+      } else {
+        await packagePostMutation.mutateAsync(payload);
+        notify({ message: "Pacote criado com sucesso!", type: "SUCCESS" });
       }
+      await packageRefetch();
       router.back();
     } catch (err) {
-      notify({message: "Erro ao salvar pacote", type: "ERROR"});
+      handleError(err, "Erro ao salvar pacote");
     } finally {
       setIsLoading(false);
     }
   });
 
   const onPackageDelete = async () => {
-    if (isEditMode && packageId) {
-      deletePackage(packageId);
-      notify({message: "Pacote excluído com sucesso!", type: "SUCCESS"});
+    if (!isEditMode || !packageId) return;
+    try {
+      setIsLoading(true);
+      await packageDeleteByIdMutation.mutateAsync(packageId);
+      notify({ message: "Pacote excluído com sucesso!", type: "SUCCESS" });
       router.back();
+    } catch (err) {
+      handleError(err, "Erro ao excluir pacote");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,7 +139,13 @@ export function usePackageViewModel(packageId: number | undefined) {
     packageId,
     isLoading,
     onPackageDelete,
-    packages: filteredPackages,
+    packages: packageDataPagged,
+    packagesIsLoading,
+    packageRefetch,
+    packageFetchNextPage,
+    packageHasNextPage,
+    packageIsFetchingNextPage,
+    packageIsRefetching,
     searchValue,
     setSearchValue,
   };

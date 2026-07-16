@@ -6,6 +6,7 @@ import {
   updateUserPreference,
   uploadAvatar,
   userCompleteSignup,
+  dismissOnboarding,
 } from "../../services/user.service";
 import { useUserStore } from "@/shared/store/user-store";
 import {
@@ -147,3 +148,17 @@ export function useUploadAvatarMutation() {
     },
   });
 }
+
+export function useDismissOnboardingMutation() {
+  const dismissOnboardingMutation = useMutation({
+    mutationFn: dismissOnboarding,
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(userKeys.all, updatedUser);
+      queryClient.setQueryData(["user-logged"], updatedUser);
+    },
+  });
+  return {
+    dismissOnboardingMutation,
+  };
+}
+

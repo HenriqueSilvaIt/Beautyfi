@@ -15,13 +15,14 @@ import { AvailableAppointmentsHttpParams } from "@/shared/interfaces/http/availa
 export interface AppointmentsAgendaProps {
   date: string;
   employeeId?: null | number;
+  companyId?: number;
 }
 
 export function useAppointmentMutation() {
-  function useGetAppointmentMutation() {
+  function useGetAppointmentMutation(companyId?: number) {
     return useInfiniteQuery({
-      queryKey: ["appointments"],
-      queryFn: ({ pageParam = 0 }) => getAppointments(pageParam, 10),
+      queryKey: ["appointments", companyId],
+      queryFn: ({ pageParam = 0 }) => getAppointments(pageParam, 10, companyId),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;
@@ -82,10 +83,10 @@ export function useAppointmentMutation() {
     });
   }
 
-  function useGetMonthlyAppointmentsQuery(startDate: string, endDate: string) {
+  function useGetMonthlyAppointmentsQuery(startDate: string, endDate: string, companyId?: number) {
     return useQuery({
-      queryKey: ["appointments-monthly", startDate, endDate],
-      queryFn: () => getMonthlyAppointments(startDate, endDate),
+      queryKey: ["appointments-monthly", startDate, endDate, companyId],
+      queryFn: () => getMonthlyAppointments(startDate, endDate, companyId),
       enabled: !!startDate && !!endDate,
       staleTime: 0,
       gcTime: 1000 * 60 * 5,
@@ -94,8 +95,8 @@ export function useAppointmentMutation() {
   }
 
   const getAppointmentAgenda = useMutation({
-    mutationFn: ({ date, employeeId }: AppointmentsAgendaProps) =>
-      getAppointmentAdmin(date, employeeId),
+    mutationFn: ({ date, employeeId, companyId }: AppointmentsAgendaProps) =>
+      getAppointmentAdmin(date, employeeId, companyId),
     onSuccess: (response) => {},
     onError: (error) => {
       console.log(error);

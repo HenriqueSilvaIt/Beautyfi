@@ -67,13 +67,13 @@ export function AppOrderCard({
                 Comanda Nº {item.orderNumber}
               </Text>
             )}
-            <Text className="text-gray-400 text-xs mt-1">Valor Total:</Text>
+            <Text className="text-gray-600 text-xs mt-1">Valor Total:</Text>
             <Text className="text-accent-orange font-bold text-lg mt-0.5">
               R$ {moneyMapper(getOrderTotal(item))}
             </Text>
             {item.user?.name && (
               <Text
-                className="text-gray-500 text-xs mt-2"
+                className="text-gray-600 text-xs mt-2"
                 ellipsizeMode="tail"
                 numberOfLines={1}
               >
@@ -84,14 +84,14 @@ export function AppOrderCard({
 
           <View className="items-end max-w-[48%] justify-between h-full">
             {item.moment && (
-              <Text className="text-gray-400 text-xs">
+              <Text className="text-gray-600 text-xs">
                 {formatIsoDateAndTimeToBR(item.moment)}
               </Text>
             )}
 
             {item.employee?.name && (
               <Text
-                className="text-gray-500 text-xs text-right mt-1"
+                className="text-gray-600 text-xs text-right mt-1"
                 ellipsizeMode="tail"
                 numberOfLines={1}
               >
@@ -99,19 +99,23 @@ export function AppOrderCard({
               </Text>
             )}
 
-            {item.status && (
-              <View
-                className={`rounded-full px-3 py-1 mt-2 self-end ${
-                  item.status === "OPEN" ? "bg-green-500/10" : "bg-red-500/10"
-                }`}
-              >
-                <Text className={`text-xs font-semibold ${
-                  item.status === "OPEN" ? "text-green-600" : "text-red-500"
-                }`}>
-                  {item.status === "OPEN" ? "Aberta" : "Fechada"}
-                </Text>
-              </View>
-            )}
+            {item.status && (() => {
+              const statusMap: Record<string, { label: string; bg: string; text: string }> = {
+                OPEN: { label: "Aberta", bg: "bg-green-500/10", text: "text-green-600" },
+                CLOSED: { label: "Fechada", bg: "bg-gray-500/10", text: "text-gray-500" },
+                WAITING_PAYMENT: { label: "Aguardando Pag.", bg: "bg-yellow-500/10", text: "text-yellow-600" },
+                PAID: { label: "Paga", bg: "bg-blue-500/10", text: "text-blue-600" },
+                CANCELED: { label: "Cancelada", bg: "bg-red-500/10", text: "text-red-500" },
+              };
+              const statusCfg = statusMap[item.status] || { label: item.status, bg: "bg-gray-500/10", text: "text-gray-500" };
+              return (
+                <View className={`rounded-full px-3 py-1 mt-2 self-end ${statusCfg.bg}`}>
+                  <Text className={`text-xs font-semibold ${statusCfg.text}`}>
+                    {statusCfg.label}
+                  </Text>
+                </View>
+              );
+            })()}
           </View>
         </View>
       </TouchableOpacity>

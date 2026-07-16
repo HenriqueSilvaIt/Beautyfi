@@ -22,14 +22,15 @@ export async function getServices (
     page: number = 0,
     size: number = 10,
     name?: string,
+    companyId?: number,
 ) {
-    const companyId = getCompanyId();
+    const resolvedCompanyId = companyId || getCompanyId();
     const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>("/services?sort=name,asc", 
          {
     params: {
       page,
       size,
-      companyId,
+      companyId: resolvedCompanyId,
       name
     }
   } ) 
@@ -39,11 +40,24 @@ export async function getServices (
 }
 
 
-export async function getServicesByEmployeeId (employeeId?: number) {
-    const companyId = getCompanyId();
+export async function getServicesAvailableInApp(
+    page: number = 0,
+    size: number = 50,
+    companyId?: number,
+) {
+    const resolvedCompanyId = companyId || getCompanyId();
+    const { data } = await styleAppApiClient.get<CompanyServiceHttpResponse>("/services/available", {
+        params: { page, size, companyId: resolvedCompanyId }
+    });
+    return data;
+}
+
+
+export async function getServicesByEmployeeId (employeeId?: number, companyId?: number) {
+    const resolvedCompanyId = companyId || getCompanyId();
     const {data} = await styleAppApiClient.get<CompanyServiceHttpResponse>(`/services/employee/${employeeId}`, {
         params: {
-        companyId
+        companyId: resolvedCompanyId
       }
     }) 
         return data;

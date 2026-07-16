@@ -74,6 +74,7 @@ export function useAgendaViewModel() {
     user?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
 
   const employeeSearchId = isAdmin ? undefined : Number(user?.employeeId);
+  const userCompanyId = user?.companyId ? String(user.companyId) : undefined;
 
   const {
     data: employeeData,
@@ -86,6 +87,7 @@ export function useAgendaViewModel() {
     isFetchingNextPage: employeeIsFetchingNextPage,
   } = useGetEmployeeMutation({
     employeeId: employeeSearchId,
+    companyId: userCompanyId,
   });
   const { refetch: appointmentSheduledRefetch } = useGetAppointmentMutation();
   const {
@@ -433,10 +435,12 @@ export function useAgendaViewModel() {
     try {
       const newDate = formatIsoToLocalDate(selectedDay);
       const newEmployeeId = employeeId;
+      const agendaCompanyId = user?.companyId ?? undefined;
       console.log(newDate);
       const data = await getAppointmentAgenda.mutateAsync({
         date: newDate,
         employeeId: newEmployeeId,
+        companyId: agendaCompanyId,
       });
 
       const response = data?.content ?? [];

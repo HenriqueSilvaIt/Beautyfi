@@ -8,6 +8,8 @@ import {
   useStripeMutation,
 } from "@/shared/queries/stripe/use-stripe-mutataion";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserStore } from "@/shared/store/user-store";
 
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -21,12 +23,17 @@ export function useSubscriptionlistViewModel() {
   const [userSubscription, setUserSubscription] =
     useState<UserSubscriptionDTO>();
   const [priceId, setPriceId] = useState<string>();
+  const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
+  const user = useUserStore((state) => state.user);
+  // For client list: use selectedCompanyId (when viewing a company), or user's own companyId
+  const companyId = selectedCompanyId ?? user?.companyId;
+
   const {
     data: subscriptionPlans,
     isLoading: isSubscriptionPlansLoading,
     error: subscriptionPlansError,
     refetch: refetchSubscriptionPlans,
-  } = useGetSubscriptionPlansQuery();
+  } = useGetSubscriptionPlansQuery(companyId ?? undefined);
   // Função para atualizar manualmente os dados
   const onGetSubscriptions = async () => {
     await refetchMySubscription(); // atualiza os dados

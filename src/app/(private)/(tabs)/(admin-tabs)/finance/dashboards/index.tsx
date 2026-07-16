@@ -13,10 +13,24 @@ export default function DashboardPage() {
         title="Relatórios"
         iconRight={{ icon: true, path:""}}
       />
-      <View className="">
+      <View className="gap-2 px-2 mt-2">
         {/*Cabeçalho */}
 
-        <View className="mt-8 items-center justify-center gap-6 px-2">
+          <AppButton
+            className=""
+            leftIcon="receipt-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Detalhamento e consolidação de comandas, comissões e pagamentos"
+            onPress={() =>
+              safePush("/(private)/(tabs)/(admin-tabs)/finance/dashboards/comandas-report")
+            }
+          >
+            Dashboard de Comandas
+          </AppButton>
+
           <AppButton
             className=""
             leftIcon="storefront-outline"
@@ -62,7 +76,6 @@ export default function DashboardPage() {
             Relatório de Agendamentos
           </AppButton>
         </View>
-      </View>
     </SafeAreaView>
   );
 }

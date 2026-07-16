@@ -88,7 +88,7 @@ export function useNewBookingViewModel() {
   // CLIENTES
   // ======================
 
- async function handleOpenClientList() {
+  async function handleOpenClientList() {
     try {
       setIsListLoading(true);
 
@@ -102,11 +102,11 @@ export function useNewBookingViewModel() {
       modal.showList({
         data: formatted,
         isRefreshing: false,
-           fetchNextPage: clientFetchNextPage,
-          hasNextPage: clientHasNextPage,
-          isRefetching: clientIsRefetching,
-          isLoading: clientIsLoading,
-          onRefetch: clientRefetch,
+        fetchNextPage: clientFetchNextPage,
+        hasNextPage: clientHasNextPage,
+        isRefetching: clientIsRefetching,
+        isLoading: clientIsLoading,
+        onRefetch: clientRefetch,
         getList: clientRefetch,
         keyExtractor: (item, index) => item.id?.toString() ?? index.toString(),
         onItemPress: (item) => {
@@ -114,6 +114,10 @@ export function useNewBookingViewModel() {
           if (!selected) return;
 
           setClient(selected);
+          setClientId(selected.id);
+
+
+          
           close();
         },
       });

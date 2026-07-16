@@ -6,6 +6,7 @@ export default function PreferenceLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="company-edit/index" />
       <Stack.Screen name="whatsapp-config/index" />
+      <Stack.Screen name="marketing/index" />
     </Stack>
   );
 }

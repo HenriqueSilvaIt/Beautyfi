@@ -1,6 +1,11 @@
 import * as yup from "yup";
 
 export const googleSignUpScheme = yup.object({
+  name: yup
+    .string()
+    .nullable()
+    .transform((value) => (value === "" ? null : value)),
+
   phone: yup
     .string()
     .nullable()

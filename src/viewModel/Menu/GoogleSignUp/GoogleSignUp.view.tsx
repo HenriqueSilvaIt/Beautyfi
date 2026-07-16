@@ -25,6 +25,17 @@ export function GoogleSignUpView({
             subTitle="Informe seu o número do seu telefone (whatsapp) e data de nascimento para completar seu cadastro"
           />
 
+          {!user?.firstName && (
+            <AppInputController
+              leftIcon="person-outline"
+              label="NOME"
+              control={control}
+              name="name"
+              placeholder="Como você quer ser chamado?"
+              placeholderTextColor={colors.gray[600]}
+            />
+          )}
+
           {!user?.phone && (
             <AppInputController
               leftIcon="call-outline"

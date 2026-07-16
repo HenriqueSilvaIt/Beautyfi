@@ -21,10 +21,11 @@ export async function getEmployees(
   size: number = 30,
   employeeId?: number,
   name?: string,
+  companyId?: number,
 ) {
-  const companyId = getCompanyId();
+  const resolvedCompanyId = companyId || getCompanyId();
   const { data } = await styleAppApiClient.get<EmployeeHttpRepsonse>(
-    `/employees?companyId=${companyId}&sort=name,asc`,
+    `/employees?companyId=${resolvedCompanyId}&sort=name,asc`,
     {
       params: {
         page,

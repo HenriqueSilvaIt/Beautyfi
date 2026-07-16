@@ -36,10 +36,10 @@ export function useAdvertisementMutation() {
     });
   }
 
-  function useGetAdvertisementsQuery() {
+  function useGetAdvertisementsQuery(companyId?: number) {
     return useInfiniteQuery({
-      queryKey: ["advertisements"],
-      queryFn: ({ pageParam = 0 }) => getAdvertisements(pageParam, 10),
+      queryKey: ["advertisements", companyId],
+      queryFn: ({ pageParam = 0 }) => getAdvertisements(pageParam, 10, companyId),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;

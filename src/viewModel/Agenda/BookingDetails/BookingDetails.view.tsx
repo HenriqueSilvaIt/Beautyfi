@@ -10,7 +10,7 @@ import { AppDate } from "@/shared/components/AppDate";
 import { AppTime } from "@/shared/components/AppTime";
 import { useFormatDate } from "@/shared/hooks/useFormatDate";
 import { useState } from "react";
-import { useAgendaStore } from "@/shared/store/agenda-store";;
+import { useAgendaStore } from "@/shared/store/agenda-store";
 import { moneyMapper } from "@/utils/moneyMapper";
 import { DeleteModal } from "@/shared/components/AppDeleteModal";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
@@ -102,7 +102,7 @@ export function BookingDetailsView({
             className={`flex-row gap-3 items-center justify-between  px-4 py-2 rounded-md
         ${fitIn ? "bg-green-600" : "bg-gray-800"}`}
           >
-            <Text className="text-base text-font-primary">
+            <Text className="text-base text-font-secundary">
               {fitIn ? "Encaixe ativado" : "Encaixe desativado"}
             </Text>
           </View>
@@ -147,8 +147,12 @@ export function BookingDetailsView({
                 ${client ? "border-app-theme-primary" : "border-gray-800"}  `}
               />
             ) : (
-              <View className="h-[40px] w-[40px] rounded-full bg-gray-800 items-center justify-center">
-                <Ionicons name="person" size={22} color={colors["app-theme-primary"]} />
+              <View className="bg-background-agenda w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
+                <Ionicons
+                  name="person"
+                  size={22}
+                  color={colors["app-theme-primary"]}
+                />
               </View>
             )}
             <Text className="text-base font-bold text-font-primary">
@@ -172,8 +176,8 @@ export function BookingDetailsView({
                 className="h-[40px] w-[40px] rounded-full"
               />
             ) : (
-              <View className="h-[40px] w-[40px] rounded-full bg-gray-800 items-center justify-center">
-                <Ionicons name="person" size={22} color={colors["app-theme-primary"]} />
+              <View className="bg-background-agenda w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
+                <Text>👤</Text>
               </View>
             )}
             <Text className="text-base text-font-primary">{employee.name}</Text>
@@ -199,8 +203,12 @@ export function BookingDetailsView({
                 ${service ? "border-app-theme-primary" : "border-gray-800"}  `}
               />
             ) : (
-              <View className="h-[40px] w-[40px] rounded-full bg-gray-800 items-center justify-center">
-                <Ionicons name="cut" size={22} color={colors["app-theme-primary"]} />
+              <View className="bg-background-agenda h-[40px] w-[40px] rounded-full items-center justify-center">
+                <Ionicons
+                  name="cut"
+                  size={22}
+                  color={colors["app-theme-primary"]}
+                />
               </View>
             )}
             <View className={`flex-col ${service ? "gap-1" : ""}`}>
@@ -216,18 +224,21 @@ export function BookingDetailsView({
           </View>
         </TouchableOpacity>
 
-        {/* Informações adicionais */}
-        <AppInputController
-          leftIcon="information-circle-outline"
-          label="Informações adicionais"
-          control={control}
-          name="additionalInfo"
-          placeholder="Adicionar informações"
-          className="max-w-20"
-          placeholderTextColor={colors.gray[600]}
-          multiline={true}
-          numberOfLines={3}
-        />
+        <View className="pl-2 ">
+          {/* Informações adicionais */}
+          <AppInputController
+            leftIcon="information-circle-outline"
+            label="Informações adicionais"
+            control={control}
+            name="additionalInfo"
+            placeholder="Adicionar informações"
+            className="max-w-20"
+            placeholderTextColor={colors.gray[600]}
+            multiline={true}
+            numberOfLines={3}
+            
+          />
+        </View>
       </ScrollView>
 
       {/* Botões de ação */}

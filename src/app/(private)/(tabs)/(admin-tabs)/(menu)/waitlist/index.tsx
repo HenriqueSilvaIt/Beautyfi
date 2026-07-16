@@ -33,9 +33,8 @@ export default function WaitListAdminScreen() {
 
   const handleOpenWhatsApp = (phone?: string, clientName?: string) => {
     if (!phone) return;
-    const cleanPhone = phone.replace(/\D/g, "");
     const message = encodeURIComponent(`Olá ${clientName || ""}, vimos que você entrou na lista de espera. Temos um horário disponível!`);
-    const url = `https://wa.me/${cleanPhone}?text=${message}`;
+    const url = `https://wa.me/${phone}?text=${message}`;
     Linking.openURL(url).catch(() => {
       alert("Não foi possível abrir o WhatsApp");
     });
@@ -51,7 +50,7 @@ export default function WaitListAdminScreen() {
             <Ionicons name="calendar-outline" color={colors["app-theme-primary"]} size={18} />
             <Text className="text-font-primary font-bold text-base">{formattedDate}</Text>
           </View>
-          <Text className="text-gray-600 text-sm">Profissional: {item.employeeName || "Qualquer"}</Text>
+          <Text className="text-font-primary text-sm">Profissional: {item.employeeName || "Qualquer"}</Text>
         </View>
 
         {item.users && item.users.length > 0 ? (
@@ -61,17 +60,17 @@ export default function WaitListAdminScreen() {
                 {client.avatarUrl ? (
                   <Image
                     source={{ uri: getCloudinaryAvatar(client.avatarUrl, "sm") }}
-                    className="w-10 h-10 rounded-full"
+                    className="w-[40px] h-[40px] rounded-full"
                     resizeMode="cover"
                   />
                 ) : (
-                  <View className="w-10 h-10 rounded-full bg-gray-600 items-center justify-center">
+                  <View className="w-[40px] h-[40px] rounded-full bg-gray-600 items-center justify-center">
                     <Ionicons name="person" color="white" size={16} />
                   </View>
                 )}
                 <View className="flex-1">
                   <Text className="text-font-primary font-semibold text-sm">{client.name}</Text>
-                  {client.phone && <Text className="text-gray-600 text-xs">{client.phone}</Text>}
+                  {client.phone && <Text className="text-font-primary text-xs">{client.phone}</Text>}
                 </View>
               </View>
 
@@ -87,7 +86,7 @@ export default function WaitListAdminScreen() {
             </View>
           ))
         ) : (
-          <Text className="text-gray-600 text-xs italic">Nenhum cliente associado</Text>
+          <Text className="text-font-primary text-xs italic">Nenhum cliente associado</Text>
         )}
       </View>
     );
@@ -122,7 +121,7 @@ export default function WaitListAdminScreen() {
           className="flex-1 bg-background-quartenary p-3 rounded-lg border border-gray-700 flex-row items-center justify-between"
         >
           <View>
-            <Text className="text-gray-600 text-[10px]">FIM</Text>
+            <Text className="text-font-primary text-[10px]">FIM</Text>
             <Text className="text-font-primary font-semibold text-sm">
                 {format(endDate, "dd/MM/yyyy")}
               </Text>

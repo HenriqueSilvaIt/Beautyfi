@@ -52,11 +52,11 @@ export function useOrderMutation() {
       refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
     });
   }
-  function useGetOrdersMutation() {
+  function useGetOrdersMutation(companyId?: number) {
     return useInfiniteQuery({
-      queryKey: ["orders"],
+      queryKey: ["orders", companyId],
       //Porque o cache será separado por cliente.
-      queryFn: ({ pageParam = 0 }) => getOrders(pageParam, 10),
+      queryFn: ({ pageParam = 0 }) => getOrders(pageParam, 10, companyId),
 
       initialPageParam: 0,
 

@@ -26,6 +26,7 @@ import { findByEmployeeAndService } from "@/shared/services/employee.service";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { DAYS } from "@/shared/components/AppModals/CustomDayPriceModal";
+import { parseMoney } from "@/utils/moneyMapper";
 
 export function useEmployeeServicesViewModel() {
   const { useGetServiceMutation } = useCompanyServicesMutation();
@@ -128,16 +129,22 @@ export function useEmployeeServicesViewModel() {
       const payload: ServiceEmployeeParams = {
         employeeId: formData.employeeId!,
         serviceId: formData.serviceId!,
-        customPrice: formData.customPrice ?? undefined,
-        customDuration: formData.customDuration ?? undefined,
-        customCommission: formData.customCommission ?? undefined,
+        customPrice: (formData.customPrice !== undefined && formData.customPrice !== null && String(formData.customPrice).trim() !== "")
+          ? parseMoney(String(formData.customPrice))
+          : undefined,
+        customDuration: (formData.customDuration !== undefined && formData.customDuration !== null && String(formData.customDuration).trim() !== "")
+          ? parseInt(String(formData.customDuration), 10)
+          : undefined,
+        customCommission: (formData.customCommission !== undefined && formData.customCommission !== null && String(formData.customCommission).trim() !== "")
+          ? parseMoney(String(formData.customCommission))
+          : undefined,
         // ✅ Filtra só os dias que têm valor preenchido
         dayPrices: (formData.dayPrices ?? [])
-          .filter((dp) => dp.customPrice != null || dp.customCommission != null)
+          .filter((dp) => (dp.customPrice != null && String(dp.customPrice).trim() !== "") || (dp.customCommission != null && String(dp.customCommission).trim() !== ""))
           .map((dp) => ({
             dayWeek: dp.dayWeek!,
-            customPrice: dp.customPrice ?? 0,
-            customCommission: dp.customCommission ?? 0,
+            customPrice: (dp.customPrice != null && String(dp.customPrice).trim() !== "") ? parseMoney(String(dp.customPrice))! : 0,
+            customCommission: (dp.customCommission != null && String(dp.customCommission).trim() !== "") ? parseMoney(String(dp.customCommission))! : 0,
           })),
       };
 
@@ -205,7 +212,6 @@ export function useEmployeeServicesViewModel() {
       buttonRightTitle: "Salvar",
       buttonRightAction: async () => {
         await onSave();
-        close();
       },
     });
   }, [modal, control, handleOpenCustomServiceModal]);

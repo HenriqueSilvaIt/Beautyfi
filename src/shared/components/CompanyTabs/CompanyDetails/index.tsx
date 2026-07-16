@@ -63,12 +63,12 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
   };
 
   return (
-    <View className="w-full px-4 pb-24">
+    <View className="w-full  pb-24">
       {/* INFORMAÇÕES */}
       <View className="border-b border-gray-700 pb-3 mb-4">
         <Text className="text-xl font-bold text-font-primary mb-1">Informações</Text>
-        <Text className="text-gray-600">{company.name}</Text>
-        <Text className="text-gray-500 text-sm mt-1">{company.description}</Text>
+        <Text className="text-font-primary">{company.name}</Text>
+        <Text className="text-gray-600 text-sm mt-1">{company.description}</Text>
       </View>
 
       {/* HORÁRIO */}
@@ -79,8 +79,15 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
 
         {company.openingHourDTOS?.map((hour) => (
           <View key={hour.id} className="flex-row justify-between mb-1">
+            
+            <View className="flex-row items-center gap-2"> 
+              <Ionicons 
+                name="ellipse"
+                size={10}
+                color={colors["accent-green"]}
+              />
             <Text className="text-font-primary">{hour.dayWeek}</Text>
-
+            </View>
             <View>
               <Text className="text-font-primary text-sm">
                 {format(new Date(hour.firstHour), "HH:mm")} -{" "}
@@ -126,11 +133,19 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
             onPress={() => Linking.openURL(media.mediaUrl)}
             className="flex-row items-center mb-2"
           >
-            <Ionicons
-              name={media.icon as any}
-              size={20}
-              color={colors.white}
-            />
+            {media.icon ? (
+              <Image
+                source={{ uri: media.icon }}
+                resizeMode="contain"
+                className="w-[20px] h-[20px] mr-2"
+              />
+            ) : (
+              <Ionicons
+                name="link-outline"
+                size={20}
+                color={colors["black"]}
+              />
+            )}
             <Text className="text-font-primary ml-2">{media.name}</Text>
           </TouchableOpacity>
         ))}
@@ -159,7 +174,7 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
                       </View>
                     )}
                     <Text className="text-font-primary text-2xl font-bold mt-5">{emp.name}</Text>
-                    <Text className="text-gray-500 text-sm mt-1">
+                    <Text className="text-gray-600 text-sm mt-1">
                       {emp.name === "Christian" ? "Gestor" : "Profissional"}
                     </Text>
                     {emp.description ? (
@@ -176,16 +191,16 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
                 {emp.avatarUrl ? (
                   <Image
                     source={{ uri: emp.avatarUrl }}
-                    className="w-12 h-12 rounded-full border border-app-theme-primary"
+                    className="w-[40px] h-[40px] rounded-full border border-app-theme-primary"
                   />
                 ) : (
-                  <View className="w-12 h-12 rounded-full bg-gray-700 justify-center items-center">
+                  <View className="w-[40px] h-[40px] rounded-full bg-gray-700 justify-center items-center">
                     <Ionicons name="person" size={20} color="#9ca3af" />
                   </View>
                 )}
                 <View className="ml-3">
                   <Text className="text-font-primary font-bold text-base">{emp.name}</Text>
-                  <Text className="text-gray-500 text-xs mt-0.5">
+                  <Text className="text-font-primary text-xs mt-0.5">
                     {emp.name === "Christian" ? "Gestor" : "Profissional"}
                   </Text>
                 </View>
@@ -193,7 +208,7 @@ export function CompanyDetails({ data, employees, reviews }: CompanyDetailsProps
             ))}
           </View>
         ) : (
-          <Text className="text-gray-500 text-sm">Nenhum profissional disponível.</Text>
+          <Text className="text-font-primary text-sm">Nenhum profissional disponível.</Text>
         )}
       </View>
 

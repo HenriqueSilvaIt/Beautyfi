@@ -30,6 +30,7 @@ export function useGoogleSignUpViewModel() {
       googleSignUpScheme,
     ) as unknown as Resolver<GoogleSignUpFormData>,
     defaultValues: {
+      name: "",
       birthDate: "",
       phone: "",
     },
@@ -48,6 +49,7 @@ export function useGoogleSignUpViewModel() {
   try {
     setIsLoading(true);
 
+    const name = userData.name?.trim() || undefined;
     const phone = userData.phone ? unmask(userData.phone) : undefined;
     const birthDate = userData.birthDate
       ? DateBRToISO(userData.birthDate)
@@ -55,6 +57,7 @@ export function useGoogleSignUpViewModel() {
 
     // ✅ só manda os campos que têm valor
     const payload: Record<string, string> = {};
+    if (name) payload.firstName = name;
     if (phone) payload.phone = phone;
     if (birthDate) payload.birthDate = birthDate;
 
@@ -76,6 +79,7 @@ export function useGoogleSignUpViewModel() {
   useFocusEffect(
     useCallback(() => {
       reset({
+        name: "",
         birthDate: "",
         phone: "",
       });

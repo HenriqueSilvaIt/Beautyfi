@@ -1,5 +1,5 @@
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
-import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
+import { AppButton } from "@/shared/components/AppButton";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
 import { EmployeeFormData } from "../employee.scheme";
@@ -13,7 +13,6 @@ import { useFormatDate } from "@/shared/hooks/useFormatDate";
 import { ScrollView } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAgendaStore } from "@/shared/store/agenda-store";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { AppTime } from "@/shared/components/AppTime";
@@ -228,133 +227,145 @@ export function WorkingDaysView() {
   const formatHour = (t: string) => t?.slice(0, 5);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
-        className="flex-1 px-2"
-      >
-        <AppAdminHeader
-          title="Horário de trabalho"
-          iconRightName={undefined}
-          iconRight={{ icon: true, path: "" }}
-        />
-        <View className="px-4 my-3">
-          <Text className="text-font-primary font-semibold mb-2">Dias da semana</Text>
+    <SafeAreaView style={{ flex: 1 }} className="bg-background-primary">
+      <AppAdminHeader
+        title="Horário de trabalho"
+        iconRightName={undefined}
+        iconRight={{ icon: true, path: "" }}
+      />
 
-          <View className=" items-center *:mb-3 ml-2">
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 32 }}
+        className="px-4 pt-4"
+      >
+        <View className="rounded-3xl border border-zinc-800 bg-background-tertiary p-4 shadow-sm shadow-black/10">
+          <Text className="text-font-primary font-semibold text-lg mb-3">
+            Dias da semana
+          </Text>
+          <Text className="text-font-primary/70 text-sm mb-4">
+            Selecione os dias em que o profissional trabalha e ajuste os horários.
+          </Text>
+
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-font-primary font-bold">Todos os dias</Text>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={toggleSelectAllDays}
-              className="flex-row gap-2 items-center"
+              className="flex-row items-center gap-2 rounded-2xl border border-app-theme-primary bg-background-primary px-4 py-2"
             >
-              <Text className="text-base font-bold text-end text-font-primary">
-                {isAllSelected ? "Desmarcar todos" : "Selecionar todos"}
+              <Text className="text-sm font-semibold text-app-theme-primary">
+                {isAllSelected ? "Desmarcar" : "Selecionar todos"}
               </Text>
               <MaterialCommunityIcons
-                size={40}
+                size={22}
                 name={isAllSelected ? "toggle-switch" : "toggle-switch-off"}
-                color={isAllSelected ? colors["accent-blue"] : colors.white}
+                color={isAllSelected ? colors["app-theme-primary"] : colors.white}
               />
             </TouchableOpacity>
           </View>
 
-          <View className="flex-row flex-wrap ">
+          <View className="space-y-3">
             {DAYS_WEEK.map((day) => {
               const checked = safeSchedule.some((d) => d.day === day);
               const daySchedule = safeSchedule.find((d) => d.day === day);
               const times = daySchedule?.times ?? [];
-              console.log(`🗓️ ${day} times:`, JSON.stringify(times)); // ← aqui
 
               return (
                 <View
                   key={day}
-                  className=" bg-background-tertiary mb-2 border-white border  items-center w-full  "
-                >
-                  <View className="min-h-[40px] justify-center">
-                    <Text
-                      onPress={() => toggleDay(day)}
-                      className={`pr-3 rounded-xl text-center   ${
-                        checked ? " text-font-primary" : "bg-gray-800 text-gray-200"
-                      }`}
-                    >
-                      {checked ? "✅ " : "⬜ "} {day}
+                  className={`rounded-3xl border my-2 px-4 py-4  ${
+                    checked
+                      ? "border-app-theme-primary bg-slate-950/70"
+                      : "border-zinc-800 bg-background-quartenary"
+                  }`}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => toggleDay(day)}
+                    className="flex-row items-center justify-between"
+                  >
+                    <Text className={`text-base font-semibold ${checked ? "text-white" : "text-font-primary/80"}`}>
+                      {checked ? "✅" : "⬜"} {day}
                     </Text>
-                  </View>
-                  {/* Horários do dia */}
+                    <MaterialCommunityIcons
+                      name={checked ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
+                      size={24}
+                      color={checked ? colors["app-theme-primary"] : colors.gray[400]}
+                    />
+                  </TouchableOpacity>
 
                   {checked && (
-                    <View
-                      className={` items-center w-full justify-center flex-col
-                      ${times.length === 1 && "flex-col"}`}
-                    >
+                    <View className="mt-4 space-y-3 ">
                       {times.length === 0 ? (
-                        <Text className="text-font-primary/80 text-sm">
-                          Nenhum horário adicionado
+                        <Text className="text-white/80 text-sm">
+                          Nenhum horário definido ainda.
                         </Text>
                       ) : (
-                        <>
-                          {/* Lista os períodos */}
-
-                          <View className="flex-row flex-wrap    px-5">
-                            {times.map((p, index) => (
-                              <View
-                                key={`${day}-${p.start}-${p.end}-${index}`}
-                                className="flex-row items-center justify-center mb-1"
+                        <View className="space-y-3 gap-2">
+                          {times.map((p, index) => (
+                            <View
+                              key={`${day}-${p.start}-${p.end}-${index}`}
+                              className="flex-row flex-wrap items-center justify-between gap-2 rounded-3xl bg-slate-900/90 px-3 py-3"
+                            >
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setEditingTime({
+                                    day,
+                                    periodIndex: index,
+                                    field: "start",
+                                    value: p.start,
+                                  });
+                                  setShowTimePicker(true);
+                                }}
+                                className="rounded-full bg-app-theme-primary px-4 py-2"
                               >
-                                {/* START */}
-                                <Text
-                                  onPress={() => {
-                                    setEditingTime({
-                                      day,
-                                      periodIndex: index,
-                                      field: "start",
-                                      value: p.start,
-                                    });
-                                    setShowTimePicker(true);
-                                  }}
-                                  className="px-3 py-2 rounded-l-full bg-black/20 text-font-primary text-sm"
-                                >
+                                <Text className="text-white text-sm font-semibold">
                                   {formatHour(p.start)}
                                 </Text>
-                                <Text className="text-font-primary px-1">|</Text>
+                              </TouchableOpacity>
 
-                                {/* END */}
-                                <Text
-                                  onPress={() => {
-                                    setEditingTime({
-                                      day,
-                                      periodIndex: index,
-                                      field: "end",
-                                      value: p.end,
-                                    });
-                                    setShowTimePicker(true);
-                                  }}
-                                  className="px-3  rounded-r-full bg-black/20 text-font-primary text-sm text-center"
-                                >
+                              <Text className="text-white/70">até</Text>
+
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setEditingTime({
+                                    day,
+                                    periodIndex: index,
+                                    field: "end",
+                                    value: p.end,
+                                  });
+                                  setShowTimePicker(true);
+                                }}
+                                className="rounded-full bg-app-theme-primary px-4 py-2"
+                              >
+                                <Text className="text-white text-sm font-semibold">
                                   {formatHour(p.end)}
                                 </Text>
-                                {index === 1 && times.length === 2 && (
-                                  <Text
-                                    onPress={() => removeSecondPeriod(day)}
-                                    className="rounded-full text-font-primary text-sm text-center"
-                                  >
-                                    ❌
-                                  </Text>
-                                )}
-                              </View>
-                            ))}
-                          </View>
+                              </TouchableOpacity>
 
-                          {/* ✅ Botão + abaixo do primeiro período */}
+                              {index === 1 && times.length === 2 && (
+                                <TouchableOpacity
+                                  onPress={() => removeSecondPeriod(day)}
+                                  className="rounded-full bg-red-500 px-3 py-2"
+                                >
+                                  <Text className="text-white text-xs">
+                                    Remover
+                                  </Text>
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          ))}
+
                           {times.length === 1 && (
-                            <Text
+                            <TouchableOpacity
                               onPress={() => addSecondPeriod(day)}
-                              className="rounded-full text-font-primary text-sm pb-2 px-2"
+                              className="self-start rounded-full border border-app-theme-primary bg-background-primary px-4 py-2"
                             >
-                              ➕ 2º período
-                            </Text>
+                              <Text className="text-app-theme-primary text-sm">
+                                + 2º período
+                              </Text>
+                            </TouchableOpacity>
                           )}
-                        </>
+                        </View>
                       )}
                     </View>
                   )}
@@ -362,37 +373,44 @@ export function WorkingDaysView() {
               );
             })}
           </View>
-          <View className="justify-center items-center  px-6 ">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              activeOpacity={0.8}
-              className="px-6  py-2 rounded-md bg-app-theme-primary items-center justify-center"
-            >
-              <Text className="text-font-primary text-center text-base font-bold">
-                Voltar
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
-        {showTimePicker && editingTime && (
-          <AppTime
-            open={showTimePicker}
-            date={timeStringToDate(editingTime.value)}
-            onConfirm={(date) => {
-              const newTime = dateToTimeString(date); // "HH:mm:00" ou "HH:mm:ss"
-              updateScheduleTime(editingTime, newTime);
+        <View className="mt-6 rounded-3xl bg-background-tertiary p-4 shadow-sm shadow-black/10">
+          <Text className="text-font-primary font-semibold mb-2">Resumo</Text>
+          <Text className="text-font-primary/70 text-sm leading-6">
+            Toque em qualquer horário para editar e use os botões para adicionar ou remover períodos.
+          </Text>
+        </View>
 
-              setShowTimePicker(false);
-              setEditingTime(null);
-            }}
-            onCancel={() => {
-              setShowTimePicker(false);
-              setEditingTime(null);
-            }}
-          />
-        )}
+        <View className="mt-6 px-1">
+          <AppButton
+            onPress={() => router.back()}
+            leftIcon="arrow-back"
+            size
+            variant="admin"
+          >
+            Voltar
+          </AppButton>
+        </View>
       </ScrollView>
+
+      {showTimePicker && editingTime && (
+        <AppTime
+          open={showTimePicker}
+          date={timeStringToDate(editingTime.value)}
+          onConfirm={(date) => {
+            const newTime = dateToTimeString(date); // "HH:mm:00" ou "HH:mm:ss"
+            updateScheduleTime(editingTime, newTime);
+
+            setShowTimePicker(false);
+            setEditingTime(null);
+          }}
+          onCancel={() => {
+            setShowTimePicker(false);
+            setEditingTime(null);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

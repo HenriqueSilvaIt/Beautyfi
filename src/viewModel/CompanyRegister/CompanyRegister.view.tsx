@@ -51,82 +51,63 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
         Sobre a Empresa
       </Text>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-6">
+        <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
           Nome da Empresa *
         </Text>
         <TextInput
           value={data.name ?? ""}
           onChangeText={(v) => updateData({ name: v })}
           placeholder="Ex: Barbearia do João"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor="colors.gray[600]"
           className="text-font-primary text-base"
         />
       </View>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-6">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-          Subdomínio (URL)
-        </Text>
-        <TextInput
-          value={data.subdomain ?? ""}
-          onChangeText={(v) =>
-            updateData({
-              subdomain: v.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-            })
-          }
-          placeholder="ex: barbearia-do-joao"
-          placeholderTextColor="#4b5563"
-          className="text-font-primary text-base"
-          autoCapitalize="none"
-        />
-        <Text className="text-font-primary text-xs mt-1">
-          Link: beautyfi.app/{data.subdomain || "seu-link"}
-        </Text>
-      </View>
+
 
       {/* Seção Admin */}
-      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-2 text-app-theme-primary">
+      <Text className=" text-xs font-bold uppercase tracking-wider mb-2 text-app-theme-primary">
         Conta do Administrador
       </Text>
 
       <View className="flex-row gap-3 mb-4">
         <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+          <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
             Primeiro Nome *
           </Text>
           <TextInput
             value={data.firstName ?? ""}
             onChangeText={(v) => updateData({ firstName: v })}
             placeholder="Ex: João"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor={colors.black}
             className="text-font-primary text-base"
           />
         </View>
 
         <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+          <Text className="text-font-primary font-semibold text-xs mb-1 uppercase tracking-wider">
             Sobrenome
           </Text>
           <TextInput
             value={data.lastName ?? ""}
             onChangeText={(v) => updateData({ lastName: v })}
             placeholder="Ex: Silva"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor={colors.black}
             className="text-font-primary text-base"
           />
         </View>
       </View>
 
       <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+        <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
           Email de Acesso *
         </Text>
         <TextInput
           value={data.email ?? ""}
           onChangeText={(v) => updateData({ email: v.trim() })}
           placeholder="Ex: joao@email.com"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor="colors.gray[600]"
           className="text-font-primary text-base"
           autoCapitalize="none"
           keyboardType="email-address"
@@ -134,14 +115,14 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
       </View>
 
       <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+        <Text className="text-font-primary font-semibold text-xs mb-1 uppercase tracking-wider">
           Senha de Acesso (mín. 6 caracteres) *
         </Text>
         <TextInput
           value={data.password ?? ""}
           onChangeText={(v) => updateData({ password: v })}
           placeholder="Sua senha secreta"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor="colors.gray[600]"
           className="text-font-primary text-base"
           secureTextEntry
           autoCapitalize="none"
@@ -149,14 +130,14 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
       </View>
 
       <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-8">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+        <Text className="text-font-primary font-semibold  text-xs mb-1 uppercase tracking-wider">
           Celular / Telefone *
         </Text>
         <TextInput
           value={data.phone ?? ""}
           onChangeText={(v) => updateData({ phone: v })}
           placeholder="Ex: (11) 99999-9999"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor={colors.black}
           className="text-font-primary text-base"
           keyboardType="phone-pad"
         />
@@ -378,7 +359,7 @@ function Step4({
             value={data.cep ?? ""}
             onChangeText={searchCep}
             placeholder="Ex: 01310-100"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor="colors.gray[600]"
             className="text-font-primary text-base"
             keyboardType="numeric"
             maxLength={9}
@@ -398,7 +379,7 @@ function Step4({
           value={data.street ?? ""}
           onChangeText={(v) => updateData({ street: v })}
           placeholder="Ex: Avenida Paulista"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor="colors.gray[600]"
           className="text-font-primary text-base"
         />
       </View>
@@ -413,7 +394,7 @@ function Step4({
             value={data.number ?? ""}
             onChangeText={(v) => updateData({ number: v })}
             placeholder="Ex: 1000"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor="colors.gray[600]"
             className="text-font-primary text-base"
             keyboardType="numeric"
           />
@@ -427,7 +408,7 @@ function Step4({
             value={data.complement ?? ""}
             onChangeText={(v) => updateData({ complement: v })}
             placeholder="Ex: Sala 42"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor="colors.gray[600]"
             className="text-font-primary text-base"
           />
         </View>
@@ -442,7 +423,7 @@ function Step4({
           value={data.neighborhood ?? ""}
           onChangeText={(v) => updateData({ neighborhood: v })}
           placeholder="Ex: Bela Vista"
-          placeholderTextColor="#4b5563"
+          placeholderTextColor="colors.gray[600]"
           className="text-font-primary text-base"
         />
       </View>
@@ -457,7 +438,7 @@ function Step4({
             value={data.city ?? ""}
             onChangeText={(v) => updateData({ city: v })}
             placeholder="Ex: São Paulo"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor="colors.gray[600]"
             className="text-font-primary text-base"
           />
         </View>
@@ -470,7 +451,7 @@ function Step4({
             value={data.state ?? ""}
             onChangeText={(v) => updateData({ state: v.toUpperCase() })}
             placeholder="SP"
-            placeholderTextColor="#4b5563"
+            placeholderTextColor="colors.gray[600]"
             className="text-font-primary text-base"
             maxLength={2}
             autoCapitalize="characters"
@@ -600,8 +581,169 @@ function Step5({
   );
 }
 
-// ─── Page 6: Revisão Final ────────────────────────────────
-function Step6({ data, prevStep, submitCompany, isSubmitting }: any) {
+// ─── Page 6: Horário de Trabalho ───────────────────────────
+function Step6({
+  data,
+  updateData,
+  nextStep,
+  prevStep,
+  canProceed,
+}: any) {
+  const DAYS_OF_WEEK = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+
+  const toggleDay = (day: string) => {
+    const current: string[] = data.workDays ?? [];
+    const exists = current.includes(day);
+    updateData({
+      workDays: exists ? current.filter((d) => d !== day) : [...current, day],
+    });
+  };
+
+  return (
+    <ScrollView
+      className="flex-1 px-6 pt-6"
+      contentContainerStyle={{ paddingBottom: 60 }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text className="text-font-primary text-3xl font-bold mb-2">
+        Seu horário de trabalho
+      </Text>
+      <Text className="text-font-primary text-sm mb-6">
+        Selecione os dias da semana que você atende e defina seus turnos.
+      </Text>
+
+      {/* Dias da semana */}
+      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-3 text-app-theme-primary">
+        Dias de Atendimento
+      </Text>
+      <View className="flex-row flex-wrap gap-2 mb-6">
+        {DAYS_OF_WEEK.map((day) => {
+          const selected = (data.workDays ?? []).includes(day);
+          return (
+            <TouchableOpacity
+              key={day}
+              onPress={() => toggleDay(day)}
+              className={`px-4 py-2 rounded-full border ${
+                selected
+                  ? "border-app-theme-primary"
+                  : "border-gray-700 bg-background-tertiary"
+              }`}
+              style={
+                selected
+                  ? { backgroundColor: colors["app-theme-primary"] + "20" }
+                  : {}
+              }
+            >
+              <Text
+                style={{
+                  color: selected ? colors["app-theme-primary"] : "#9ca3af",
+                }}
+                className="font-semibold text-sm"
+              >
+                {day}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Horários */}
+      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-3 text-app-theme-primary">
+        Horários de Turno
+      </Text>
+
+      {/* Turno da Manhã */}
+      <View className="bg-background-tertiary rounded-2xl p-4 mb-4">
+        <Text className="text-font-primary font-semibold text-xs mb-3 uppercase tracking-wider">
+          Turno da Manhã (Ex: 09:00 - 12:00)
+        </Text>
+        <View className="flex-row gap-3">
+          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
+            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Entrada</Text>
+            <TextInput
+              value={data.scheduleStart ?? "09:00"}
+              onChangeText={(v) => updateData({ scheduleStart: v })}
+              placeholder="09:00"
+              placeholderTextColor="#666"
+              className="text-font-primary text-base p-0"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+            />
+          </View>
+          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
+            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Almoço (Saída)</Text>
+            <TextInput
+              value={data.scheduleLunchStart ?? "12:00"}
+              onChangeText={(v) => updateData({ scheduleLunchStart: v })}
+              placeholder="12:00"
+              placeholderTextColor="#666"
+              className="text-font-primary text-base p-0"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Turno da Tarde */}
+      <View className="bg-background-tertiary rounded-2xl p-4 mb-8">
+        <Text className="text-font-primary font-semibold text-xs mb-3 uppercase tracking-wider">
+          Turno da Tarde (Ex: 13:00 - 18:00)
+        </Text>
+        <View className="flex-row gap-3">
+          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
+            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Retorno</Text>
+            <TextInput
+              value={data.scheduleLunchEnd ?? "13:00"}
+              onChangeText={(v) => updateData({ scheduleLunchEnd: v })}
+              placeholder="13:00"
+              placeholderTextColor="#666"
+              className="text-font-primary text-base p-0"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+            />
+          </View>
+          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
+            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Fim / Saída</Text>
+            <TextInput
+              value={data.scheduleEnd ?? "18:00"}
+              onChangeText={(v) => updateData({ scheduleEnd: v })}
+              placeholder="18:00"
+              placeholderTextColor="#666"
+              className="text-font-primary text-base p-0"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+            />
+          </View>
+        </View>
+      </View>
+
+      <View className="flex-row gap-3">
+        <TouchableOpacity
+          onPress={prevStep}
+          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+        >
+          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          disabled={!canProceed}
+          onPress={nextStep}
+          className={`flex-1 py-4 rounded-2xl items-center ${
+            canProceed ? "" : "opacity-40"
+          }`}
+          style={{ backgroundColor: colors["app-theme-primary"] }}
+        >
+          <Text className="text-font-secundary font-bold text-base">
+            Continuar
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+// ─── Page 7: Revisão Final ────────────────────────────────
+function Step7({ data, prevStep, submitCompany, isSubmitting }: any) {
   return (
     <ScrollView
       className="flex-1 px-6 pt-6"
@@ -631,6 +773,11 @@ function Step6({ data, prevStep, submitCompany, isSubmitting }: any) {
           icon="people-outline"
           label="Equipe"
           value={data.teamSize || "—"}
+        />
+        <InfoRow
+          icon="time-outline"
+          label="Horário de Atendimento"
+          value={`${(data.workDays ?? []).join(", ") || "—"} • ${data.scheduleStart} - ${data.scheduleLunchStart} / ${data.scheduleLunchEnd} - ${data.scheduleEnd}`}
         />
         <InfoRow
           icon="location-outline"
@@ -696,7 +843,7 @@ function InfoRow({
 // ─── MAIN COMPONENT ──────────────────────────────────────
 export function CompanyRegisterView() {
   const vm = useCompanyRegisterViewModel();
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   const titles = [
     "Seu negócio",
@@ -704,6 +851,7 @@ export function CompanyRegisterView() {
     "Equipe",
     "Localização",
     "Serviços",
+    "Horário",
     "Confirmação",
   ];
 
@@ -762,7 +910,7 @@ export function CompanyRegisterView() {
         <Step4
           data={vm.data}
           updateData={vm.updateData}
-          nextStep={vm.nextStep}
+          nextStep={vm.geocodeAndNextStep}
           prevStep={vm.prevStep}
           canProceed={vm.canProceedStep4}
           searchCep={vm.searchCep}
@@ -780,6 +928,15 @@ export function CompanyRegisterView() {
       )}
       {vm.step === 6 && (
         <Step6
+          data={vm.data}
+          updateData={vm.updateData}
+          nextStep={vm.nextStep}
+          prevStep={vm.prevStep}
+          canProceed={vm.canProceedStep6}
+        />
+      )}
+      {vm.step === 7 && (
+        <Step7
           data={vm.data}
           prevStep={vm.prevStep}
           submitCompany={vm.submitCompany}

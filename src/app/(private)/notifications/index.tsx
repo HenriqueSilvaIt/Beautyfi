@@ -40,9 +40,9 @@ export default function NotificationsScreen() {
             activeOpacity={0.7}
             className="bg-white/10 p-2.5 rounded-full mr-4"
           >
-            <Ionicons name="arrow-back" size={22} color="#ffffff" />
+            <Ionicons name="arrow-back" size={22} color="#000" />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Notificações</Text>
+          <Text className="text-font-primary text-xl font-bold">Notificações</Text>
         </View>
 
         {notifications.length > 0 && (
@@ -65,7 +65,7 @@ export default function NotificationsScreen() {
           className="flex-row items-center flex-1"
         >
           <Ionicons name="calendar-outline" size={20} color="#CBA35D" className="mr-2" style={{ marginRight: 8 }} />
-          <Text className="text-white text-sm font-semibold">
+          <Text className="text-font-primary text-sm font-semibold">
             {selectedDate
               ? `Filtrando por: ${selectedDate.toLocaleDateString("pt-BR")}`
               : "Filtrar por data..."}
@@ -76,7 +76,7 @@ export default function NotificationsScreen() {
             onPress={() => setSelectedDate(null)}
             className="ml-3 bg-white/10 p-1.5 rounded-full"
           >
-            <Ionicons name="close" size={14} color="#ffffff" />
+            <Ionicons name="close" size={14} color="#000" />
           </TouchableOpacity>
         )}
       </View>
@@ -100,12 +100,12 @@ export default function NotificationsScreen() {
               </View>
               <View className="flex-1">
                 <View className="flex-row justify-between items-center mb-1">
-                  <Text className="text-white text-sm font-bold flex-1 pr-2" numberOfLines={1}>
+                  <Text className="text-font-primary text-sm font-bold flex-1 pr-2" numberOfLines={1}>
                     {item.title}
                   </Text>
-                  <Text className="text-gray-600 text-xs">{formattedTime}</Text>
+                  <Text className="text-font-secondary text-xs">{formattedTime}</Text>
                 </View>
-                <Text className="text-gray-300 text-xs leading-relaxed">
+                <Text className="text-font-secundary   text-xs leading-relaxed">
                   {item.body}
                 </Text>
               </View>
@@ -115,7 +115,7 @@ export default function NotificationsScreen() {
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
             <Ionicons name="notifications-off-outline" size={48} color="#4b5563" />
-            <Text className="text-gray-500 text-sm mt-4 text-center">
+            <Text className="text-gray-600 text-sm mt-4 text-center">
               Nenhuma notificação encontrada{selectedDate ? " para esta data" : ""}.
             </Text>
           </View>

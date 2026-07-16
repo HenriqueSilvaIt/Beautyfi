@@ -13,41 +13,21 @@ export interface AddressSuggestion {
 }
 
 const CATEGORIES = [
-  "Barbearia",
-  "Salão de Beleza",
-  "Estética",
-  "Nail Designer",
+  "Manicure",
   "Sobrancelhas",
-  "Massagem",
   "Maquiagem",
-  "Depilação",
-  "Saúde e Bem-estar",
-  "Personal Trainer",
-  "Outros",
+  "Cabelos",
+  "Barbearia",
+  "Podologia",
 ];
 
 const DEFAULT_SERVICES_BY_CATEGORY: Record<string, string[]> = {
-  Barbearia: ["Corte masculino", "Barba", "Sobrancelha", "Hidratação"],
-  "Salão de Beleza": [
-    "Corte feminino",
-    "Coloração",
-    "Escova",
-    "Hidratação",
-    "Manicure",
-  ],
-  Estética: ["Limpeza de pele", "Peeling", "Botox", "Preenchimento"],
-  "Nail Designer": ["Manicure", "Pedicure", "Unhas gel", "Nail art"],
-  Sobrancelhas: ["Design de sobrancelhas", "Henna", "Micropigmentação"],
-  Massagem: ["Massagem relaxante", "Massagem modeladora", "Drenagem linfática"],
-  Maquiagem: ["Maquiagem social", "Maquiagem para noiva", "Aula de maquiagem"],
-  Depilação: ["Depilação a cera", "Laser", "Depilação com linha"],
-  "Saúde e Bem-estar": [
-    "Consulta",
-    "Avaliação física",
-    "Orientação nutricional",
-  ],
-  "Personal Trainer": ["Treino personalizado", "Avaliação física"],
-  Outros: [],
+  Manicure: ["Pé e Mão", "Alongamento de Unhas", "Esmaltação em Gel", "Cuticulagem", "Pedicure"],
+  Sobrancelhas: ["Design de Sobrancelhas", "Henna", "Micropigmentação", "Brown Lamination", "Limpeza de Sobrancelha"],
+  Maquiagem: ["Maquiagem Social", "Maquiagem de Noiva", "Maquiagem Express", "Cílios Postiços"],
+  Cabelos: ["Corte Feminino", "Corte Masculino", "Escova e Higienização", "Coloração", "Luzes/Mechas", "Hidratação Profunda"],
+  Barbearia: ["Corte de Cabelo Masculino", "Barba Completa", "Corte + Barba", "Acabamento de Barba", "Selagem/Progressiva Masculina"],
+  Podologia: ["Podologia Preventiva", "Tratamento de Unha Encravada", "Órtese Uncular", "Hidratação Podológica"],
 };
 
 const TEAM_SIZES = [
@@ -133,9 +113,32 @@ export function useCompanyRegisterViewModel() {
 
   // Tenta geocodificar o CEP/Cidade para obter latitude e longitude
   const geocodeAddress = async (street: string, city: string, state: string) => {
+    const query = `${street}, ${data.number || ""}, ${city}, ${state}, Brasil`;
+    const googleKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (googleKey) {
+      try {
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${googleKey}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.results && json.results.length > 0) {
+            const location = json.results[0].geometry.location;
+            updateData({
+              latitude: location.lat,
+              longitude: location.lng,
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Erro Google Maps Geocode:", e);
+      }
+    }
+
     try {
-      const query = `${street}, ${city}, ${state}, Brasil`;
-      const encoded = encodeURIComponent(query);
+      const fallbackQuery = `${street}, ${city}, ${state}, Brasil`;
+      const encoded = encodeURIComponent(fallbackQuery);
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encoded}`,
         {
@@ -180,6 +183,58 @@ export function useCompanyRegisterViewModel() {
 
     setIsSubmitting(true);
     try {
+      // Re-geocode with exact street number right before registering
+      let exactLat = data.latitude ?? -23.55052;
+      let exactLon = data.longitude ?? -46.633308;
+      
+      if (data.street && data.number) {
+        const queryAddr = `${data.street}, ${data.number}, ${data.city || ""}, ${data.state || ""}, Brasil`;
+        const googleKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+        let resolvedFromGoogle = false;
+        if (googleKey) {
+          try {
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(queryAddr)}&key=${googleKey}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              if (json.results && json.results.length > 0) {
+                const location = json.results[0].geometry.location;
+                exactLat = location.lat;
+                exactLon = location.lng;
+                resolvedFromGoogle = true;
+              }
+            }
+          } catch (e) {
+            console.error("Erro Google Maps Geocode ao registrar:", e);
+          }
+        }
+
+        if (!resolvedFromGoogle) {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(queryAddr)}`,
+              {
+                headers: {
+                  "User-Agent": "BeautyFi/1.0 (contact@beautyfi.com.br)",
+                  "Accept-Language": "pt-BR,pt;q=0.9",
+                },
+              }
+            );
+            if (res.ok) {
+              const list = await res.json();
+              if (list && list.length > 0) {
+                exactLat = parseFloat(list[0].lat);
+                exactLon = parseFloat(list[0].lon);
+              }
+            }
+          } catch (e) {
+            console.error("Erro ao geocodificar endereço exato no registro:", e);
+          }
+        }
+      }
+
+
       const signupPayload = {
         firstName: data.firstName,
         lastName: data.lastName || "Admin",
@@ -188,8 +243,14 @@ export function useCompanyRegisterViewModel() {
         phone: data.phone || "",
         businessName: data.name,
         address: data.address || `${data.street}, ${data.number} - ${data.neighborhood}, ${data.city} - ${data.state}`,
-        latitude: data.latitude ?? -23.55052,
-        longitude: data.longitude ?? -46.633308,
+        latitude: exactLat,
+        longitude: exactLon,
+        categoryNames: data.categories || [],
+        workDays: data.workDays || [],
+        scheduleStart: data.scheduleStart || "09:00",
+        scheduleLunchStart: data.scheduleLunchStart || "12:00",
+        scheduleLunchEnd: data.scheduleLunchEnd || "13:00",
+        scheduleEnd: data.scheduleEnd || "18:00",
       };
 
       await styleAppApiClient.post(
@@ -234,6 +295,15 @@ export function useCompanyRegisterViewModel() {
     !!data.city?.trim() &&
     !!data.state?.trim();
 
+  const canProceedStep6 = (data.workDays?.length ?? 0) > 0;
+
+  const geocodeAndNextStep = async () => {
+    if (data.street && data.city && data.state) {
+      await geocodeAddress(data.street, data.city, data.state);
+    }
+    nextStep();
+  };
+
   return {
     step,
     nextStep,
@@ -247,10 +317,12 @@ export function useCompanyRegisterViewModel() {
     suggestedServices,
     searchCep,
     geocodeAddress,
+    geocodeAndNextStep,
     addressLoading,
     canProceedStep1,
     canProceedStep2,
     canProceedStep3,
     canProceedStep4,
+    canProceedStep6,
   };
 }

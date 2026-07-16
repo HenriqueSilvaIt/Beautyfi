@@ -165,7 +165,7 @@ export function ProductItemDetailsView({
           className={`h-[40px] mt-2 bg-app-theme-primary rounded-md items-center justify-center 
                               ${isItemLoading ? "justify-between" : ""}`}
         >
-          <Text className="text-center text-xl text-font-primary font-bold">
+          <Text className="text-center text-xl text-font-secundary font-bold">
             {isItemLoading ? <ActivityIndicator /> : "Salvar"}
           </Text>
         </View>

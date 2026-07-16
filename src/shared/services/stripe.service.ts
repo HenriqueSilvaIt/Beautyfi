@@ -26,14 +26,12 @@ import {
 
 import { useUserStore } from "../store/user-store";
 
-export async function fetchSubscriptionPlans() {
+export async function fetchSubscriptionPlans(companyId?: number) {
   const { data } =
-    await styleAppApiClient.get<StripePlanDTO[]>(`/subscriptions/plans`);
+    await styleAppApiClient.get<StripePlanDTO[]>(`/subscriptions/plans`, {
+      params: { companyId },
+    });
 
-  const loggedInCompanyId = useUserStore.getState().user?.companyId;
-  if (loggedInCompanyId) {
-    return data.filter((plan) => plan.companyId === loggedInCompanyId);
-  }
   return data;
 }
 

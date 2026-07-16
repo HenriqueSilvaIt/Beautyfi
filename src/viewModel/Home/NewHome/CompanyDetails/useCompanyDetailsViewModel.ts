@@ -1,6 +1,7 @@
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 import { useCompanyServicesMutation } from "@/shared/queries/company/use-company-services.mutation";
 import { useProductMutation } from "@/shared/queries/company/use-product.mutation";
+import { usePackageMutation } from "@/shared/queries/company/use-package.mutation";
 import { useGetSubscriptionPlansQuery } from "@/shared/queries/stripe/use-stripe-mutataion";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
@@ -11,29 +12,6 @@ import { Alert } from "react-native";
 
 export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Avaliações" | "Assinaturas" | "Pacotes";
 
-export const mockPackages = [
-  {
-    id: 991,
-    name: "Combo Imperial: Cabelo + Barba + Sobrancelha",
-    description: "Corte premium de cabelo, alinhamento completo de barba com toalha quente e design de sobrancelha na navalha.",
-    price: 110.00,
-    services: [1, 2, 4],
-  },
-  {
-    id: 992,
-    name: "Combo VIP Tauna: Escova + Hidratação + Manicure",
-    description: "Escova modeladora de salão, hidratação capilar reconstrutiva profunda e manicure completa com esmaltação.",
-    price: 180.00,
-    services: [3, 6, 215],
-  },
-  {
-    id: 993,
-    name: "Cuidado Essencial Masculino: Cabelo + Hidratação",
-    description: "Corte de cabelo tesoura/máquina, lavagem especial com shampoo mentolado e hidratação rápida de fios.",
-    price: 75.00,
-    services: [1, 6],
-  }
-];
 
 export function useCompanyDetailsViewModel(companyId?: number) {
   const [activeTab, setActiveTab] = useState<CompanyDetailTab>("Serviços");
@@ -55,8 +33,9 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     createCompanyReviewMutation,
   } = useCompanyDetailsMutation();
 
-  const { useGetServiceMutation } = useCompanyServicesMutation();
+  const { useGetServiceAvailableInAppMutation } = useCompanyServicesMutation();
   const { useGetProductsMutation } = useProductMutation();
+  const { useGetPackagesMutation } = usePackageMutation();
 
   const access_token = useUserStore((state) => state.access_token);
   const user = useUserStore((state) => state.user);
@@ -85,7 +64,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     }
   }, [companyId]);
 
-  // Load services
+  // Load services (only available in app)
   const {
     data: serviceData,
     isLoading: serviceIsLoading,
@@ -93,7 +72,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     fetchNextPage: serviceFetchNextPage,
     hasNextPage: serviceHasNextPage,
     isFetchingNextPage: serviceIsFetchingNextPage,
-  } = useGetServiceMutation(debouncedSearch);
+  } = useGetServiceAvailableInAppMutation(companyId);
 
   // Load products
   const {
@@ -103,17 +82,27 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     fetchNextPage: productFetchNextPage,
     hasNextPage: productHasNextPage,
     isFetchingNextPage: productIsFetchingNextPage,
-  } = useGetProductsMutation(debouncedSearch);
+  } = useGetProductsMutation(companyId, debouncedSearch);
+
+  // Load packages
+  const {
+    data: packageData,
+    isLoading: packageIsLoading,
+    refetch: packageRefetch,
+    fetchNextPage: packageFetchNextPage,
+    hasNextPage: packageHasNextPage,
+    isFetchingNextPage: packageIsFetchingNextPage,
+  } = useGetPackagesMutation(companyId);
 
   // Load subscription plans
-  const { data: subscriptionPlans, isLoading: isPlansLoading } = useGetSubscriptionPlansQuery();
+  const { data: subscriptionPlans, isLoading: isPlansLoading } = useGetSubscriptionPlansQuery(companyId);
 
   // Load favorites if logged in
   const { data: favoritedIds } = useGetFavoritedIdsQuery(isLoggedIn);
 
   // Load employees
   const { useGetEmployeeMutation } = useEmployeeMutation();
-  const { data: employeesData, isLoading: employeesIsLoading } = useGetEmployeeMutation({ companyId } as any);
+  const { data: employeesData, isLoading: employeesIsLoading } = useGetEmployeeMutation({ companyId: companyId ? String(companyId) : undefined });
   const employeesList = employeesData?.pages.flatMap((page) => page.content ?? []) ?? [];
 
   // Load reviews
@@ -205,6 +194,10 @@ export function useCompanyDetailsViewModel(companyId?: number) {
 
   const handleSubmitReview = async () => {
     if (!companyId) return;
+    if (!createCompanyReviewMutation) {
+      Alert.alert("Erro", "Não foi possível enviar a avaliação.");
+      return;
+    }
     if (!newComment.trim()) {
       Alert.alert("Erro", "Por favor, digite um comentário.");
       return;
@@ -230,12 +223,25 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   };
 
   // Extract content arrays from paginated data
-  const servicesList = serviceData?.pages.flatMap((page) => page.content ?? []) ?? [];
-  const productsList = productData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  const rawServicesList = serviceData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  const servicesList = rawServicesList.filter((service) => {
+    const matchesSearch = debouncedSearch
+      ? service.name?.toLowerCase().includes(debouncedSearch.toLowerCase())
+      : true;
+    return matchesSearch && service.availableInApp !== false;
+  });
+
+  const rawProductsList = productData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  const productsList = rawProductsList.filter((product) => {
+    return product.availableInApp === true;
+  });
+
+  const packagesList = packageData?.pages.flatMap((page) => page.content ?? []) ?? [];
+
 
   return {
     companyDetailsData,
-    companyDetailsLoading: companyDetailsLoading || serviceIsLoading || productIsLoading || isPlansLoading,
+    companyDetailsLoading: companyDetailsLoading || serviceIsLoading || productIsLoading || packageIsLoading || isPlansLoading,
     companyDetailsError,
     companyDetailsRefetch,
     isFavorite,
@@ -249,6 +255,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     setSelectedServices,
     servicesList,
     productsList,
+    packagesList,
     subscriptionPlans: subscriptionPlans ?? [],
     handleBookSelectedServices,
     handleBookPackage,
@@ -258,6 +265,11 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     serviceHasNextPage,
     serviceIsFetchingNextPage,
     serviceIsLoading,
+    packageFetchNextPage,
+    packageRefetch,
+    packageHasNextPage,
+    packageIsFetchingNextPage,
+    packageIsLoading,
     searchValue,
     setSearchValue,
     productFetchNextPage,

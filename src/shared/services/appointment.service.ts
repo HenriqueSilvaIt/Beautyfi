@@ -16,11 +16,15 @@ import {
 export async function getAppointmentAdmin(
   date: string,
   employeeId?: number | null,
+  companyId?: number
 ) {
   const { data } = await styleAppApiClient.get<AppointmentHttpResponse>(
-    `/appointments/admin?dateBooking=${date}&employeeId=${employeeId}`,
+    `/appointments/admin`,
     {
       params: {
+        dateBooking: date,
+        employeeId: employeeId || undefined,
+        companyId: companyId || undefined,
         size: 100,
       },
     },
@@ -29,13 +33,14 @@ export async function getAppointmentAdmin(
   return data;
 }
 
-export async function getAppointments(page: number = 0, size: number = 10) {
+export async function getAppointments(page: number = 0, size: number = 10, companyId?: number) {
   const { data } = await styleAppApiClient.get<AppointmentHttpResponse>(
     `/appointments`,
     {
       params: {
         page, // Passando o page aqui
         size, // Definindo o tamanho por página
+        companyId,
       },
     },
   );
@@ -115,9 +120,9 @@ export async function deleteAppointment(id: number) {
   await styleAppApiClient.delete(`appointments/${id}`, config);
 }
 
-export async function getMonthlyAppointments(startDate: string, endDate: string) {
+export async function getMonthlyAppointments(startDate: string, endDate: string, companyId?: number) {
   const { data } = await styleAppApiClient.get("/appointments/reports/monthly", {
-    params: { startDate, endDate }
+    params: { startDate, endDate, companyId }
   });
   return data;
 }

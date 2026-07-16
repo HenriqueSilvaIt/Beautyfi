@@ -3,6 +3,7 @@ import {
   deleteServiceById,
   getServiceById,
   getServices,
+  getServicesAvailableInApp,
   getServicesByEmployeeId,
   postServices,
   updateServices,
@@ -36,10 +37,10 @@ export function useCompanyServicesMutation() {
     });
   }
 
-  function useGetServiceMutation(name?: string) {
+  function useGetServiceMutation(companyId?: number, name?: string) {
     return useInfiniteQuery({
-      queryKey: ["services", name],
-      queryFn: ({ pageParam = 0 }) => getServices(pageParam, 10, name),
+      queryKey: ["services", companyId, name],
+      queryFn: ({ pageParam = 0 }) => getServices(pageParam, 10, name, companyId),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;
@@ -47,6 +48,20 @@ export function useCompanyServicesMutation() {
       },
       staleTime: 1000 * 60 * 5, // 5 minutos em cache, evita refetch imediato
       refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
+    });
+  }
+
+  function useGetServiceAvailableInAppMutation(companyId?: number) {
+    return useInfiniteQuery({
+      queryKey: ["services-available", companyId],
+      queryFn: ({ pageParam = 0 }) => getServicesAvailableInApp(pageParam, 50, companyId),
+      initialPageParam: 0,
+      getNextPageParam: (lastPage) => {
+        if (lastPage.last) return undefined;
+        return lastPage.number + 1;
+      },
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
     });
   }
 
@@ -104,6 +119,7 @@ export function useCompanyServicesMutation() {
     useGetCompanyServiceById,
     serviceGetByEmployeeIdMutation,
     useGetServiceMutation,
+    useGetServiceAvailableInAppMutation,
     serviceDeleteByIdMutation,
     serviceUpdateMutation,
   };

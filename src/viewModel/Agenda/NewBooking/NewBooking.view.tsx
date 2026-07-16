@@ -94,7 +94,7 @@ export function NewBookingView() {
 
           <View
             className={`flex-row gap-3 items-center justify-between  px-4 py-2 rounded-md
-        ${fitIn ? "bg-green-600" : "bg-gray-800"}`}
+        ${fitIn ? "bg-green-600" : "bg-gray-800 text-font-secundary"}`}
           >
             <Text className="text-base text-font-secundary">
               {fitIn ? "Encaixe ativado" : "Encaixe desativado"}
@@ -127,11 +127,17 @@ export function NewBookingView() {
 
         {employee && (
           <View className="gap-2 items-center justify-center mb-5 bg-background-tertiary w-full rounded-md flex-row flex-wrap p-2">
-            <Image
-              source={{ uri: employee.avatarUrl }}
-              resizeMode="cover"
-              className="h-[40px] w-[40px] rounded-full"
-            />
+            {employee.avatarUrl ? (
+              <Image
+                source={{ uri: employee.avatarUrl }}
+                resizeMode="cover"
+                className="h-[40px] w-[40px] rounded-full"
+              />
+            ) : (
+              <View className="bg-background-agenda w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
+                <Text>👤</Text>
+              </View>
+            )}
 
             <Text className="text-base text-font-primary">{employee.name}</Text>
           </View>
@@ -159,7 +165,7 @@ export function NewBookingView() {
                 ${client ? "border-app-theme-primary" : "border-gray-800"}  `}
               />
             ) : (
-              <View className="w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
+              <View className="bg-background-agenda w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
                 <Text>👤</Text>
               </View>
             )}
@@ -188,7 +194,7 @@ export function NewBookingView() {
                 ${service ? "border-app-theme-primary" : "border-gray-800"}  `}
               />
             ) : (
-              <View className="w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
+              <View className="bg-background-agenda w-[40px] h-[40px] rounded-full border border-white items-center justify-center">
                 <Text>👤</Text>
               </View>
             )}
@@ -197,8 +203,7 @@ export function NewBookingView() {
             </Text>
           </View>
         </TouchableOpacity>
-
-       
+        <View className="pl-2 ">
 
         <AppInputController
           leftIcon="information-circle-outline"
@@ -211,6 +216,7 @@ export function NewBookingView() {
           multiline={true}
           numberOfLines={3}
         />
+        </View>
 
         <View className="justify-center items-center px-6 ">
           <TouchableOpacity

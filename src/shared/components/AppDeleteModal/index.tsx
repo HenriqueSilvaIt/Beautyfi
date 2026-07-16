@@ -9,7 +9,6 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "../../../styles/colors";
 import { AppointmentProps } from "@/shared/interfaces/http/appointment";
-import { hide } from "expo-splash-screen";
 import { ReactNode } from "react";
 
 interface Params {
@@ -65,7 +64,7 @@ export function DeleteModal({
                   <MaterialIcons
                     name="error-outline"
                     className="mr-4"
-                    color={colors.gray[400]}
+                    color={colors.gray[600]}
                     size={25}
                   />
                   <Text className="text-font-primary text-lg">{title}</Text>
@@ -73,7 +72,7 @@ export function DeleteModal({
                 <TouchableOpacity onPress={hideModal}>
                   <MaterialIcons
                     name="close"
-                    color={colors.gray[400]}
+                    color={colors.black}
                     size={25}
                   />
                 </TouchableOpacity>
@@ -82,7 +81,7 @@ export function DeleteModal({
                 className="p-3 flex-1 border-b border-gray-300 
                             items-center justify-center"
               >
-                <Text className="text-gray-500 text-center text-sm leading-8">
+                <Text className="text-font-primary text-center text-sm leading-8">
                   {description}
                 </Text>
               </View>
@@ -94,9 +93,9 @@ export function DeleteModal({
                 <TouchableOpacity
                   onPress={hideModal}
                   className="w-[100] bg-none
-                            border-2 border-accent-orange items-center justify-center p-3 rounded-[6]"
+                            border-2 border-app-theme-secundary items-center justify-center p-3 rounded-[6]"
                 >
-                  <Text className="text-accent-orange text-center">
+                  <Text className="text-font-primary text-center">
                     {" "}
                     {cancelbuttonText ?? "Cancelar"}
                   </Text>
@@ -115,7 +114,7 @@ export function DeleteModal({
                     }
                   }}
                   className={`w-[100] items-center justify-center p-3 rounded-md
-    ${confirmationButtonColor ? "bg-accent-orange" : "bg-accent-red-background-primary"}`}
+    ${confirmationButtonColor ? "bg-app-theme-secundary" : "bg-accent-red-background-primary"}`}
                 >
                   <Text className="text-font-primary text-sm text-center">
                     {loading ? <ActivityIndicator /> : confirmationButtonText}

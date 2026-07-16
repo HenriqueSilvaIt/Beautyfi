@@ -18,6 +18,10 @@ export interface UserProps {
   allowWhatsAppNotifications?: boolean;
   allowPushNotifications?: boolean;
   subscriptionExpired?: boolean;
+  firstLogin?: boolean;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UserInterface {

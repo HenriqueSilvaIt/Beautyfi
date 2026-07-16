@@ -9,6 +9,7 @@ import { AppInput } from "@/shared/components/AppInput";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function ClientPageList() {
   const {
@@ -27,7 +28,7 @@ export default function ClientPageList() {
   if (isLoading) {
     return <Loading />;
   }
-  const {safePush} = useSafeNavigation()
+  const { safePush } = useSafeNavigation();
 
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
@@ -37,12 +38,12 @@ export default function ClientPageList() {
         action={() => safePush(`/clients/client-create`)}
         iconRight={{ icon: true, path: "/clients/client-create" }}
       />
-      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-        <AppInput
-          placeholder="Buscar cliente por nome..."
-          leftIcon="search"
+      <View className="px-4 mb-4">
+  
+        <AppSearchBar
           value={searchValue}
           onChangeText={setSearchValue}
+          placeholder="Buscar cliente por nome..."
         />
       </View>
       <AppCard

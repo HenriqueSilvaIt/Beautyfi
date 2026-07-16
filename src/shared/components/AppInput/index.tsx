@@ -20,6 +20,7 @@ export interface AppInputProps extends TextInputProps, AppInputVariantProps {
   formCrud?: boolean;
   multiline?: boolean; 
   numberOfLines?: number;
+  searchBar?: boolean;
 }
 
 export function AppInput({
@@ -38,6 +39,7 @@ export function AppInput({
   error,
   isDisabled,
   formCrud,
+  searchBar,
   ...textInputProps
 }: AppInputProps) {
   const {
@@ -59,6 +61,33 @@ export function AppInput({
     secureTextEntry,
     value,
   });
+
+  if (searchBar) {
+    return (
+      <View className={containerClassName || "w-full"}>
+        <View className="flex-row items-center bg-gray-50 border border-gray-200 px-4 py-3 rounded-2xl shadow-sm">
+          {leftIcon && (
+            <Ionicons
+              color="#6b7280"
+              className="mr-3"
+              name={leftIcon}
+              size={20}
+            />
+          )}
+
+          <TextInput
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            placeholderTextColor="#9ca3af"
+            style={{ flex: 1, color: "#1f2937", fontSize: 14, padding: 0, margin: 0 }}
+            onChangeText={handleTextChange}
+            value={value}
+            {...textInputProps}
+          />
+        </View>
+      </View>
+    );
+  }
 
   const styles = appInputVariant({ isFocused, isDisabled, isError });
 

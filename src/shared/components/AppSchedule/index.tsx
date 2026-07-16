@@ -226,7 +226,7 @@ export function AppSchedule({
         !isHoursLoading && (
           <View className="flex-row items-center px-6 gap-2 bg-background-tertiary rounded-md h-[80px]">
             <Ionicons name="time-outline" color={colors.white} size={20} />
-            <Text className="text-gray-600 text-sm flex-1">
+            <Text className="text-font-primary font-semibold text-sm flex-1">
               Escolha um profissional para buscar os horários disponíveis.
             </Text>
           </View>

@@ -27,6 +27,7 @@ export function AppMapModal({ isOpen, onClose, latitude, longitude, companyName 
           </View>
           
           <MapView
+            key={`${latitude}-${longitude}`}
             style={styles.map}
             initialRegion={{
               latitude,

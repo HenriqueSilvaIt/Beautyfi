@@ -141,6 +141,13 @@ export interface OrderInterface {
   items: OrderItemsInterface[];
   tip: number;
   discountPercent: number;
+  totalSold?: number;
+  totalEmployee?: number;
+  totalCompany?: number;
+  totalEmployeeNet?: number;
+  totalEmployeeDiscount?: number;
+  totalSubscription?: number;
+  cardFeeAmount?: number;
 }
 
 export interface OrderHttpResponse {

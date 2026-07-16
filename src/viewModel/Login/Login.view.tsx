@@ -8,6 +8,7 @@ import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { colors } from "@/styles/colors";
 import { router } from "expo-router";
 import * as AppleAuthentication from "expo-apple-authentication";
+import { Ionicons } from "@expo/vector-icons";
 
 export function LoginView({
   control,
@@ -96,7 +97,7 @@ export function LoginView({
           )}
 
           <View className="flex-2 pb-2">
-            <Text className="text-base my-3 text-gray-500 text-center">
+            <Text className="text-base my-3 text-gray-600 text-center">
               Ainda não tem uma conta?
             </Text>
           </View>
@@ -104,6 +105,41 @@ export function LoginView({
             Registro
           </AppButton>
         </View>
+
+           {/* CTA Cadastro de Empresa */}
+        <TouchableOpacity
+          onPress={() => safePush("/(public)/company-register")}
+          activeOpacity={0.85}
+          className="mt-8 mb-12 rounded-2xl overflow-hidden border border-app-theme-primary/40 bg-background-tertiary"
+        >
+          <View className="p-5 gap-3">
+            <View className="flex-row items-center gap-3">
+              <View
+                className="p-2.5 rounded-xl"
+                style={{ backgroundColor: colors["app-theme-primary"] + "25" }}
+              >
+                <Ionicons
+                  name="storefront-outline"
+                  size={22}
+                  color={colors["app-theme-primary"]}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-font-primary font-bold text-base">
+                  Tem um negócio?
+                </Text>
+                <Text className="text-font-primary text-xs mt-0.5">
+                  Crie sua empresa gratuitamente
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors["app-theme-primary"]} />
+            </View>
+            <Text className="text-font-primary text-xs leading-4">
+              Cadastre sua empresa em minutos e comece a receber agendamentos
+              online. Experimente 14 dias grátis.
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </KeyboardContainer>
   );

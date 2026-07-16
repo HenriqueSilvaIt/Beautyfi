@@ -14,6 +14,9 @@ import {
   createCompanyReview,
   updateOpeningHours,
   updateSocialMedias,
+  getCompanyPreferences,
+  updateCompanyPreferences,
+  CompanyPreferences,
 } from "../../services/company.service";
 import { CompanyInterface } from "@/shared/interfaces/http/company";
 import { queryClient } from "../../../../queryClient";
@@ -167,6 +170,20 @@ export function useCompanyDetailsMutation() {
     },
   });
 
+  function useGetCompanyPreferencesQuery() {
+    return useQuery({
+      queryKey: ["company-preferences"],
+      queryFn: getCompanyPreferences,
+    });
+  }
+
+  const updateCompanyPreferencesMutation = useMutation({
+    mutationFn: (dto: CompanyPreferences) => updateCompanyPreferences(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-preferences"] });
+    },
+  });
+
   return {
     mutation,
     mutationUpdate,
@@ -184,5 +201,7 @@ export function useCompanyDetailsMutation() {
     createCompanyReviewMutation,
     updateOpeningHoursMutation,
     updateSocialMediasMutation,
+    useGetCompanyPreferencesQuery,
+    updateCompanyPreferencesMutation,
   };
 }

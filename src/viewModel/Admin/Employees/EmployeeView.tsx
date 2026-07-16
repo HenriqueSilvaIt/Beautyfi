@@ -23,9 +23,9 @@ export function EmployeeView({
       <KeyboardContainer>
         <View className="flex-1 bg-background-primary">
           <AppDetails<EmployeeFormData>
-            control={control}
+            control={control!}
             isLoading={isLoading}
-            onSubmit={onSubmit}
+            onSubmit={onSubmit || (async () => {})}
             isEditMode={isEditMode}
             id={employeeId}
             imageSelect={handleSelectAvatar}

@@ -12,24 +12,26 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_COMPANY_ID": "1",
-        "GOOGLE_IOS_CLIENT_ID": "645475131288-ak8pi4js4hai3infs363t8l5j1bo3j0n.apps.googleusercontent.com",
-        "GOOGLE_ANDROID_CLIENT_ID": "210442128359-7hh3rnn4402iafqisif2nb0n89vh7h34.apps.googleusercontent.com",
-        "GOOGLE_WEB_CLIENT_ID": "645475131288-gigbn4r2husaqvft1lao7vncp25kv507.apps.googleusercontent.com",
+        "GOOGLE_IOS_CLIENT_ID": "666853975186-0jlnben8a2i3d82v5qqe2qufnb5bqv89.apps.googleusercontent.com",
+        "GOOGLE_ANDROID_CLIENT_ID": "666853975186-5u375ftgi1vt22qca2ncdt57q2b4rfbf.apps.googleusercontent.com",
+        "GOOGLE_WEB_CLIENT_ID": "666853975186-n7kgnfi8vggt49bn1o9tbkqjq8bu8k2n.apps.googleusercontent.com",
         "STRIPE_PUBLIC_KEY_TEST": "pk_test_51SG7HcD0zP58uYkc4OWGYdIXKClmM2u3cygJDki4tgxEdrLyRpvZNq7zTwtJez0CKg8dg290y1UIUCTShPZFEEeC00tfu3Pojk",
         "STRIPE_PUBLIC_KEY_PROD": "pk_live_51SIH0TEgtTLa8LmGjmtcr69eAHdITJQUlV2m68y6aePYYW5uF8p3JuAFe7suvdORiZei4UHFQeUI8PRIwQLzwpgU00SEmLqr5c",
-        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "efa69cf7-e480-477d-a2fe-8e81c27a28a9"
+        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "efa69cf7-e480-477d-a2fe-8e81c27a28a9",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyA0g1r5k6J7x8y9z0a1b2c3d4e5f6g7h8i"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_COMPANY_ID": "1",
-        "GOOGLE_IOS_CLIENT_ID": "645475131288-ak8pi4js4hai3infs363t8l5j1bo3j0n.apps.googleusercontent.com",
-        "GOOGLE_ANDROID_CLIENT_ID": "645475131288-drsa55r7v1cptqtep3afki6ala16ie2u.apps.googleusercontent.com",
-        "GOOGLE_WEB_CLIENT_ID": "645475131288-gigbn4r2husaqvft1lao7vncp25kv507.apps.googleusercontent.com",
+        "GOOGLE_IOS_CLIENT_ID": "666853975186-0jlnben8a2i3d82v5qqe2qufnb5bqv89.apps.googleusercontent.com",
+        "GOOGLE_ANDROID_CLIENT_ID": "666853975186-5u375ftgi1vt22qca2ncdt57q2b4rfbf.apps.googleusercontent.com",
+        "GOOGLE_WEB_CLIENT_ID": "666853975186-n7kgnfi8vggt49bn1o9tbkqjq8bu8k2n.apps.googleusercontent.com",
         "STRIPE_PUBLIC_KEY_TEST": "pk_test_51SG7HcD0zP58uYkc4OWGYdIXKClmM2u3cygJDki4tgxEdrLyRpvZNq7zTwtJez0CKg8dg290y1UIUCTShPZFEEeC00tfu3Pojk",
         "STRIPE_PUBLIC_KEY_PROD": "pk_live_51SIH0TEgtTLa8LmGjmtcr69eAHdITJQUlV2m68y6aePYYW5uF8p3JuAFe7suvdORiZei4UHFQeUI8PRIwQLzwpgU00SEmLqr5c",
-        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "efa69cf7-e480-477d-a2fe-8e81c27a28a9"
+        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "905dcf3c-ac52-47c0-a783-b4d2de418519",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyA0g1r5k6J7x8y9z0a1b2c3d4e5f6g7h8i"
       }
     }
   },

@@ -134,3 +134,21 @@ export async function updateOpeningHours(companyId: number, openingHours: any[])
 export async function updateSocialMedias(companyId: number, socialMedias: any[]) {
   await styleAppApiClient.put(`/companies/${companyId}/social-medias`, socialMedias);
 }
+
+export interface CompanyPreferences {
+  showInAppNewAppointmentModal?: boolean;
+  sendBirthdayMessage?: boolean;
+  sendReactivationMessage?: boolean;
+  reactivationDays?: number;
+  showAllEmployeeDashboardsToEmployees?: boolean;
+}
+
+export async function getCompanyPreferences() {
+  const { data } = await styleAppApiClient.get<CompanyPreferences>("/companies/preferences");
+  return data;
+}
+
+export async function updateCompanyPreferences(dto: CompanyPreferences) {
+  await styleAppApiClient.patch("/companies/preferences", dto);
+}
+

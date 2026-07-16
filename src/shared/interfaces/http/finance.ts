@@ -14,6 +14,7 @@ export interface DashboardEmployeeDTO {
   employeeName: string;
   totalSold: number;
   totalOrder: number;
+  totalCommission: number;
   tips: number;
   totalEmployee: number;
   totalEmployeeDiscount:number;

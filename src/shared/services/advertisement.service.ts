@@ -14,14 +14,16 @@ export async function getAdvertisementsById(advertisementId: number) {
 
 export async function getAdvertisements(
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  companyId?: number
 ) {
   const { data } =
     await styleAppApiClient.get<AdvertisementHttpResponse>("/advertisements",
       { 
         params: {
           page,
-          size
+          size,
+          companyId
         }
       }
     );

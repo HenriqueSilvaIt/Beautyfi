@@ -39,6 +39,18 @@ export function CompanyEditView() {
     setActiveHourEdit,
     openTimePicker,
     handleConfirmTime,
+    selectedCategories,
+    toggleCategory,
+    allCategories,
+    cep, setCep,
+    street, setStreet,
+    number, setNumber,
+    complement, setComplement,
+    neighborhood, setNeighborhood,
+    city, setCity,
+    state, setState,
+    addressLoading,
+    searchCep,
   } = useCompanyEditViewModel();
 
   const themeColor = colors["app-theme-primary"];
@@ -86,25 +98,163 @@ export function CompanyEditView() {
           </Text>
 
           <View className="gap-3">
-            {[
-              { label: "Nome do Estabelecimento", value: name, onChange: setName, placeholder: "Ex: BeautyFi" },
-              { label: "CNPJ", value: cnpj, onChange: setCnpj, placeholder: "Ex: 00.000.000/0001-00" },
-              { label: "Telefone", value: phone, onChange: setPhone, placeholder: "Ex: (11) 99999-9999" },
-              { label: "Endereço", value: address, onChange: setAddress, placeholder: "Ex: Av. Paulista, 1000" },
-            ].map(({ label, value, onChange, placeholder }) => (
-              <View key={label}>
-                <Text className="text-slate-500 text-xs font-semibold mb-1">{label}</Text>
+            {/* Nome do Estabelecimento */}
+            <View>
+              <Text className="text-slate-500 text-xs font-semibold mb-1">Nome do Estabelecimento</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="Ex: BeautyFi"
+                placeholderTextColor="#94a3b8"
+                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
+              />
+            </View>
+
+            {/* CNPJ */}
+            <View>
+              <Text className="text-slate-500 text-xs font-semibold mb-1">CNPJ</Text>
+              <TextInput
+                value={cnpj}
+                onChangeText={setCnpj}
+                placeholder="Ex: 00.000.000/0001-00"
+                placeholderTextColor="#94a3b8"
+                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
+              />
+            </View>
+
+            {/* Telefone */}
+            <View>
+              <Text className="text-slate-500 text-xs font-semibold mb-1">Telefone</Text>
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="Ex: (11) 99999-9999"
+                placeholderTextColor="#94a3b8"
+                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            {/* Endereço Title */}
+            <Text
+              className="text-xs font-bold uppercase tracking-wider mt-4 mb-2"
+              style={{ color: themeColor }}
+            >
+              Endereço do Estabelecimento
+            </Text>
+
+            {/* CEP */}
+            <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  CEP *
+                </Text>
                 <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder={placeholder}
+                  value={cep}
+                  onChangeText={searchCep}
+                  placeholder="Ex: 01310-100"
                   placeholderTextColor="#94a3b8"
-                  className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-sm"
+                  className="text-slate-800 text-sm p-0"
+                  keyboardType="numeric"
+                  maxLength={9}
                 />
               </View>
-            ))}
+              {addressLoading && (
+                <ActivityIndicator size="small" color={themeColor} />
+              )}
+            </View>
 
-            <View>
+            {/* Rua / Logradouro */}
+            <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                Rua / Logradouro *
+              </Text>
+              <TextInput
+                value={street}
+                onChangeText={setStreet}
+                placeholder="Ex: Avenida Paulista"
+                placeholderTextColor="#94a3b8"
+                className="text-slate-800 text-sm p-0"
+              />
+            </View>
+
+            {/* Número e Complemento */}
+            <View className="flex-row gap-3">
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+                <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Número *
+                </Text>
+                <TextInput
+                  value={number}
+                  onChangeText={setNumber}
+                  placeholder="Ex: 1000"
+                  placeholderTextColor="#94a3b8"
+                  className="text-slate-800 text-sm p-0"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+                <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Complemento
+                </Text>
+                <TextInput
+                  value={complement}
+                  onChangeText={setComplement}
+                  placeholder="Ex: Sala 42"
+                  placeholderTextColor="#94a3b8"
+                  className="text-slate-800 text-sm p-0"
+                />
+              </View>
+            </View>
+
+            {/* Bairro */}
+            <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                Bairro *
+              </Text>
+              <TextInput
+                value={neighborhood}
+                onChangeText={setNeighborhood}
+                placeholder="Ex: Bela Vista"
+                placeholderTextColor="#94a3b8"
+                className="text-slate-800 text-sm p-0"
+              />
+            </View>
+
+            {/* Cidade e UF */}
+            <View className="flex-row gap-3">
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+                <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Cidade *
+                </Text>
+                <TextInput
+                  value={city}
+                  onChangeText={setCity}
+                  placeholder="Ex: São Paulo"
+                  placeholderTextColor="#94a3b8"
+                  className="text-slate-800 text-sm p-0"
+                />
+              </View>
+
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 w-24">
+                <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  UF *
+                </Text>
+                <TextInput
+                  value={state}
+                  onChangeText={setState}
+                  placeholder="Ex: SP"
+                  placeholderTextColor="#94a3b8"
+                  className="text-slate-800 text-sm p-0"
+                  maxLength={2}
+                  autoCapitalize="characters"
+                />
+              </View>
+            </View>
+
+            {/* Descrição */}
+            <View className="mt-2">
               <Text className="text-slate-500 text-xs font-semibold mb-1">Descrição</Text>
               <TextInput
                 value={description}
@@ -119,7 +269,50 @@ export function CompanyEditView() {
           </View>
         </View>
 
+
+        {/* Categorias / Segmentos */}
+        <View className="mb-6 border-t border-slate-100 pt-6">
+          <Text
+            className="text-xs font-bold uppercase tracking-wider mb-4"
+            style={{ color: themeColor }}
+          >
+            Segmentos / Categorias
+          </Text>
+          <View className="flex-row flex-wrap gap-2.5">
+            {allCategories.map((cat: any) => {
+              const isSelected = selectedCategories.some((c: any) => c.id === cat.id);
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  onPress={() => toggleCategory(cat)}
+                  activeOpacity={0.8}
+                  className={`px-4 py-2.5 rounded-full border ${
+                    isSelected
+                      ? "border-app-theme-primary"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
+                  style={
+                    isSelected
+                      ? { backgroundColor: colors["app-theme-primary"] + "15" }
+                      : {}
+                  }
+                >
+                  <Text
+                    style={{
+                      color: isSelected ? colors["app-theme-primary"] : "#64748b",
+                    }}
+                    className="font-bold text-xs"
+                  >
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Carousel de Fotos */}
+
         <View className="mb-6 border-t border-slate-100 pt-6">
           <Text
             className="text-xs font-bold uppercase tracking-wider mb-2"
@@ -169,19 +362,6 @@ export function CompanyEditView() {
                 </>
               )}
             </TouchableOpacity>
-
-            <View className="mt-1">
-              <Text className="text-slate-500 text-[10px] font-semibold mb-1">Ou edite as URLs manualmente:</Text>
-              <TextInput
-                value={imagesUrl}
-                onChangeText={setImagesUrl}
-                placeholder="Ex: https://img1.com, https://img2.com"
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={3}
-                className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-slate-800 text-xs min-h-[60px]"
-              />
-            </View>
           </View>
         </View>
 

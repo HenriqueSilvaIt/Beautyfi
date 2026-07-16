@@ -12,6 +12,7 @@ export const colors = {
   'accent-gray': '#F4F4F4',
   'accent-red': '#F75A68',
   'accent-blue': '#5A86F7',
+  'accent-green': '#28A745',
   'accent-blue-dark': '#284DAA',
   'background-primary': '#fff',
   'background-secondary': '#FFDE96',

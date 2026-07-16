@@ -5,6 +5,10 @@ import { useUserStore } from "@/shared/store/user-store";
 import { useCompanyStore } from "@/shared/store/company-store";
 import * as Location from "expo-location";
 import { useAddressStore } from "@/shared/store/address-store";
+import { useDismissOnboardingMutation } from "@/shared/queries/user/use-user-logged.mutation";
+import { useQuery } from "@tanstack/react-query";
+import { getCompanyById } from "@/shared/services/company.service";
+
 
 export function useNewHomeViewModel() {
   const [searchText, setSearchText] = useState("");
@@ -31,6 +35,11 @@ export function useNewHomeViewModel() {
   }, [searchText]);
 
   const { addressText: savedAddress, latitude: savedLat, longitude: savedLng } = useAddressStore();
+  const { user, access_token } = useUserStore();
+
+  const effectiveAddress = user?.address || savedAddress;
+  const effectiveLat = user?.address ? user.latitude : savedLat;
+  const effectiveLng = user?.address ? user.longitude : savedLng;
 
   const requestGpsLocation = async () => {
     try {
@@ -52,14 +61,14 @@ export function useNewHomeViewModel() {
 
   useEffect(() => {
     if (searchMode === "buscar") {
-      if (savedLat && savedLng) {
-        setUserLat(savedLat);
-        setUserLng(savedLng);
-        setAddressText(savedAddress || "Endereço cadastrado");
+      if (effectiveLat && effectiveLng) {
+        setUserLat(effectiveLat);
+        setUserLng(effectiveLng);
+        setAddressText(effectiveAddress || "Endereço cadastrado");
       }
       requestGpsLocation();
     }
-  }, [searchMode, savedLat, savedLng, savedAddress]);
+  }, [searchMode, effectiveLat, effectiveLng, effectiveAddress]);
 
   const {
     useGetCompaniesQuery,
@@ -69,8 +78,21 @@ export function useNewHomeViewModel() {
     toggleFavoriteMutation,
   } = useCompanyDetailsMutation();
 
-  const access_token = useUserStore((state) => state.access_token);
   const { favoritedCompanyIds, setFavoritedCompanyIds, addFavoriteId, removeFavoriteId } = useCompanyStore();
+  const setUser = useUserStore((state) => state.setUser);
+  const { dismissOnboardingMutation } = useDismissOnboardingMutation();
+
+  const handleDismissOnboarding = async () => {
+    try {
+      await dismissOnboardingMutation.mutateAsync();
+      setUser((prev) => prev ? { ...prev, firstLogin: false } : null);
+    } catch (err) {
+      console.error("Failed to dismiss onboarding:", err);
+      // Fallback local update if network fails
+      setUser((prev) => prev ? { ...prev, firstLogin: false } : null);
+    }
+  };
+
 
   const isExplorar = searchMode === "explorar";
   const isBuscar = searchMode === "buscar";
@@ -106,6 +128,30 @@ export function useNewHomeViewModel() {
       setFavoritedCompanyIds(favoritedIds);
     }
   }, [favoritedIds]);
+
+  const { data: favoriteCompanies } = useQuery({
+    queryKey: ["favorited-companies-details", favoritedCompanyIds],
+    queryFn: async () => {
+      if (!favoritedCompanyIds || favoritedCompanyIds.length === 0) return [];
+      const details = await Promise.all(favoritedCompanyIds.map(id => getCompanyById(id)));
+      return details.map(c => ({
+        id: Number(c.id),
+        name: c.name,
+        description: c.description || "",
+        cnpj: c.cnpj || "",
+        logoUrl: c.logoUrl || "",
+        address: c.address || "",
+        latitude: c.latitude || 0,
+        longitude: c.longitude || 0,
+        phone: c.phone || "",
+        rating: c.rating || 5,
+        reviewsCount: c.reviewsCount || 0,
+        imagesUrl: c.imagesUrl || "",
+        services: []
+      }));
+    },
+    enabled: favoritedCompanyIds.length > 0,
+  });
 
   const companiesDataList = isExplorar
     ? (companiesData?.pages.flatMap((page) => page.content ?? []) ?? [])
@@ -184,6 +230,7 @@ export function useNewHomeViewModel() {
     setSelectedCategoryId,
     favoritedCompanyIds,
     handleToggleFavorite,
+    favoriteCompanies: favoriteCompanies ?? [],
     isLoggedIn: !!access_token,
     searchMode,
     setSearchMode,
@@ -193,5 +240,7 @@ export function useNewHomeViewModel() {
     setRadius,
     geoLoading,
     handleAddressSearch,
+    handleDismissOnboarding,
   };
 }
+

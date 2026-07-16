@@ -43,58 +43,67 @@ export function EmployeeServicesView() {
       const checked = selectedServices.some((s) => s.id === item.id);
 
       return (
-        <View className="flex-row  justify-between py-2  px-2 items-center bg-background-quartenary gap-3">
+        <View className="mx-4 my-1 bg-background-quartenary p-3.5 rounded-xl flex-row items-center justify-between border border-background-tertiary">
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => toggleService(Number(item.id))}
+            className="flex-1 flex-row items-center"
           >
-            <View className="flex-row p-2   items-center">
+            {item.imgUrl ? (
               <Image
                 source={{ uri: item.imgUrl }}
                 resizeMode="cover"
-                className="w-[60px] h-[60px] mr-2"
+                className="w-12 h-12 rounded-lg bg-background-tertiary mr-3"
               />
-              <Text
-                className="text-font-primary text-base max-w-[200px]"
-                ellipsizeMode="tail"
-                numberOfLines={1}
-              >
+            ) : (
+              <View className="w-12 h-12 rounded-lg bg-background-tertiary mr-3 items-center justify-center">
+                <Ionicons name="cut-outline" size={20} color={colors.gray[400]} />
+              </View>
+            )}
+            <View className="flex-1 pr-2">
+              <Text className="text-font-primary text-base font-bold" numberOfLines={1}>
                 {item.name}
               </Text>
+              {item.price !== undefined && (
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  Valor padrão: R$ {Number(item.price).toFixed(2).replace(".", ",")}
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
-          <View className="flex-row gap-2 items-center">
-            <TouchableOpacity
-              onPress={() => toggleService(Number(item.id))}
-              activeOpacity={0.7}
-            >
-              <Text
-                className={`p-3 rounded-xl text-center ${checked ? "text-font-primary" : " text-gray-200"}`}
-              >
-                {checked ? "✅" : "⬜"} {item.id}
-              </Text>
-            </TouchableOpacity>
 
+          <View className="flex-row items-center gap-2">
             {checked && (
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() =>
                   handleOpenCustomServiceModal(
-                    1, // id do profissional atual
-                    Number(item.id), // id do serviço
+                    employeeId ? Number(employeeId) : 1,
+                    Number(item.id),
                   )
                 }
+                className="px-3 py-2 bg-accent-blue/10 rounded-lg flex-row items-center"
               >
-                <Text className="p-2 rounded-xl text-center bg-background-tertiary text-font-primary">
-                  ✏️ Editar
-                </Text>
+                <Ionicons name="create-outline" size={16} color={colors["accent-blue"]} />
+                <Text className="text-accent-blue text-xs font-semibold ml-1">Editar</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity
+              onPress={() => toggleService(Number(item.id))}
+              activeOpacity={0.7}
+              className="p-2"
+            >
+              <Ionicons
+                name={checked ? "checkbox" : "square-outline"}
+                size={24}
+                color={checked ? colors["accent-blue"] : colors.white}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       );
     },
-  [toggleService, selectedServices, handleOpenCustomServiceModal, employeeId],
+    [toggleService, selectedServices, handleOpenCustomServiceModal, employeeId],
   );
 
   return (

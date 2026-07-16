@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppInput } from "@/shared/components/AppInput";
 import { View } from "react-native";
+import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 export default function ServicePageList() {
   const {
@@ -24,7 +25,7 @@ export default function ServicePageList() {
   if (isLoading) {
     return <Loading />;
   }
-  const {safePush} = useSafeNavigation()
+  const { safePush } = useSafeNavigation();
 
   return (
     <SafeAreaView className="flex-1  bg-background-primary  ">
@@ -34,14 +35,14 @@ export default function ServicePageList() {
         action={() => safePush(`/services/service-create`)}
         iconRight={{ icon: true, path: "/services/service-create" }}
       />
-      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
-        <AppInput
-          placeholder="Buscar serviço por nome..."
-          leftIcon="search"
+      <View className="px-4 mb-4">
+        <AppSearchBar
           value={searchValue}
           onChangeText={setSearchValue}
+          placeholder="Buscar serviço por nome..."
         />
       </View>
+
       <AppCard
         data={serviceDataPagged.map((s) => ({
           id: s.id,

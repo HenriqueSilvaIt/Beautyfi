@@ -5,15 +5,24 @@ import { OrderInterface } from "@/shared/interfaces/http/order";
 import { useOrderMutation } from "@/shared/queries/finance/use-order-mutation";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useState } from "react";
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserStore } from "@/shared/store/user-store";
 
 export function useOrderViewModel() {
   const { safePush } = useSafeNavigation();
   const { useGetOrdersMutation } = useOrderMutation();
 
+  const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
+  const user = useUserStore((state) => state.user);
+  const companyId = selectedCompanyId || Number(user?.companyId) || undefined;
+
   // Search & Filter states
   const [searchText, setSearchText] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
 
   const debouncedSearchText = useDebounce(searchText, 300);
 
@@ -25,7 +34,7 @@ export function useOrderViewModel() {
     hasNextPage: orderHasNextPage,
     fetchNextPage: orderFetchNextPage,
     isFetchingNextPage: orderIsFetchingNextPage,
-  } = useGetOrdersMutation();
+  } = useGetOrdersMutation(companyId);
 
   // Map all orders (both open and closed)
   const allOrders = orderData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -51,6 +60,11 @@ export function useOrderViewModel() {
       if (orderDateStr !== selectedDateStr) return false;
     }
 
+    // 3. Status filter
+    if (selectedStatus !== null) {
+      if (order.status !== selectedStatus) return false;
+    }
+
     return true;
   });
 
@@ -64,6 +78,7 @@ export function useOrderViewModel() {
   const clearFilters = () => {
     setSearchText("");
     setSelectedDate(undefined);
+    setSelectedStatus(null);
   };
 
   return {
@@ -85,5 +100,9 @@ export function useOrderViewModel() {
     showDatePicker,
     setShowDatePicker,
     clearFilters,
+    selectedStatus,
+    setSelectedStatus,
+    showStatusPicker,
+    setShowStatusPicker,
   };
 }

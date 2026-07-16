@@ -100,7 +100,7 @@ export function ServiceItemDetailsView({
           className={`h-[40px] bg-app-theme-primary rounded-md items-center justify-center 
                               ${isItemLoading ? "justify-between" : ""}`}
         >
-          <Text className="text-center text-xl text-font-primary font-bold">
+          <Text className="text-center text-xl text-font-secundary font-bold">
             {isItemLoading ? <ActivityIndicator /> : "Salvar"}
           </Text>
         </View>

@@ -38,12 +38,12 @@ export function AppAvatar({
       onPress={onPress}
       disabled={loading}
       activeOpacity={0.8}
-      className={`${sizeClasses[size]} self-center mb-8`}
+      className={`${sizeClasses[size]}  self-center mb-8`}
     >
       <View
         className={`
           ${sizeClasses[size]}
-          items-center justify-center
+          items-center justify-center 
           ${isUser ? "rounded-full" : "rounded-md"}
         `}
       >
@@ -58,15 +58,15 @@ export function AppAvatar({
           <Ionicons
             name="cloud-upload-outline"
             size={32}
-            color={colors.white}
-            className="border-white border p-12 rounded-md"
+            color={colors.black}
+            className="border-black border p-12 rounded-md"
           />
         )}
 
         {/* LOADING OVERLAY */}
         {loading && (
           <View className="absolute inset-0 bg-black/40 items-center justify-center">
-            <ActivityIndicator size="large" color={colors.white} />
+            <ActivityIndicator size="large" color={colors.black} />
           </View>
         )}
 
@@ -75,7 +75,7 @@ export function AppAvatar({
             onPress={onPress}
             className="absolute -bottom-3 -right-3 border-gray-300 bg-black border-2 p-3 rounded-md z-30"
           >
-            <Ionicons name="camera-outline" size={20} color="#fff" />
+            <Ionicons name="camera-outline" size={20} color={colors.white} />
           </Pressable>
         )}
       </View>

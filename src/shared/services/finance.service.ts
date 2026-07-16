@@ -1,6 +1,7 @@
 import { AxiosRequestConfig } from "axios";
 import { useUserStore } from "../store/user-store";
-import { DashboardEmployeeDTO, DashboardEmployeeParam, TotalMonthlyDTO, TotalMonthlyHttpResponse } from "../interfaces/http/finance";
+import { DashboardEmployeeDTO, DashboardEmployeeParam, TotalMonthlyDTO } from "../interfaces/http/finance";
+import { OrderInterface } from "../interfaces/http/order";
 import {  styleAppApiClient } from "../api/styleAppBackend";
 
 export async function getTotalMonthly() {
@@ -24,4 +25,11 @@ export async function getDashboardEmployee(dataBody: DashboardEmployeeParam) {
 
     return data;
 
+}
+
+export async function getDetailedOrdersReport(employeeId?: number, startDate?: string, endDate?: string) {
+  const { data } = await styleAppApiClient.get<OrderInterface[]>("/orders/report", {
+    params: { employeeId, startDate, endDate },
+  });
+  return data;
 }

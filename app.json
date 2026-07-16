@@ -2,9 +2,9 @@
   "expo": {
     "name": "Beautyfi",
     "slug": "Beautyfi",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
-    "scheme": "Beautify",
+    "scheme": "beautyfi",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -15,9 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iversion.beautyfi",
-      "config": {
-        "googleMapsApiKey": "AIzaSyAgQ6Gb8d6dZo26eMEFEsZNKPef4SWD2yU"
-      },
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
       "icon": "./assets/icon.png",

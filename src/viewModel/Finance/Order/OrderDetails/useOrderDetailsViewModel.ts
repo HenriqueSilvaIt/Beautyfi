@@ -54,6 +54,22 @@ export function useOrderDetailsViewModel(orderId?: number) {
   const order = useOrderStore((state) => state.order);
   const setOrder = useOrderStore((state) => state.setOrder);
 
+  const isInstallmentAllowed = Boolean(
+    paymentMethod?.name &&
+      paymentMethod.name
+        .toLowerCase()
+        .replace(/[áàâãéèêíïóôõöúç]/g, (c) => {
+          return {
+            á: "a", à: "a", â: "a", ã: "a",
+            é: "e", è: "e", ê: "e",
+            í: "i", ï: "i",
+            ó: "o", ô: "o", õ: "o", ö: "o",
+            ú: "u", ç: "c"
+          }[c] || c;
+        })
+        .includes("cartao de credito")
+  );
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListLoading, setIsListLoading] = useState(false);
   const [modalDeleteVisible, setModalDeleteVisible] = useState(false);
@@ -480,5 +496,6 @@ export function useOrderDetailsViewModel(orderId?: number) {
     handleOpenClientList,
     onCloseOrder,
     formatIsoDateAndTimeToBR,
+    isInstallmentAllowed,
   };
 }

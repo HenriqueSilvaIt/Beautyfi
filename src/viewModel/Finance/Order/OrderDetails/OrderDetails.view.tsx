@@ -57,6 +57,7 @@ export function OrderDetailsView({
   formatIsoDateAndTimeToBR,
   client,
   isLoading,
+  isInstallmentAllowed,
 }: ReturnType<typeof useOrderDetailsViewModel>) {
   const [selectedFilter, setSelectedFilter] = useState("1");
 
@@ -345,25 +346,28 @@ export function OrderDetailsView({
                 />
               </View>
             </TouchableOpacity>
+          {isInstallmentAllowed && (
+            <>
+              <View className="border-b border-gray-600"></View>
+              <TouchableOpacity
+                onPress={handleOpenInstallmentCheckbox}
+                activeOpacity={0.8}
+                className="flex-row justify-between"
+              >
+                <Text className="text-font-primary text-base">Parcela</Text>
+                <View className="flex-row gap-2">
+                  <Text className="text-font-primary text-base">
+                    {installment === 0 ? "À vista" : `${installment}x`}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={22}
+                    color={colors["app-theme-primary"]}
+                  />
+                </View>
+              </TouchableOpacity>
+            </>
           )}
-          <View className="border-b border-gray-600"></View>
-          <TouchableOpacity
-            onPress={handleOpenInstallmentCheckbox}
-            activeOpacity={0.8}
-            className="flex-row justify-between"
-          >
-            <Text className="text-font-primary text-base">Parcela</Text>
-            <View className="flex-row gap-2">
-              <Text className="text-font-primary text-base">
-                {installment === 0 ? "À vista" : `${installment}x`}
-              </Text>
-              <Ionicons
-                name="chevron-down"
-                size={22}
-                color={colors["app-theme-primary"]}
-              />
-            </View>
-          </TouchableOpacity>
         </View>
 
         <View className="flex-row items-center justify-between border-t px-2 pt-2 border-gray-600 ">
@@ -383,10 +387,10 @@ export function OrderDetailsView({
         <TouchableOpacity
           onPress={() => onCloseOrder()}
           activeOpacity={0.8}
-          className={`h-[40px] px-2 bg-app-theme-primary rounded-md items-center justify-center 
+          className={`h-[40px] px-2 mx-10 bg-app-theme-primary rounded-md items-center justify-center 
                 ${isLoadingMessage ? "justify-between" : ""}`}
         >
-          <Text className="text-center text-xl text-font-primary font-bold">
+          <Text className="text-center text-xl text-font-secundary font-bold">
             {isLoadingMessage ? <ActivityIndicator /> : "Fechar comanda"}
           </Text>
         </TouchableOpacity>
