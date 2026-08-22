@@ -1,3 +1,14 @@
+export interface AnamnesisRecordInterface {
+  id?: number;
+  allergies?: string;
+  skinHairType?: string;
+  preExistingConditions?: string;
+  medications?: string;
+  observations?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ClientInterface {
   id?: number;
   name: string;
@@ -6,6 +17,11 @@ export interface ClientInterface {
   birthDate?: string;
   profileUrl?: string;
   phone?: string;
+  allowWhatsAppNotification?: boolean;
+  loyaltyPoints?: number;
+  lastAppointmentDate?: string;
+  lastAppointmentService?: string;
+  anamnesis?: AnamnesisRecordInterface;
 }
 
 export interface ClientCreateDTO {

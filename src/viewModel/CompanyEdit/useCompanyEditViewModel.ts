@@ -10,9 +10,10 @@ import { useGallery } from "@/shared/hooks/useGallery";
 import { useAppModal } from "@/shared/hooks/useAppModal";
 import { useModalStore } from "@/shared/store/modal-store";
 import { useUserStore } from "@/shared/store/user-store";
+import { queryClient } from "../../../queryClient";
 
 export function useCompanyEditViewModel() {
-  const {user} = useUserStore();
+  const { user } = useUserStore();
   const companyId = useCompanyStore((state) => state.selectedCompanyId) || Number(user?.companyId);
   const {
     useGetCompanyDetailsQuery,
@@ -45,6 +46,7 @@ export function useCompanyEditViewModel() {
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [imagesUrl, setImagesUrl] = useState("");
+  const [portfolioImagesUrl, setPortfolioImagesUrl] = useState("");
 
   // Detailed address states
   const [cep, setCep] = useState("");
@@ -67,7 +69,8 @@ export function useCompanyEditViewModel() {
   const [website, setWebsite] = useState("");
 
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingSpace, setUploadingSpace] = useState(false);
+  const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
 
   // Selected Categories
   const [selectedCategories, setSelectedCategories] = useState<{ id: number; name: string }[]>([]);
@@ -94,12 +97,12 @@ export function useCompanyEditViewModel() {
       setPhone(company.phone || "");
       setDescription(company.description || "");
       setImagesUrl(cleanImageUrlsString(company.imagesUrl || ""));
+      setPortfolioImagesUrl(cleanImageUrlsString(company.portfolioImagesUrl || ""));
       if (company.latitude) setLat(company.latitude);
       if (company.longitude) setLng(company.longitude);
 
       if (company.address) {
         setAddress(company.address);
-        // Try parsing CEP, logradouro, numero, complemento, bairro, localidade, uf
         const parts = company.address.split(",").map((p: string) => p.trim());
         if (parts.length >= 4) {
           const cepPart = parts.find((p: string) => p.toLowerCase().includes("cep:"));
@@ -167,7 +170,7 @@ export function useCompanyEditViewModel() {
     }
   }, [street, number, complement, neighborhood, city, state, cep]);
 
-  // Search CEP from ViaCEP (via backend /cep/{cep})
+  // Search CEP
   const searchCep = async (cepVal: string) => {
     const cleanCep = cepVal.replace(/\D/g, "");
     setCep(cleanCep);
@@ -187,7 +190,6 @@ export function useCompanyEditViewModel() {
         setCity(json.localidade || "");
         setState(json.uf || "");
 
-        // Geocodifica para obter lat/lng automática
         geocodeAddress(json.logradouro || "", json.localidade || "", json.uf || "");
       } catch (error) {
         console.error("Erro ao buscar CEP:", error);
@@ -197,7 +199,6 @@ export function useCompanyEditViewModel() {
     }
   };
 
-  // Nominatim & Google Geocoding
   const geocodeAddress = async (streetVal: string, cityVal: string, stateVal: string) => {
     const query = `${streetVal}, ${number || ""}, ${cityVal}, ${stateVal}, Brasil`;
     const googleKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -276,7 +277,6 @@ export function useCompanyEditViewModel() {
     let resolvedLon = lng ?? company?.longitude ?? -46.633308;
 
     try {
-      // Re-geocode with exact street number right before saving if address components exist
       if (street && number) {
         const queryAddr = `${street}, ${number}, ${city || ""}, ${state || ""}, Brasil`;
         const googleKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -333,6 +333,7 @@ export function useCompanyEditViewModel() {
         phone,
         description,
         imagesUrl,
+        portfolioImagesUrl,
         latitude: resolvedLat,
         longitude: resolvedLon,
         companyCategories: selectedCategories,
@@ -396,7 +397,6 @@ export function useCompanyEditViewModel() {
     let dateVal = new Date();
     if (isoString) {
       try {
-        // Se a string ISO for válida
         dateVal = new Date(isoString);
         if (isNaN(dateVal.getTime())) {
           dateVal = new Date();
@@ -417,46 +417,67 @@ export function useCompanyEditViewModel() {
     }
   };
 
-  const uploadSelectedImage = async (uri: string) => {
-    setUploading(true);
+  const uploadSelectedImage = async (uri: string, type: "space" | "portfolio" = "space") => {
+    if (type === "portfolio") setUploadingPortfolio(true);
+    else setUploadingSpace(true);
+
     try {
       const formData = new FormData();
       const filename = uri.split("/").pop() || "upload.jpg";
       const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
-
-      // Formatar URI para Android se necessário
+      const fileType = match ? `image/${match[1]}` : `image/jpeg`;
       const formattedUri = Platform.OS === "android" && !uri.startsWith("file://") ? `file://${uri}` : uri;
 
       formData.append("file", {
         uri: formattedUri,
         name: filename,
-        type: type,
+        type: fileType,
       } as any);
 
-      const res = await styleAppApiClient.put(`/companies/${companyId}/images`, formData, {
+      const res = await styleAppApiClient.put(`/companies/${companyId}/images?type=${type}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        transformRequest: (data) => data,
       });
 
-      if (res.data && res.data.imagesUrl !== undefined) {
-        setImagesUrl(cleanImageUrlsString(res.data.imagesUrl || ""));
-        Alert.alert("Sucesso", "Imagem da empresa enviada com sucesso!");
+      if (res.data) {
+        let updatedPort = "";
+        let updatedSpace = "";
+
+        if (type === "portfolio") {
+          updatedPort = cleanImageUrlsString(res.data.portfolioImagesUrl || "");
+          setPortfolioImagesUrl(updatedPort);
+        } else {
+          updatedSpace = cleanImageUrlsString(res.data.imagesUrl || "");
+          setImagesUrl(updatedSpace);
+        }
+
+        // Importante: Invalida o cache do React Query para forçar recarregamento em todas as telas
+        queryClient.invalidateQueries({ queryKey: ["company-details", companyId] });
+        queryClient.invalidateQueries({ queryKey: ["company", companyId] });
+        queryClient.invalidateQueries({ queryKey: ["companies"] });
+
+        Alert.alert(
+          "Sucesso",
+          `Foto de ${type === "portfolio" ? "Portfólio" : "Espaço"} enviada e adicionada com sucesso!`
+        );
       }
     } catch (err: any) {
       console.error(err);
       const serverMsg = err.response?.data?.message || err.response?.data || err.message;
       Alert.alert("Erro", `Não foi possível enviar a imagem. Detalhe: ${serverMsg}`);
     } finally {
-      setUploading(false);
+      if (type === "portfolio") setUploadingPortfolio(false);
+      else setUploadingSpace(false);
     }
   };
 
-  const handlePickAndUploadImage = async () => {
+  const handlePickAndUploadImage = async (type: "space" | "portfolio" = "space") => {
+    const titleText = type === "portfolio" ? "Foto de Portfólio" : "Foto do Espaço";
     modals.showSelection({
-      title: "Selecionar foto",
-      message: "Escolha uma opção para a foto do estabelecimento:",
+      title: `Selecionar ${titleText}`,
+      message: `Escolha uma opção para a imagem do ${type === "portfolio" ? "portfólio de trabalhos" : "estabelecimento"}:`,
       options: [
         {
           text: "Galeria",
@@ -466,7 +487,7 @@ export function useCompanyEditViewModel() {
             close();
             const imageUri = await openGallery();
             if (imageUri) {
-              await uploadSelectedImage(imageUri);
+              await uploadSelectedImage(imageUri, type);
             }
           },
         },
@@ -478,7 +499,7 @@ export function useCompanyEditViewModel() {
             close();
             const imageUri = await openCamera();
             if (imageUri) {
-              await uploadSelectedImage(imageUri);
+              await uploadSelectedImage(imageUri, type);
             }
           },
         },
@@ -486,10 +507,16 @@ export function useCompanyEditViewModel() {
     });
   };
 
-  const handleRemoveImage = (indexToRemove: number) => {
-    const list = imagesUrl.split(",").map(url => url.trim()).filter(url => url.length > 0);
-    const updated = list.filter((_, idx) => idx !== indexToRemove).join(",");
-    setImagesUrl(updated);
+  const handleRemoveImage = (indexToRemove: number, type: "space" | "portfolio" = "space") => {
+    if (type === "portfolio") {
+      const list = portfolioImagesUrl.split(",").map((url) => url.trim()).filter((url) => url.length > 0);
+      const updated = list.filter((_, idx) => idx !== indexToRemove).join(",");
+      setPortfolioImagesUrl(updated);
+    } else {
+      const list = imagesUrl.split(",").map((url) => url.trim()).filter((url) => url.length > 0);
+      const updated = list.filter((_, idx) => idx !== indexToRemove).join(",");
+      setImagesUrl(updated);
+    }
   };
 
   return {
@@ -502,12 +529,14 @@ export function useCompanyEditViewModel() {
     phone, setPhone,
     description, setDescription,
     imagesUrl, setImagesUrl,
+    portfolioImagesUrl, setPortfolioImagesUrl,
     hoursList,
     instagram, setInstagram,
     facebook, setFacebook,
     website, setWebsite,
     saving,
-    uploading,
+    uploadingSpace,
+    uploadingPortfolio,
     handleHourChange,
     handleSave,
     getFormatTime,
@@ -531,4 +560,3 @@ export function useCompanyEditViewModel() {
     searchCep,
   };
 }
-

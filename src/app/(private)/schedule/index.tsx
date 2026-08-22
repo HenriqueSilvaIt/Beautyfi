@@ -5,9 +5,9 @@ import { useScheduleViewModel } from "../../../viewModel/Schedule/useSchedule.vi
 import { useMemo } from "react";
 
 export default function Schedule() {
-  const { serviceIds } = useLocalSearchParams<{ serviceIds: string }>();
+  const { serviceIds, companyId } = useLocalSearchParams<{ serviceIds: string; companyId?: string }>();
   // "1,2,3" → [1, 2, 3]
-    console.log("🔍 serviceIds da rota:", serviceIds);
+    console.log("🔍 serviceIds da rota:", serviceIds, "companyId:", companyId);
 
   const parsedIds = serviceIds
     ? serviceIds.split(",").map(Number).filter(Boolean)
@@ -15,7 +15,7 @@ export default function Schedule() {
     useMemo(() => { return serviceIds ? serviceIds.split(",").map(Number).filter(Boolean) : []; }, [serviceIds]); // só recria se a string mudar
   console.log("🔍 parsedIds:", parsedIds);
 
-  const props = useScheduleViewModel(parsedIds)
+  const props = useScheduleViewModel(parsedIds, companyId ? Number(companyId) : undefined)
 
   return (
         <View className="flex-1 bg-background-primary">

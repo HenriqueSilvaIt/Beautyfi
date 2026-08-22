@@ -47,7 +47,7 @@ export function AgendaBlock({
   const duration = getAppointmentDuration(appointment.services);
   const endTime = getEndTime(start, duration);
 
-  const userAvatar = getUser(appointment.user);
+  const userAvatar = appointment.client?.profileUrl || getUser(appointment.user);
   const serviceName = getServiceName(appointment.services);
 
   const servicePrice = getServicePrice(appointment.services);
@@ -107,6 +107,11 @@ export function AgendaBlock({
         elevation: 5,
       }}
     >
+      {(appointment.confirmationSent || appointment.reminderSent) && (
+        <View style={{ position: "absolute", top: 4, right: 4, zIndex: 30 }}>
+          <Ionicons name="logo-whatsapp" size={14} color="#25D366" />
+        </View>
+      )}
       <View
         style={{
           flexDirection: isNarrow ? "column" : "row",

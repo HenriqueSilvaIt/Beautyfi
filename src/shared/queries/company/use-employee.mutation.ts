@@ -16,6 +16,8 @@ import {
   ServiceEmployeeParams,
 } from "@/shared/interfaces/http/employee";
 import { queryClient } from "../../../../queryClient";
+import { useUserStore } from "@/shared/store/user-store";
+import { useCompanyStore } from "@/shared/store/company-store";
 
 interface UpdateEmployeesVariables {
   employeeId?: number;
@@ -64,18 +66,32 @@ export function useEmployeeMutation() {
     companyId?: string;
     employeeId?: number;
   }) {
+    const userCompanyId = useUserStore((state: any) => state.user?.companyId);
+    const selectedCompanyId = useCompanyStore((state: any) => state.selectedCompanyId);
+
+    const resolvedCompanyId = params?.companyId 
+      ? Number(params.companyId) 
+      : (userCompanyId || selectedCompanyId || undefined);
+
     return useInfiniteQuery({
-      queryKey: ["employees", params],
+      queryKey: ["employees", params?.employeeId, params?.name, resolvedCompanyId],
       queryFn: ({ pageParam = 0 }) =>
-        getEmployees(pageParam, 30, params?.employeeId, params?.name, params?.companyId ? Number(params.companyId) : undefined),
+        getEmployees(
+          pageParam, 
+          30, 
+          params?.employeeId, 
+          params?.name, 
+          resolvedCompanyId
+        ),
+      enabled: resolvedCompanyId !== undefined && resolvedCompanyId > 0,
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {
         if (lastPage.last) return undefined;
         return lastPage.number + 1;
       },
-      staleTime: 0, // 5 minutos em cache, evita refetch imediato
+      staleTime: 0,
       gcTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
+      refetchOnWindowFocus: false,
     });
   }
 

@@ -8,6 +8,7 @@ import { useAddressStore } from "@/shared/store/address-store";
 import { useDismissOnboardingMutation } from "@/shared/queries/user/use-user-logged.mutation";
 import { useQuery } from "@tanstack/react-query";
 import { getCompanyById } from "@/shared/services/company.service";
+import { router } from "expo-router";
 
 
 export function useNewHomeViewModel() {
@@ -164,6 +165,10 @@ export function useNewHomeViewModel() {
   });
 
   const handleToggleFavorite = async (companyId: number) => {
+    if (!access_token) {
+      router.push("/(public)/login");
+      return;
+    }
     const isFav = favoritedCompanyIds.includes(companyId);
     try {
       if (isFav) {
@@ -213,6 +218,63 @@ export function useNewHomeViewModel() {
     }
   };
 
+  const [addressSuggestions, setAddressSuggestions] = useState<
+    Array<{ display_name: string; lat: string; lon: string }>
+  >([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (
+      !addressText ||
+      addressText.trim().length < 3 ||
+      addressText.includes("Minha Localização")
+    ) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingAddress(true);
+        const encoded = encodeURIComponent(addressText.trim());
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&limit=5&q=${encoded}`,
+          {
+            headers: {
+              "User-Agent": "BeautyFi/1.0 (contact@beautyfi.com.br)",
+              "Accept-Language": "pt-BR,pt;q=0.9",
+            },
+          },
+        );
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setAddressSuggestions(data);
+          setShowSuggestions(data.length > 0);
+        }
+      } catch (err) {
+        console.error("Autocomplete fetch error:", err);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [addressText]);
+
+  const handleSelectSuggestion = (item: {
+    display_name: string;
+    lat: string;
+    lon: string;
+  }) => {
+    setAddressText(item.display_name);
+    setUserLat(parseFloat(item.lat));
+    setUserLng(parseFloat(item.lon));
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
+  };
+
   return {
     companiesDataPagged: filteredCompanies,
     companiesError: isExplorar ? companiesError : nearbyError,
@@ -241,6 +303,11 @@ export function useNewHomeViewModel() {
     geoLoading,
     handleAddressSearch,
     handleDismissOnboarding,
+    addressSuggestions,
+    isSearchingAddress,
+    showSuggestions,
+    setShowSuggestions,
+    handleSelectSuggestion,
   };
 }
 

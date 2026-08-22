@@ -26,10 +26,14 @@ import {
 
 import { useUserStore } from "../store/user-store";
 
-export async function fetchSubscriptionPlans(companyId?: number) {
+export async function fetchSubscriptionPlans(companyId?: number, isSaas?: boolean) {
+  const params: Record<string, any> = {};
+  if (companyId) params.companyId = companyId;
+  if (isSaas) params.isSaas = true;
+
   const { data } =
     await styleAppApiClient.get<StripePlanDTO[]>(`/subscriptions/plans`, {
-      params: { companyId },
+      params,
     });
 
   return data;

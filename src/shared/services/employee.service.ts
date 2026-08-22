@@ -13,7 +13,9 @@ import {
 function getCompanyId() {
   const user = useUserStore.getState().user;
   if (user?.companyId) return user.companyId;
-  return useCompanyStore.getState().selectedCompanyId || 0;
+  const selectedCompanyId = useCompanyStore.getState().selectedCompanyId;
+  if (selectedCompanyId) return selectedCompanyId;
+  return undefined;
 }
 
 export async function getEmployees(
@@ -24,8 +26,12 @@ export async function getEmployees(
   companyId?: number,
 ) {
   const resolvedCompanyId = companyId || getCompanyId();
+  const url = resolvedCompanyId && resolvedCompanyId > 0
+    ? `/employees?companyId=${resolvedCompanyId}&sort=name,asc`
+    : `/employees?sort=name,asc`;
+
   const { data } = await styleAppApiClient.get<EmployeeHttpRepsonse>(
-    `/employees?companyId=${resolvedCompanyId}&sort=name,asc`,
+    url,
     {
       params: {
         page,

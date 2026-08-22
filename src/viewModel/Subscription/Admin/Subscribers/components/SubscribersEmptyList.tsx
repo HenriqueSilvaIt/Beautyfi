@@ -3,20 +3,22 @@ import { Ionicons } from "@expo/vector-icons";
 
 export function SubscribersEmptyList() {
   return (
-    <View className="flex-1 items-center justify-center px-6">
-      <View className="rounded-3xl border border-white/10 bg-zinc-900 p-6 items-center">
-        <Ionicons
-          name="people-outline"
-          size={48}
-          color="#71717a"
-        />
+    <View className="flex-1 items-center justify-center px-6 py-12">
+      <View className="w-full rounded-3xl border border-zinc-800 bg-background-tertiary p-8 items-center shadow-sm">
+        <View className="w-16 h-16 rounded-full bg-zinc-800 items-center justify-center mb-4 border border-zinc-700">
+          <Ionicons
+            name="people-outline"
+            size={32}
+            color="#A1A1AA"
+          />
+        </View>
 
-        <Text className="mt-4 text-lg font-bold text-font-primary">
+        <Text className="text-lg font-bold text-font-primary text-center">
           Nenhum assinante encontrado
         </Text>
 
-        <Text className="mt-2 text-center text-sm text-zinc-400 leading-6">
-          Ainda não existem assinantes ativos.
+        <Text className="mt-2 text-center text-sm text-zinc-400 leading-6 max-w-[260px]">
+          Ainda não existem assinantes cadastrados nesta empresa.
         </Text>
       </View>
     </View>

@@ -79,10 +79,17 @@ export function useBookingDetailsViewModel(appointmentId?: number) {
       setClientId(appointment.client.id);
     }
 
-    const appointmentService = appointment.services?.[0]?.service;
-    if (appointmentService) {
-      setService(appointmentService);
-      setServiceId(appointmentService.id);
+    const rawService = appointment.services?.[0]?.service ?? appointment.services?.[0];
+    if (rawService) {
+      const serviceObj = {
+        ...rawService,
+        id: (rawService as any).id ?? (rawService as any).serviceId,
+        name: (rawService as any).name ?? (rawService as any).service?.name,
+        imgUrl: (rawService as any).imgUrl ?? (rawService as any).service?.imgUrl,
+        price: (rawService as any).price ?? (rawService as any).priceAtMoment ?? (rawService as any).service?.price,
+      };
+      setService(serviceObj as any);
+      setServiceId(serviceObj.id);
     }
 
     if (appointment.dateScheduled) {
@@ -306,6 +313,31 @@ export function useBookingDetailsViewModel(appointmentId?: number) {
     }
   }
 
+  async function handleMarkNoShow() {
+    try {
+      if (!appointmentId) return;
+
+      const payload: AppointmentUpdateHttpParams = {
+        status: AppointmentStatus.NO_SHOW,
+      };
+
+      await updateAppointmentMutation.mutateAsync({
+        id: appointmentId,
+        dataBody: payload,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await queryClient.invalidateQueries({ queryKey: ["agenda"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-appointments"] });
+
+      notify({ message: "Agendamento marcado como Não Compareceu (No-Show)", type: "WARNING" });
+      router.back();
+    } catch (err) {
+      handleError(err, "Falha ao marcar como Não Compareceu");
+    }
+  }
+
   function showModal(id: number) {
     setSelectedCancelAppointmentId(id);
     setModalVisible(true);
@@ -335,6 +367,7 @@ export function useBookingDetailsViewModel(appointmentId?: number) {
     isListLoading,
     isDeleteLoading,
     handleDeleteAppointment,
+    handleMarkNoShow,
     setIsDeleteLoading,
     updateBooking,
     service,

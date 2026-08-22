@@ -69,7 +69,7 @@ export function useProductViewModel(productId: number | undefined) {
     fetchNextPage: productFechNextPage,
     hasNextPage: productHasNextPage,
     isFetchingNextPage: productIsFetchingNextPage,
-  } = useGetProductsMutation(debouncedSearch);
+  } = useGetProductsMutation(undefined, debouncedSearch);
 
   const productDataPagged =
     productData?.pages.flatMap((pages) => pages.content ?? [])?? [];

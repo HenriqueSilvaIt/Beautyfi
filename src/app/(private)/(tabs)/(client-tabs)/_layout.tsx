@@ -8,6 +8,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 import { AppointmentStatus } from "@/shared/interfaces/http/appointment";
 
+import { useStripeMutation } from "@/shared/queries/stripe/use-stripe-mutataion";
+import { ESubscriptionState } from "@/shared/interfaces/http/stripe";
+
 export default function ClientTabsLayout() {
   const { access_token } = useUserStore();
   const colorTheme = colors["app-theme-primary"];
@@ -15,6 +18,14 @@ export default function ClientTabsLayout() {
 
   const { useGetAppointmentMutation } = useAppointmentMutation();
   const { data: appointmentData } = useGetAppointmentMutation();
+
+  const { useGetMySubscriptionPlanQuery } = useStripeMutation();
+  const { data: mySubscription } = useGetMySubscriptionPlanQuery();
+
+  const hasActiveSubscription =
+    mySubscription?.status === ESubscriptionState.ACTIVE ||
+    mySubscription?.status === ESubscriptionState.RENOVATED ||
+    mySubscription?.status === ESubscriptionState.CANCEL_SCHEDULED;
 
   const appointmentDataPagged =
     appointmentData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -63,6 +74,7 @@ export default function ClientTabsLayout() {
         name="subscription"
         options={{
           title: "Assinatura",
+          href: hasActiveSubscription ? undefined : null,
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="invoice-clock-outline"

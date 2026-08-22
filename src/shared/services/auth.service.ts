@@ -8,7 +8,6 @@ import { LoginHttpParams, LoginHttpResponse } from "../interfaces/http/login";
 import { Buffer } from "buffer";
 import { useUserStore } from "../store/user-store";
 import { useCompanyStore } from "../store/company-store";
-import { AxiosRequestConfig } from "axios";
 import { GoogleAuthResponseDTO } from "../interfaces/http/authenticate-reposnse";
 function getCompanyId() {
   const user = useUserStore.getState().user;

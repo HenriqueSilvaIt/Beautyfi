@@ -22,6 +22,7 @@ export interface UserProps {
   address?: string;
   latitude?: number;
   longitude?: number;
+  loyaltyPoints?: number;
 }
 
 export interface UserInterface {
@@ -37,6 +38,7 @@ export interface UserInterface {
   address?: string;
   latitude?: number;
   longitude?: number;
+  loyaltyPoints?: number;
 }
 
 export interface UserChangePasswordInterface {

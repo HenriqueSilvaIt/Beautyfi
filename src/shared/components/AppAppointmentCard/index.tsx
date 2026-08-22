@@ -90,6 +90,7 @@ export function AppAppointmentCard({
       [AppointmentStatus.CANCELED]: "Cancelado",
       [AppointmentStatus.AVAILABLE]: "Disponível",
       [AppointmentStatus.SCHEDULED]: "Agendado",
+      [AppointmentStatus.NO_SHOW]: "Não Compareceu",
     },
   } as const;
 
@@ -98,6 +99,7 @@ export function AppAppointmentCard({
     [AppointmentStatus.CANCELED]: "bg-accent-red",
     [AppointmentStatus.SCHEDULED]: "bg-green-600",
     [AppointmentStatus.AVAILABLE]: "bg-accent-green",
+    [AppointmentStatus.NO_SHOW]: "bg-red-700",
   };
 
   return (

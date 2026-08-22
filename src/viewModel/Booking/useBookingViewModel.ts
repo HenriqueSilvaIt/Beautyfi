@@ -4,7 +4,8 @@ import {
   AppointmentProps,
   AppointmentStatus,
 } from "@/shared/interfaces/http/appointment";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 
@@ -22,6 +23,12 @@ export function useBookingViewModel() {
     hasNextPage: appointmentHasNextPage,
     isFetchingNextPage: appointmentIsFetchingNextPage,
   } = useGetAppointmentMutation();
+
+  useFocusEffect(
+    useCallback(() => {
+      appointmentRefetch();
+    }, [appointmentRefetch]),
+  );
 
   const appointmentDataPagged = Array.from(
     new Map(

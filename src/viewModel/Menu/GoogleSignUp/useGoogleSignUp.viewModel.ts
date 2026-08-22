@@ -5,8 +5,8 @@ import {
 } from "./googleSignUp.scheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMask } from "@/shared/hooks/useMask";
-import { useUserCompleteSignupMutation } from "@/shared/queries/user/use-user-logged.mutation";
-import { useCallback, useState } from "react";
+import { useUserCompleteSignupMutation, useUserLoggedQuery } from "@/shared/queries/user/use-user-logged.mutation";
+import { useCallback, useEffect, useState } from "react";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
@@ -21,10 +21,21 @@ export function useGoogleSignUpViewModel() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { safeReplace } = useSafeNavigation();
-
   const { handleError } = useErrorHandler();
-
   const { notify } = useSnackbarContext();
+
+  const { user, setUser } = useUserStore();
+  const { data: userLoggedData } = useUserLoggedQuery();
+
+  const currentUser = userLoggedData || user;
+
+  const isAdmin =
+    currentUser?.roles?.some(
+      (role) =>
+        role.authority === "ROLE_ADMIN" ||
+        role.authority === "ROLE_MODERATOR",
+    ) ?? false;
+
   const { control, reset, handleSubmit } = useForm<GoogleSignUpFormData>({
     resolver: yupResolver(
       googleSignUpScheme,
@@ -35,47 +46,71 @@ export function useGoogleSignUpViewModel() {
       phone: "",
     },
   });
+
   const { userCompleteSignupMutation } = useUserCompleteSignupMutation();
 
-  const { user} = useUserStore();
-    const isAdmin =
-       user?.roles?.some(
-        (role) =>
-          role.authority === "ROLE_ADMIN" ||
-          role.authority === "ROLE_MODERATOR",
-      ) ?? false;
+  // Redireciona automaticamente se o usuário já possui todas as informações cadastradas
+  useEffect(() => {
+    if (currentUser?.firstName && currentUser?.phone && currentUser?.birthDate) {
+      safeReplace(
+        isAdmin
+          ? "/(private)/(tabs)/(admin-tabs)/agenda"
+          : "/(private)/(tabs)/(client-tabs)/home",
+      );
+    }
+  }, [currentUser?.firstName, currentUser?.phone, currentUser?.birthDate, isAdmin]);
 
   const onSubmit = handleSubmit(async (userData) => {
-  try {
-    setIsLoading(true);
+    try {
+      const nameNeeded = !currentUser?.firstName;
+      const phoneNeeded = !currentUser?.phone;
+      const birthDateNeeded = !currentUser?.birthDate;
 
-    const name = userData.name?.trim() || undefined;
-    const phone = userData.phone ? unmask(userData.phone) : undefined;
-    const birthDate = userData.birthDate
-      ? DateBRToISO(userData.birthDate)
-      : undefined;
+      const name = userData.name?.trim();
+      const phone = userData.phone ? unmask(userData.phone) : undefined;
+      const birthDate = userData.birthDate
+        ? DateBRToISO(userData.birthDate)
+        : undefined;
 
-    // ✅ só manda os campos que têm valor
-    const payload: Record<string, string> = {};
-    if (name) payload.firstName = name;
-    if (phone) payload.phone = phone;
-    if (birthDate) payload.birthDate = birthDate;
+      if (nameNeeded && (!name || name.length === 0)) {
+        notify({ message: "Por favor, informe seu nome", type: "ERROR" });
+        return;
+      }
+      if (phoneNeeded && (!phone || phone.length < 10)) {
+        notify({ message: "Por favor, informe um telefone válido com DDD", type: "ERROR" });
+        return;
+      }
+      if (birthDateNeeded && (!birthDate || birthDate.length === 0)) {
+        notify({ message: "Por favor, informe sua data de nascimento", type: "ERROR" });
+        return;
+      }
 
-    await userCompleteSignupMutation.mutateAsync(payload as any);
+      setIsLoading(true);
 
-    notify({ message: "Usuário atualizado com sucesso", type: "SUCCESS" });
+      const payload: Record<string, string> = {};
+      if (name) payload.firstName = name;
+      if (phone) payload.phone = phone;
+      if (birthDate) payload.birthDate = birthDate;
 
-    safeReplace(
-      isAdmin
-        ? "/(private)/(tabs)/(admin-tabs)/agenda"
-        : "/(private)/(tabs)/(client-tabs)/home",
-    );
-  } catch (error) {
-    handleError(error, "Falha ao criar usuário");
-  } finally {
-    setIsLoading(false);
-  }
-});
+      const updatedUser = await userCompleteSignupMutation.mutateAsync(payload as any);
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+
+      notify({ message: "Cadastro finalizado com sucesso!", type: "SUCCESS" });
+
+      safeReplace(
+        isAdmin
+          ? "/(private)/(tabs)/(admin-tabs)/agenda"
+          : "/(private)/(tabs)/(client-tabs)/home",
+      );
+    } catch (error) {
+      handleError(error, "Falha ao atualizar dados do cadastro");
+    } finally {
+      setIsLoading(false);
+    }
+  });
+
   useFocusEffect(
     useCallback(() => {
       reset({
@@ -96,6 +131,6 @@ export function useGoogleSignUpViewModel() {
     safeReplace,
     onSubmit,
     isLoading,
-    user
+    user: currentUser,
   };
 }

@@ -16,8 +16,7 @@ export const registerScheme = yup.object({
     .matches(
       /^\(\d{2}\)\s\d{5}-\d{4}$/,
       "Telefone inválido. Use (99) 99999-9999",
-    ),
-  companyId: yup.number().required("Id da empreasa é obrigatório."),
-});
+    )
+  });
 
 export type RegisterFormData = yup.InferType<typeof registerScheme>;

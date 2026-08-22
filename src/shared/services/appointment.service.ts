@@ -49,11 +49,11 @@ export async function getAppointments(page: number = 0, size: number = 10, compa
 }
 
 export async function getAvailableAppointments(
-  { employeeId, serviceIds, date }: AvailableAppointmentsHttpParams,
+  { employeeId, serviceIds, date, companyId }: AvailableAppointmentsHttpParams,
   page = 0,
   size = 10,
 ) {
-  console.log("🌐 Request params:", { serviceIds, date, employeeId, page });
+  console.log("🌐 Request params:", { serviceIds, date, employeeId, page, companyId });
 
   const { data } =
     await styleAppApiClient.get<AvailableAppointmentsHttpResponse>(
@@ -63,6 +63,7 @@ export async function getAvailableAppointments(
           serviceIds: serviceIds?.join(","), // → "1,2,3"
           date,
           ...(employeeId != null ? { employeeId } : {}),
+          ...(companyId != null ? { companyId } : {}),
           page,
           size,
         },

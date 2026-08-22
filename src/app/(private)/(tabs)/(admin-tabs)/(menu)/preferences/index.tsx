@@ -81,23 +81,6 @@ export default function PreferencesMenuScreen() {
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
  
-        {/* Company Data Button */}
-        <TouchableOpacity
-          onPress={() => router.push("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/company-edit")}
-          activeOpacity={0.8}
-          className="bg-white/5 border border-gray-700/60 p-4 rounded-2xl flex-row items-center justify-between"
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="bg-[#CBA35D]/10 p-3 rounded-xl mr-4">
-              <Ionicons name="business" size={24} color="#CBA35D" />
-            </View>
-            <View className="flex-1 pr-2">
-              <Text className="text-font-primary text-base font-bold">Dados do Estabelecimento</Text>
-              <Text className="text-gray-600 text-xs mt-1">Nome, CNPJ, Horários, Redes Sociais e Carousel</Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
 
         {/* Marketing Automático Button */}
         <TouchableOpacity

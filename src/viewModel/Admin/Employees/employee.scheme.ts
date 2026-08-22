@@ -5,15 +5,20 @@ export const employeeScheme = yup.object({
   id: yup.number().optional(),
   name: yup.string().required("Nome do profissional é obrigátório"),
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
-  password: yup.string().optional().nullable().transform((value) => (value === "" ? null : value)) ,
+  password: yup
+    .string()
+    .optional()
+    .nullable()
+    .transform((value) => (!value || value.trim() === "" ? undefined : value)),
   description: yup.string().optional(),
   phone: yup
     .string()
     .required("Telefone é obrigatório")
-    .matches(
-      /^\(\d{2}\)\s\d{5}-\d{4}$/,
-      "Telefone inválido. Use (99) 99999-9999",
-    ),
+    .test("valid-phone", "Telefone inválido. Use (99) 99999-9999", (value) => {
+      if (!value) return false;
+      const digits = value.replace(/\D/g, "");
+      return digits.length >= 10 && digits.length <= 11;
+    }),
   avatarUrl: yup.string().optional(),
   schedule: yup
     .array()

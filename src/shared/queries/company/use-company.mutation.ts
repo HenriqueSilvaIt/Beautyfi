@@ -12,6 +12,8 @@ import {
   fetchNearbyCompanies,
   getCompanyReviews,
   createCompanyReview,
+  updateCompanyReview,
+  deleteCompanyReview,
   updateOpeningHours,
   updateSocialMedias,
   getCompanyPreferences,
@@ -100,6 +102,9 @@ export function useCompanyDetailsMutation() {
     mutationFn: (props: CompanyInterface) => updateCompany(props),
     onSuccess: (response) => {
       console.log(response);
+      queryClient.invalidateQueries({ queryKey: ["company-details", response.id] });
+      queryClient.invalidateQueries({ queryKey: ["company", response.id] });
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
     onError: (error) => {
       console.error(error);
@@ -154,6 +159,24 @@ export function useCompanyDetailsMutation() {
     },
   });
 
+  const updateCompanyReviewMutation = useMutation({
+    mutationFn: ({ companyId, reviewId, rating, comment }: { companyId: number; reviewId: number; rating: number; comment: string }) =>
+      updateCompanyReview(companyId, reviewId, { rating, comment }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["company-reviews", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    },
+  });
+
+  const deleteCompanyReviewMutation = useMutation({
+    mutationFn: ({ companyId, reviewId }: { companyId: number; reviewId: number }) =>
+      deleteCompanyReview(companyId, reviewId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["company-reviews", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    },
+  });
+
   const updateOpeningHoursMutation = useMutation({
     mutationFn: ({ companyId, openingHours }: { companyId: number; openingHours: any[] }) =>
       updateOpeningHours(companyId, openingHours),
@@ -199,6 +222,8 @@ export function useCompanyDetailsMutation() {
     useGetCompanyCategoriesQuery,
     useGetCompanyReviewsQuery,
     createCompanyReviewMutation,
+    updateCompanyReviewMutation,
+    deleteCompanyReviewMutation,
     updateOpeningHoursMutation,
     updateSocialMediasMutation,
     useGetCompanyPreferencesQuery,

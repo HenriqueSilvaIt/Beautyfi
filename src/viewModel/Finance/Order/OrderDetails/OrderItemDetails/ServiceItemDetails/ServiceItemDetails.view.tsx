@@ -1,7 +1,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useServiceItemDetailsViewModel } from "./useServiceItemDetailsViewModel";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { DeleteModal } from "@/shared/components/AppDeleteModal";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
@@ -32,9 +32,9 @@ export function ServiceItemDetailsView({
   isDeleting,
 }: ReturnType<typeof useServiceItemDetailsViewModel>) {
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
+    <SafeAreaView className="flex-1 bg-slate-50">
       <AppAdminHeader
-        title={`Editar Serviço`}
+        title={`Editar Item de Serviço`}
         iconRightName="trash"
         iconRight={{
           icon: true,
@@ -42,70 +42,116 @@ export function ServiceItemDetailsView({
         }}
         action={showDeleteModal}
       />
-      <View className="mx-2"> 
-      <Text className="text-app-theme-primary font-bold text-xl">Editar item</Text>
-      <View className="mt-5">
-        <TouchableOpacity
-          onPress={() => setDateTimePicker(true)}
-          activeOpacity={0.8}
-          className="w-full"
-        >
-          <View className="w-full mb-2 flex-row items-center gap-3 p-2 rounded-sm bg-background-secondary border border-white/20 shadow">
-            <Ionicons name="calendar" size={22} color={colors.white} />
 
-            <View className="">
-              <Text className="text-font-primary text-base opacity-70">Data:</Text>
-              <Text className="text-font-primary font-semibold text-base">
-                {date ? formatDateTimeToBR(date) : "Selecione"}
-              </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 }}
+      >
+        <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wider mb-3">
+          Informações do Serviço na Comanda
+        </Text>
+
+        {/* Card do Sinal Pago (se houver) */}
+        {(item?.requiresDeposit || Boolean(item?.depositAmount)) && (
+          <View className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-4 flex-row items-center justify-between shadow-xs">
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="checkmark-circle-outline" size={24} color="#10b981" />
+              <View>
+                <Text className="text-emerald-950 font-extrabold text-xs uppercase tracking-wide">
+                  Sinal Pago no Agendamento (PIX)
+                </Text>
+
+                <Text className="text-slate-600 text-xs mt-0.5">
+                  Valor já abatido do total do serviço
+                </Text>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity onPress={handleOpenServiceList}>
-        <View className="my-2 justify-center  rouded-sm w-full border border-gray-600 px-5 h-[60px] rounded-sm ">
-          <Text
-            className={`text-gray-600 text-xl 
-                      ${item?.serviceName ? "text-font-primary" : "text-gray-600"}`}
-          >
-            {item?.serviceName ? item?.serviceName : "Escolha o serviço"}
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      {(serviceIsSelected || !!item?.serviceName) && (
-        <TouchableOpacity onPress={handleOpenEmployeeList}>
-          <View className="my-2 justify-center  rouded-sm w-full border border-gray-600 px-5 h-[60px] rounded-sm ">
-            <Text
-              className={`text-gray-600 text-xl 
-                      ${item?.employeeName ? "text-font-primary" : "text-gray-600"}`}
-            >
-              {employee?.name ?? item?.employeeName ?? "Escolha o profissional"}
+            <Text className="text-emerald-700 font-black text-base">
+              R$ {(item?.depositAmount || 0).toFixed(2).replace(".", ",")}
             </Text>
           </View>
-        </TouchableOpacity>
-      )}
+        )}
 
-      <View className="rounded-sm mb-2">
-        <Text className="text-app-theme-primary  text-center text-sm">
-          Agendamentos realizados por aqui, não será levado em consideração
-          horários ocupados na agenda.
-        </Text>
-      </View>
-</View>
-      <TouchableOpacity onPress={onUpdateServiceToOrder}
-      className="px-2" activeOpacity={0.8}>
-        <View
-          className={`h-[40px] bg-app-theme-primary rounded-md items-center justify-center 
-                              ${isItemLoading ? "justify-between" : ""}`}
-        >
-          <Text className="text-center text-xl text-font-secundary font-bold">
-            {isItemLoading ? <ActivityIndicator /> : "Salvar"}
-          </Text>
+        {/* Form Container */}
+        <View className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs gap-4 mb-5">
+          {/* Data e Hora */}
+          <TouchableOpacity
+            onPress={() => setDateTimePicker(true)}
+            activeOpacity={0.85}
+            className="w-full"
+          >
+            <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">
+              Data e Horário Agendado
+            </Text>
+            <View className="w-full flex-row items-center gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-300">
+              <Ionicons name="calendar-outline" size={20} color="#092D5D" />
+              <View className="flex-1">
+                <Text className="text-slate-900 font-bold text-sm">
+                  {date ? formatDateTimeToBR(date) : "Selecione a data"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={18} color="#64748b" />
+            </View>
+          </TouchableOpacity>
+
+          {/* Selecionar Serviço */}
+          <TouchableOpacity onPress={handleOpenServiceList} activeOpacity={0.85}>
+            <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">
+              Serviço Agendado
+            </Text>
+            <View className="w-full flex-row items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-300">
+              <Text
+                className={`text-sm font-bold ${
+                  item?.serviceName ? "text-slate-900" : "text-slate-400"
+                }`}
+              >
+                {item?.serviceName ? item?.serviceName : "Escolha o serviço"}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color="#092D5D" />
+            </View>
+          </TouchableOpacity>
+
+          {/* Selecionar Profissional */}
+          {(serviceIsSelected || !!item?.serviceName) && (
+            <TouchableOpacity onPress={handleOpenEmployeeList} activeOpacity={0.85}>
+              <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">
+                Profissional Atendente
+              </Text>
+              <View className="w-full flex-row items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-300">
+                <Text
+                  className={`text-sm font-bold ${
+                    employee?.name || item?.employeeName ? "text-slate-900" : "text-slate-400"
+                  }`}
+                >
+                  {employee?.name ?? item?.employeeName ?? "Escolha o profissional"}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#092D5D" />
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Aviso informativo */}
+          <View className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex-row gap-2 items-center">
+            <Ionicons name="information-circle-outline" size={18} color="#d97706" />
+            <Text className="text-amber-800 text-[11px] font-medium flex-1">
+              Alterações diretas na comanda não sobrepõem conflitos de horários na agenda principal.
+            </Text>
+          </View>
         </View>
-      </TouchableOpacity>
-      
+
+        {/* Botão Salvar */}
+        <TouchableOpacity
+          onPress={onUpdateServiceToOrder}
+          activeOpacity={0.85}
+          className="h-14 bg-[#092D5D] border border-[#092D5D] rounded-xl items-center justify-center shadow-md"
+        >
+          <Text className="text-center text-white font-extrabold text-sm uppercase tracking-wide">
+            {isItemLoading ? <ActivityIndicator color="#ffffff" /> : "Salvar Alterações"}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+
       <AppDateTimePicker
         open={dateTimePicker}
         date={date}
@@ -115,6 +161,7 @@ export function ServiceItemDetailsView({
         }}
         onCancel={() => setDateTimePicker(false)}
       />
+
       <DeleteModal
         loading={isDeleting}
         visible={modalDeleteVisible}
@@ -127,8 +174,8 @@ export function ServiceItemDetailsView({
             hideDeleteModal();
           }
         }}
-        description="Tem certeza que deseja deletar a comanda"
-        title="Deletar comanda"
+        description="Tem certeza que deseja deletar este item da comanda?"
+        title="Deletar Item"
       />
     </SafeAreaView>
   );

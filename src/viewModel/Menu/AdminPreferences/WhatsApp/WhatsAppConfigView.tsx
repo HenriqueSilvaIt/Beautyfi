@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/styles/colors";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -21,7 +20,6 @@ export function WhatsAppConfigView({
   isPolling,
   handleConnect,
   handleDisconnect,
-  handleDelete,
   reminderEnabled,
   minutesBefore,
   isSavingReminder,
@@ -34,117 +32,122 @@ export function WhatsAppConfigView({
   remindersCount,
   remindersLimit,
   handleBuyMessages,
-  pushEnabled,
-  isSavingPush,
-  handleTogglePush,
 }: ReturnType<typeof useWhatsAppViewModel>) {
   if (isInitialLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-background-primary items-center justify-center">
-        <ActivityIndicator color={colors.white} />
-        <Text className="text-gray-500 mt-2 text-sm">
-          Verificando conexão...
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator color="#092D5D" size="large" />
+        <Text className="text-gray-500 mt-3 text-sm font-semibold">
+          Carregando configurações...
         </Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView
-        className="flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        className="flex-1 px-5"
+        contentContainerStyle={{ paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
       >
         <AppAdminHeader
-          title="Configurar WhatsApp"
+          title="WhatsApp e Notificações"
           leftIconShown={false}
           iconRight={{ icon: false, path: "" }}
         />
 
-        <Text className="text-font-primary text-xl font-bold mt-4 mb-1">WhatsApp</Text>
-        <Text className="text-gray-500 text-sm mb-6">
-          {companyType === "WHITE_LABEL"
-            ? "Conecte o WhatsApp da empresa para enviar lembretes e confirmações."
-            : "Gerencie o envio de confirmações e lembretes por WhatsApp do estabelecimento."}
-        </Text>
-
-        {/* ─── MULTI_TENANT Banner ─────────────────────────────────────────── */}
-        {companyType === "MULTI_TENANT" && (
-          <View className="bg-blue-900/20 border border-app-theme-primary p-4 rounded-xl mb-6">
-            <View className="flex-row items-center gap-3 mb-2">
-              <Ionicons name="logo-whatsapp" size={30} color={colors["app-theme-primary"]} />
-              <Text className="text-font-primary font-bold text-base">
-                WhatsApp Oficial Beautyfi Ativo
+        {/* ─── Uso do Plano & Lembretes WhatsApp ────────────────── */}
+        <View className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm mb-5">
+          <View className="flex-row justify-between items-center mb-2">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="logo-whatsapp" size={20} color="#22c55e" />
+              <Text className="text-gray-900 font-extrabold text-base">
+                Uso do Plano & Disparos
               </Text>
             </View>
-            <Text className="text-gray-600 text-sm leading-5">
-              O seu estabelecimento utiliza o envio de mensagens oficial do Beautyfi. Não é necessário conectar seu próprio celular via QR Code. Todas as mensagens de agendamento serão enviadas de forma automática e integrada!
+            {remindersCount >= remindersLimit && (
+              <View className="bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
+                <Text className="text-red-600 text-[10px] font-black uppercase">Limite Atingido</Text>
+              </View>
+            )}
+          </View>
+
+          <View className="flex-row justify-between items-center my-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <Text className="text-gray-600 text-xs font-semibold">Mensagens Enviadas (Mês):</Text>
+            <Text className={`text-sm font-black ${remindersCount >= remindersLimit ? "text-red-600" : "text-[#092D5D]"}`}>
+              {remindersCount} / {remindersLimit >= 9999 ? "Ilimitado" : remindersLimit}
             </Text>
           </View>
-        )}
 
-        {/* ─── WhatsApp Lembretes Counter & Buy Section ────────────────── */}
-        <View className="bg-background-tertiary p-4 rounded-xl mb-6">
-          <Text className="text-font-primary font-semibold mb-2 text-base">
-            Uso do Plano & Lembretes
-          </Text>
-          <View className="flex-row justify-between mb-2">
-            <Text className="text-gray-600 text-sm">Lembretes Enviados (Mês):</Text>
-            <Text className="text-font-primary text-sm font-bold">{remindersCount} / {remindersLimit}</Text>
-          </View>
-          <View className="w-full bg-gray-800 h-2 rounded-full mb-4 overflow-hidden">
-            <View className="bg-app-theme-primary h-2 rounded-full" style={{ width: `${Math.min(100, (remindersCount / remindersLimit) * 100)}%` }} />
-          </View>
+          {remindersLimit < 9999 && (
+            <View className="w-full bg-gray-100 h-2.5 rounded-full mb-3 overflow-hidden">
+              <View
+                className={`h-2.5 rounded-full ${remindersCount >= remindersLimit ? "bg-red-500" : "bg-[#22c55e]"}`}
+                style={{ width: `${Math.min(100, (remindersCount / remindersLimit) * 100)}%` }}
+              />
+            </View>
+          )}
 
-          <Text className="text-gray-600 text-xs mb-4 leading-4">
-            O plano Starter inclui 100 lembretes gratuitos por mês. Você pode adquirir pacotes adicionais de 200 lembretes por apenas R$ 15,00 via Stripe.
+          {remindersCount >= remindersLimit && (
+            <View className="bg-red-50 border border-red-200 p-3 rounded-xl mb-3 flex-row items-center gap-2">
+              <Ionicons name="alert-circle" size={18} color="#ef4444" />
+              <Text className="text-red-700 text-xs font-bold flex-1 leading-4">
+                O limite mensal do seu plano foi atingido ({remindersCount}/{remindersLimit}). Adquira pacotes adicionais para liberar envios automáticos.
+              </Text>
+            </View>
+          )}
+
+          <Text className="text-gray-500 text-xs mb-4 leading-relaxed">
+            As confirmações e lembretes são disparados automaticamente pelo WhatsApp para os seus clientes.
           </Text>
 
           <TouchableOpacity
             onPress={handleBuyMessages}
-            className="bg-app-theme-primary py-3 rounded-xl items-center flex-row justify-center gap-2"
+            activeOpacity={0.85}
+            className="bg-[#092D5D] py-3.5 px-4 rounded-xl items-center flex-row justify-center gap-2 shadow-sm"
           >
-            <Ionicons name="cart-outline" size={20} color="white" />
-            <Text className="text-font-primary font-bold text-sm">Comprar +200 Lembretes</Text>
+            <Ionicons name="open-outline" size={18} color="white" />
+            <Text className="text-white font-black text-xs uppercase tracking-wide">
+              Gerenciar Pacotes no Painel Web
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* ─── WHITE_LABEL (Evolution API) Widgets ─────────────────────────── */}
         {companyType === "WHITE_LABEL" && (
-          <>
-            {/* Status */}
-            <View className="flex-row items-center gap-2 mb-6 bg-background-tertiary p-4 rounded-xl">
+          <View className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm mb-5">
+            <View className="flex-row items-center gap-2 mb-4">
               <View
                 className={`w-3 h-3 rounded-full ${
                   status === "CONNECTED"
-                    ? "bg-green-400"
+                    ? "bg-green-500"
                     : status === "QRCODE" || status === "CONNECTING"
-                      ? "bg-yellow-400"
+                      ? "bg-amber-400"
                       : "bg-red-500"
                 }`}
               />
-              <Text className="text-font-primary font-semibold flex-1">
+              <Text className="text-gray-900 font-extrabold text-base flex-1">
                 {status === "CONNECTED"
-                  ? "Conectado"
+                  ? "Conectado ao WhatsApp"
                   : status === "QRCODE" || status === "CONNECTING"
                     ? "Aguardando leitura do QR Code"
                     : status === "DISCONNECTED"
                       ? "Desconectado"
-                      : "Sem instância"}
+                      : "Sem instância registrada"}
               </Text>
-              {isPolling && <ActivityIndicator size="small" color={colors.white} />}
+              {isPolling && <ActivityIndicator size="small" color="#092D5D" />}
             </View>
 
             {/* QR Code */}
             {qrBase64 && (status === "QRCODE" || status === "CONNECTING") && (
-              <View className="items-center bg-white p-4 rounded-xl mb-6">
-                <Text className="text-font-secundary font-semibold mb-3 text-center">
-                  Escaneie com o WhatsApp do celular
+              <View className="items-center bg-gray-50 border border-gray-200 p-4 rounded-2xl mb-4">
+                <Text className="text-gray-700 font-bold mb-3 text-center text-xs">
+                  Escaneie o código com o WhatsApp do seu celular
                 </Text>
                 <Image
                   source={{ uri: qrBase64 }}
-                  className="w-[220px] h-[220px]"
+                  className="w-[200px] h-[200px]"
                   resizeMode="contain"
                 />
                 <Text className="text-gray-500 text-xs mt-3 text-center">
@@ -153,31 +156,18 @@ export function WhatsAppConfigView({
               </View>
             )}
 
-            {/* Connected success banner */}
-            {status === "CONNECTED" && (
-              <View className="items-center bg-green-900/30 border border-green-600 p-4 rounded-xl mb-6">
-                <Ionicons name="checkmark-circle" size={40} color="#4ade80" />
-                <Text className="text-green-400 font-semibold mt-2">
-                  WhatsApp conectado com sucesso!
-                </Text>
-                <Text className="text-gray-500 text-sm mt-1 text-center">
-                  Lembretes e confirmações serão enviados automaticamente.
-                </Text>
-              </View>
-            )}
-
-            {/* Action buttons */}
-            <View className="gap-3 mb-6">
+            {/* Actions */}
+            <View className="gap-3">
               {(status === "DISCONNECTED" || status === null) && (
                 <TouchableOpacity
                   onPress={handleConnect}
                   disabled={isLoading}
-                  className="bg-green-600 py-3 rounded-xl items-center"
+                  className="bg-[#22c55e] py-3.5 rounded-xl items-center shadow-sm"
                 >
                   {isLoading ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-font-primary font-bold">Conectar WhatsApp</Text>
+                    <Text className="text-white font-black text-xs uppercase tracking-wide">Conectar WhatsApp</Text>
                   )}
                 </TouchableOpacity>
               )}
@@ -186,12 +176,12 @@ export function WhatsAppConfigView({
                 <TouchableOpacity
                   onPress={handleConnect}
                   disabled={isLoading}
-                  className="border border-app-theme-primary py-3 rounded-xl items-center"
+                  className="border border-[#092D5D] py-3.5 rounded-xl items-center"
                 >
                   {isLoading ? (
-                    <ActivityIndicator color={colors["app-theme-primary"]} />
+                    <ActivityIndicator color="#092D5D" />
                   ) : (
-                    <Text className="text-app-theme-primary font-bold">
+                    <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wide">
                       Gerar novo QR Code
                     </Text>
                   )}
@@ -202,185 +192,122 @@ export function WhatsAppConfigView({
                 <TouchableOpacity
                   onPress={handleDisconnect}
                   disabled={isLoading}
-                  className="border border-red-500 py-3 rounded-xl items-center"
+                  className="border border-red-500 py-3.5 rounded-xl items-center"
                 >
                   {isLoading ? (
-                    <ActivityIndicator color="red" />
+                    <ActivityIndicator color="#ef4444" />
                   ) : (
-                    <Text className="text-red-500 font-bold">Desconectar</Text>
+                    <Text className="text-red-500 font-extrabold text-xs uppercase tracking-wide">Desconectar WhatsApp</Text>
                   )}
                 </TouchableOpacity>
               )}
-              {status !== null && status !== "DISCONNECTED" && (
-                <TouchableOpacity
-                  onPress={handleDelete}
-                  disabled={isLoading}
-                  className="py-3 rounded-xl items-center"
-                >
-                  <Text className="text-gray-500 text-sm">Remover instância</Text>
-                </TouchableOpacity>
-              )}
             </View>
-          </>
-        )}
-
-        {/* ─── Configurações de Mensagens (só quando conectado / oficial ativo) ─── */}
-        {status === "CONNECTED" && (
-          <View className="bg-background-tertiary p-4 rounded-xl">
-            <Text className="text-font-primary font-semibold mb-4 text-base">
-              Configurações de Mensagens
-            </Text>
-
-            {/* Toggle Confirmação de Agendamento */}
-            <View className="flex-row justify-between items-center mb-6 pb-4 border-b border-gray-800">
-              <View className="flex-1 pr-3">
-                <Text className="text-font-primary text-sm font-medium">
-                  Confirmação de agendamento
-                </Text>
-                <Text className="text-gray-500 text-xs mt-1">
-                  {bookingConfirmationEnabled
-                    ? "Enviar mensagem imediatamente quando um agendamento for criado."
-                    : "Confirmações desativadas."}
-                </Text>
-              </View>
-              {isSavingConfirmation ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors["app-theme-primary"]}
-                />
-              ) : (
-                <Switch
-                  value={bookingConfirmationEnabled}
-                  onValueChange={handleToggleConfirmation}
-                  thumbColor={
-                    bookingConfirmationEnabled ? colors["app-theme-primary"] : colors.white
-                  }
-                  trackColor={{
-                    false: colors.gray[800],
-                    true: colors["app-theme-primary-light"] ?? "#f97316",
-                  }}
-                  ios_backgroundColor={colors.gray[800]}
-                />
-              )}
-            </View>
-
-            {/* Toggle Lembrete Automático */}
-            <View className="flex-row justify-between items-center mb-4">
-              <View className="flex-1 pr-3">
-                <Text className="text-font-primary text-sm font-medium">
-                  Enviar lembrete
-                </Text>
-                <Text className="text-gray-500 text-xs mt-1">
-                  {reminderEnabled
-                    ? "Clientes receberão lembrete antes do agendamento."
-                    : "Lembretes desativados."}
-                </Text>
-              </View>
-              {isSavingReminder ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors["app-theme-primary"]}
-                />
-              ) : (
-                <Switch
-                  value={reminderEnabled}
-                  onValueChange={handleToggleReminder}
-                  thumbColor={
-                    reminderEnabled ? colors["app-theme-primary"] : colors.white
-                  }
-                  trackColor={{
-                    false: colors.gray[800],
-                    true: colors["app-theme-primary-light"] ?? "#f97316",
-                  }}
-                  ios_backgroundColor={colors.gray[800]}
-                />
-              )}
-            </View>
-
-            {/* Antecedência */}
-            {reminderEnabled && (
-              <View className="mt-4 pt-4 border-t border-gray-800">
-                <Text className="text-gray-600 text-sm mb-3">
-                  Enviar com antecedência de:
-                </Text>
-                <View className="gap-2">
-                  {[30, 60, 120].map((min) => (
-                    <TouchableOpacity
-                      key={min}
-                      onPress={() => handleChangeMinutesBefore(min)}
-                      disabled={isSavingReminder}
-                      className={`flex-row items-center gap-3 py-3 px-4 rounded-xl border ${
-                        minutesBefore === min
-                          ? "border-app-theme-primary bg-app-theme-primary/10"
-                          : "border-gray-700"
-                      }`}
-                    >
-                      <View
-                        className={`w-4 h-4 rounded-full border-2 items-center justify-center ${
-                          minutesBefore === min
-                            ? "border-app-theme-primary"
-                            : "border-gray-500"
-                        }`}
-                      >
-                        {minutesBefore === min && (
-                          <View className="w-2 h-2 rounded-full bg-app-theme-primary" />
-                        )}
-                      </View>
-                      <Text
-                        className={`text-sm ${
-                          minutesBefore === min
-                            ? "text-app-theme-primary font-semibold"
-                            : "text-font-primary"
-                        }`}
-                      >
-                        {min < 60
-                          ? `${min} minutos antes`
-                          : `${min / 60} hora${min > 60 ? "s" : ""} antes`}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
           </View>
         )}
-        {/* ─── Configurações do App Mobile (Notificações Push) ────────────────── */}
-        <View className="bg-background-tertiary p-4 rounded-xl mt-6">
-          <Text className="text-font-primary font-semibold mb-4 text-base">
-            Notificações do App Mobile
-          </Text>
 
-          <View className="flex-row justify-between items-center">
+        {/* ─── Configurações de Mensagens e Regras de Disparo ─── */}
+        <View className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+          <View className="flex-row items-center gap-2 mb-4">
+            <Ionicons name="chatbubbles" size={20} color="#092D5D" />
+            <Text className="text-gray-900 font-extrabold text-base">
+              Regras de Notificações
+            </Text>
+          </View>
+
+          {/* Toggle Confirmação de Agendamento */}
+          <View className="flex-row justify-between items-center mb-5 pb-4 border-b border-gray-100">
             <View className="flex-1 pr-3">
-              <Text className="text-font-primary text-sm font-medium">
-                Notificação de novos agendamentos
+              <Text className="text-gray-900 text-sm font-extrabold">
+                Confirmação Instantânea
               </Text>
-              <Text className="text-gray-500 text-xs mt-1">
-                {pushEnabled
-                  ? "Receber notificações push e avisos sonoros no celular a cada agendamento."
-                  : "Notificações desativadas."}
+              <Text className="text-gray-500 text-xs mt-1 leading-relaxed">
+                {bookingConfirmationEnabled
+                  ? "Envia mensagem no WhatsApp do cliente no exato momento em que o agendamento é realizado."
+                  : "Confirmações instantâneas desativadas."}
               </Text>
             </View>
-            {isSavingPush ? (
-              <ActivityIndicator
-                size="small"
-                color={colors["app-theme-primary"]}
-              />
+            {isSavingConfirmation ? (
+              <ActivityIndicator size="small" color="#092D5D" />
             ) : (
               <Switch
-                value={pushEnabled}
-                onValueChange={handleTogglePush}
-                thumbColor={
-                  pushEnabled ? colors["app-theme-primary"] : colors.white
-                }
-                trackColor={{
-                  false: colors.gray[800],
-                  true: colors["app-theme-primary-light"] ?? "#f97316",
-                }}
-                ios_backgroundColor={colors.gray[800]}
+                value={bookingConfirmationEnabled}
+                onValueChange={handleToggleConfirmation}
+                trackColor={{ false: "#e5e7eb", true: "#092D5D" }}
+                thumbColor={bookingConfirmationEnabled ? "#CBA35D" : "#f3f4f6"}
               />
             )}
           </View>
+
+          {/* Toggle Lembrete Automático */}
+          <View className="flex-row justify-between items-center mb-4">
+            <View className="flex-1 pr-3">
+              <Text className="text-gray-900 text-sm font-extrabold">
+                Lembrete Automático de Horário
+              </Text>
+              <Text className="text-gray-500 text-xs mt-1 leading-relaxed">
+                {reminderEnabled
+                  ? "Relembra o cliente via WhatsApp com antecedência para evitar faltas (no-show)."
+                  : "Lembretes prévios desativados."}
+              </Text>
+            </View>
+            {isSavingReminder ? (
+              <ActivityIndicator size="small" color="#092D5D" />
+            ) : (
+              <Switch
+                value={reminderEnabled}
+                onValueChange={handleToggleReminder}
+                trackColor={{ false: "#e5e7eb", true: "#092D5D" }}
+                thumbColor={reminderEnabled ? "#CBA35D" : "#f3f4f6"}
+              />
+            )}
+          </View>
+
+          {/* Antecedência */}
+          {reminderEnabled && (
+            <View className="mt-4 pt-4 border-t border-gray-100">
+              <Text className="text-gray-700 text-xs font-bold uppercase tracking-wider mb-3">
+                Enviar lembrete com antecedência de:
+              </Text>
+              <View className="gap-2.5">
+                {[
+                  { min: 30, label: "30 minutos antes" },
+                  { min: 60, label: "1 hora antes (Recomendado)" },
+                  { min: 120, label: "2 horas antes" },
+                  { min: 1440, label: "24 horas (1 dia antes)" },
+                ].map((item) => (
+                  <TouchableOpacity
+                    key={item.min}
+                    onPress={() => handleChangeMinutesBefore(item.min)}
+                    disabled={isSavingReminder}
+                    activeOpacity={0.8}
+                    className={`flex-row items-center justify-between py-3.5 px-4 rounded-xl border ${
+                      minutesBefore === item.min
+                        ? "border-[#092D5D] bg-[#092D5D]/5"
+                        : "border-gray-200 bg-gray-50"
+                    }`}
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <Ionicons
+                        name={minutesBefore === item.min ? "radio-button-on" : "radio-button-off"}
+                        size={18}
+                        color={minutesBefore === item.min ? "#092D5D" : "#9ca3af"}
+                      />
+                      <Text
+                        className={`text-xs font-bold ${
+                          minutesBefore === item.min ? "text-[#092D5D]" : "text-gray-700"
+                        }`}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                    {minutesBefore === item.min && (
+                      <Ionicons name="checkmark-circle" size={16} color="#CBA35D" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

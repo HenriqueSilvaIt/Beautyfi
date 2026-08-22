@@ -142,15 +142,19 @@ export interface CustomerStripeDTO {
 }
 
 export interface PaymentIntentParam {
-  customerId: string;
+  customerId?: string;
   amount: number;
   productName: string;
   productId: string;
+  companyId?: number;
 }
 
 export interface PaymentIntentDTO {
   paymentIntentId: string;
   clientSecret: string;
+  pixQrCodeUrl?: string;
+  pixCopiaECola?: string;
+  pixExpiresAt?: number;
 }
 
 export interface UserSubscriptionDTO {

@@ -177,36 +177,68 @@ export function TotalMonthlyView({
     [ordersData],
   );
 
-  const barData = useMemo(() => {
-    const grouped: Record<string, number> = {};
-    let filteredOrders = allOrders;
+  const calculateOrderValue = (order: any) => {
+    if (order.total && Number(order.total) > 0) {
+      return Number(order.total);
+    }
+    if (order.items && order.items.length > 0) {
+      return order.items.reduce((acc: number, item: any) => {
+        const p = Number(item.price ?? item.servicePrice ?? 0);
+        const q = Number(item.quantity ?? 1);
+        return acc + p * q;
+      }, 0);
+    }
+    return 0;
+  };
+
+  // 1. Todas as comandas filtradas por período e profissional
+  const periodFilteredOrders = useMemo(() => {
+    let filtered = allOrders;
+    filtered = filtered.filter((order) => {
+      if (!order.moment) return false;
+      const d = new Date(order.moment);
+      return d >= dateStart && d <= dateEnd;
+    });
+
     if (selectedEmployeeId !== null) {
-      filteredOrders = filteredOrders.filter(
+      filtered = filtered.filter(
         (order) => order.employee?.id === selectedEmployeeId,
       );
     }
-    filteredOrders.forEach((order) => {
+
+    return filtered;
+  }, [allOrders, selectedEmployeeId, dateStart, dateEnd]);
+
+  // Total acumulado do Período Filtrado
+  const periodTotal = useMemo(() => {
+    return periodFilteredOrders.reduce(
+      (acc, order) => acc + calculateOrderValue(order),
+      0,
+    );
+  }, [periodFilteredOrders]);
+
+  // 2. Gráfico de barras montado a partir do agrupamento mensal
+  const barData = useMemo(() => {
+    const grouped: Record<string, number> = {};
+
+    periodFilteredOrders.forEach((order) => {
       if (!order.moment) return;
-      const d = new Date(order.moment);
-      if (d >= dateStart && d <= dateEnd) {
-        const monthStr = order.moment.substring(0, 7); // "YYYY-MM"
-        grouped[monthStr] = (grouped[monthStr] || 0) + (order.total || 0);
-      }
+      const monthStr = order.moment.substring(0, 7); // "YYYY-MM"
+      grouped[monthStr] = (grouped[monthStr] || 0) + calculateOrderValue(order);
     });
 
-    return totalMonthly.map((item) => ({
-      value: grouped[item.monthYear] || 0,
-      label: formatMonthYear(item.monthYear),
-      rawMonthYear: item.monthYear,
-    }));
-  }, [totalMonthly, allOrders, selectedEmployeeId, dateStart, dateEnd]);
+    // Se totalMonthly veio da API, usa a lista de meses, se não usa a partir dos meses agrupados
+    const monthsKeys =
+      totalMonthly && totalMonthly.length > 0
+        ? totalMonthly.map((t) => t.monthYear)
+        : Object.keys(grouped).sort();
 
-  useEffect(() => {
-    if (barData.length > 0 && selectedBar === null) {
-      setSelectedBar(barData.length - 1);
-      setHighlightValue(barData[barData.length - 1].value);
-    }
-  }, [barData]);
+    return monthsKeys.map((monthYear) => ({
+      value: grouped[monthYear] || 0,
+      label: formatMonthYear(monthYear),
+      rawMonthYear: monthYear,
+    }));
+  }, [totalMonthly, periodFilteredOrders]);
 
   useEffect(() => {
     if (selectedBar !== null && barData[selectedBar]) {
@@ -218,39 +250,35 @@ export function TotalMonthlyView({
     return Math.max(...barData.map((b) => b.value), 1);
   }, [barData]);
 
-  // Filtra comandas pelo bar selecionado + filtros de data e profissional
+  // Lista final de comandas (se barra/mês selecionada, filtra pelo mês da barra)
   const ordersList = useMemo(() => {
-    let filtered = allOrders;
-
-    // Filtro por barra do gráfico (mês)
     if (selectedBar !== null && barData[selectedBar]) {
       const selectedMonthStr = barData[selectedBar].rawMonthYear;
-      filtered = filtered.filter(
+      return periodFilteredOrders.filter(
         (order) => order.moment && order.moment.startsWith(selectedMonthStr),
       );
-    } else {
-      // Filtro por intervalo de datas
-      filtered = filtered.filter((order) => {
-        if (!order.moment) return false;
-        const d = new Date(order.moment);
-        return d >= dateStart && d <= dateEnd;
-      });
     }
+    return periodFilteredOrders;
+  }, [periodFilteredOrders, selectedBar, barData]);
 
-    // Filtro por profissional
-    if (selectedEmployeeId !== null) {
-      filtered = filtered.filter(
-        (order) => order.employee?.id === selectedEmployeeId,
-      );
-    }
+  const selectedMonthLabel =
+    selectedBar !== null && barData[selectedBar]
+      ? barData[selectedBar].label
+      : null;
 
-    return filtered;
-  }, [allOrders, selectedBar, barData, dateStart, dateEnd, selectedEmployeeId]);
+  const currentDisplayValue =
+    selectedBar !== null ? highlightValue : periodTotal;
 
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader title="Faturamento" iconRight={{ icon: false, path: "" }} />
-      <SellingHeader value={highlightValue} />
+
+      {/* Header com Total Vendido no Período ou Mês Selecionado */}
+      <SellingHeader
+        value={currentDisplayValue}
+        periodTotal={periodTotal}
+        selectedMonthLabel={selectedMonthLabel}
+      />
 
       {/* Gráfico Estilo Nubank */}
       <View className="mt-8 px-4 h-[150px]">
@@ -386,6 +414,8 @@ export function TotalMonthlyView({
             const dateStr = item.moment
               ? format(new Date(item.moment), "dd MMM")
               : "";
+            const itemVal = calculateOrderValue(item);
+
             return (
               <TouchableOpacity
                 onPress={() =>
@@ -416,7 +446,7 @@ export function TotalMonthlyView({
                   </View>
                   <View className="items-end">
                     <Text className="text-font-primary font-bold text-sm">
-                      R$ {moneyMapper(item.total)}
+                      R$ {moneyMapper(itemVal)}
                     </Text>
                     {item.status === "CLOSED" && (
                       <View className="bg-green-900/50 px-2 py-0.5 rounded-full mt-1">

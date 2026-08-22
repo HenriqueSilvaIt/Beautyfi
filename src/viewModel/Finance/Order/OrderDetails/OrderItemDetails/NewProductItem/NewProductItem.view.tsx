@@ -1,12 +1,13 @@
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNewProductItemViewModel } from "./useNewProductItemViewModel";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { AppInputController } from "@/shared/components/AppInputControler";
 import { colors } from "@/styles/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { moneyMapper } from "@/utils/moneyMapper";
 import { AppQuantityControl } from "@/shared/components/AppQuantityControl";
+
 export function NewProductItem({
   product,
   isItemLoading,
@@ -27,136 +28,145 @@ export function NewProductItem({
   handleOpenEmployeeList,
 }: ReturnType<typeof useNewProductItemViewModel>) {
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
+    <SafeAreaView className="flex-1 bg-slate-50">
       <AppAdminHeader
         title={`Inserir Produto`}
         iconRight={{ icon: false, path: "" }}
       />
 
-        <Text className="text-app-theme-primary font-bold text-xl">
-          Adicionar Item
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 }}
+      >
+        <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wider mb-3">
+          Adicionar Produto na Comanda
         </Text>
-      <View className="mt-2 mx-2">
 
-        <Text className="text-font-primary mb-2 text-base">Produto:</Text>
-        <TouchableOpacity onPress={handleOpenProductList}>
-          <View className="mb-2 justify-center  rouded-sm w-full border border-gray-600 px-5 h-[60px] rounded-sm ">
-            <Text
-              className={`text-gray-600 text-xl 
-                      ${product ? "text-font-primary" : "text-gray-600"}`}
-            >
-              {product ? product.name : "Escolha o produto"}
+        <View className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs gap-4 mb-5">
+          {/* Selecionar Produto */}
+          <TouchableOpacity onPress={handleOpenProductList} activeOpacity={0.85}>
+            <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">
+              Produto
             </Text>
-          </View>
-        </TouchableOpacity>
-
-        <View className="px-2">
-          <AppInputController
-            control={control}
-            name="price"
-            leftIcon="cash"
-            label="Valor"
-            placeholder="R$ 0,00"
-            placeholderTextColor={colors.gray[600]}
-          />
-        </View> 
-
-        <TouchableOpacity onPress={handleOpenEmployeeList}>
-          <Text className="text-font-primary text-base">Profissional:</Text>
-
-          <View className="my-2 justify-center  rouded-sm w-full border border-gray-600 px-5 h-[60px] rounded-sm ">
-            <Text
-              className={`text-gray-600 text-xl 
-                      ${employee ? "text-font-primary" : "text-gray-600"}`}
-            >
-              {employee ? employee.name : "Escolha o profissional"}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        <View className="ml-1">
-          <Text className="text-font-primary text-base mb-2">Quantidade:</Text>
-
-          <AppQuantityControl
-            quantity={quantity}
-            setQuantity={setQuantity}
-            price={Number(product?.price)}
-
-          />
-        </View>
-        <View className="flex-row w-full  px-2 my-2 items-center">
-          <View className="flex-1">
-            <Text className="text-app-theme-primary  font-bold text-start text-base">
-              Para uso
-            </Text>
-            <Text className="text-font-primary  text-start text-sm">
-              Produtos definidos como para uso NÃO SERÃO contabilizados na
-              comanda
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => handleToggleToUse()}
-            activeOpacity={0.8}
-            className=""
-          >
-            <MaterialCommunityIcons
-              name={
-                toUse ? "toggle-switch-outline" : "toggle-switch-off-outline"
-              }
-              color={toUse ? colors["app-theme-primary"] : colors.white}
-              size={36}
-            />
+            <View className="w-full flex-row items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-300">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="cube-outline" size={18} color="#092D5D" />
+                <Text
+                  className={`text-sm font-bold ${
+                    product ? "text-slate-900" : "text-slate-400"
+                  }`}
+                >
+                  {product ? product.name : "Escolha o produto"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={18} color="#092D5D" />
+            </View>
           </TouchableOpacity>
-        </View>
 
-        <View className="flex-row w-full  px-2 mb-2 items-center">
-          <View className="flex-1">
-            <Text className="text-app-theme-primary  font-bold text-start text-base">
-              Cortesia
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => handleToggleCourtesy()}
-            activeOpacity={0.8}
-            className=""
-          >
-            <MaterialCommunityIcons
-              name={
-                courtesy ? "toggle-switch-outline" : "toggle-switch-off-outline"
-              }
-              color={courtesy ? colors["app-theme-primary"] : colors.white}
-              size={36}
+          {/* Campo Valor */}
+          <View>
+            <AppInputController
+              control={control}
+              name="price"
+              leftIcon="cash"
+              label="Valor Unitário"
+              placeholder="R$ 0,00"
+              placeholderTextColor={colors.gray[400]}
             />
+          </View>
+
+          {/* Selecionar Profissional */}
+          <TouchableOpacity onPress={handleOpenEmployeeList} activeOpacity={0.85}>
+            <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">
+              Profissional Vendedor
+            </Text>
+            <View className="w-full flex-row items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-300">
+              <View className="flex-row items-center gap-2.5">
+                <Ionicons name="person-outline" size={18} color="#092D5D" />
+                <Text
+                  className={`text-sm font-bold ${
+                    employee ? "text-slate-900" : "text-slate-400"
+                  }`}
+                >
+                  {employee ? employee.name : "Escolha o profissional"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={18} color="#092D5D" />
+            </View>
           </TouchableOpacity>
+
+          {/* Quantidade */}
+          <View>
+            <Text className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
+              Quantidade
+            </Text>
+            <AppQuantityControl
+              quantity={quantity}
+              setQuantity={setQuantity}
+              price={Number(product?.price)}
+            />
+          </View>
+
+          {/* Opção Para Uso */}
+          <View className="flex-row items-center justify-between py-2 border-t border-slate-100 pt-3">
+            <View className="flex-1 pr-3">
+              <Text className="text-slate-900 font-extrabold text-sm">
+                Para Uso Interno
+              </Text>
+              <Text className="text-slate-500 text-[11px]">
+                Produtos para uso não entram no valor cobrado do cliente
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => handleToggleToUse()} activeOpacity={0.85}>
+              <MaterialCommunityIcons
+                name={toUse ? "toggle-switch" : "toggle-switch-off-outline"}
+                color={toUse ? "#092D5D" : "#cbd5e1"}
+                size={40}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Opção Cortesia */}
+          <View className="flex-row items-center justify-between py-2 border-t border-slate-100">
+            <View className="flex-1 pr-3">
+              <Text className="text-slate-900 font-extrabold text-sm">
+                Cortesia
+              </Text>
+              <Text className="text-slate-500 text-[11px]">
+                Concede este produto como cortesia gratuita
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => handleToggleCourtesy()} activeOpacity={0.85}>
+              <MaterialCommunityIcons
+                name={courtesy ? "toggle-switch" : "toggle-switch-off-outline"}
+                color={courtesy ? "#092D5D" : "#cbd5e1"}
+                size={40}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View className="border-t-2 border-gray-600 w-full mb-5" />
-
-        <View className="flex-row  items-center justify-between">
-          <Text className="text-xl text-app-theme-primary font-bold flex-1">
-            Total
+        {/* Resumo de Total */}
+        <View className="p-4 rounded-2xl bg-white border border-slate-200 flex-row justify-between items-center mb-5 shadow-xs">
+          <Text className="text-slate-900 font-extrabold text-base">
+            Total do Produto:
           </Text>
-
-          <Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            className="text-2xl text-green-600"
-          >
+          <Text className="text-[#092D5D] font-black text-2xl">
             R$ {moneyMapper(total)}
           </Text>
         </View>
 
-        <TouchableOpacity onPress={onAddProductToOrder} activeOpacity={0.8}>
-          <View
-            className={`h-[40px] mt-2 bg-app-theme-primary rounded-md items-center justify-center 
-                              ${isItemLoading ? "justify-between" : ""}`}
-          >
-            <Text className="text-center text-xl text-font-secundary font-bold">
-              {isItemLoading ? <ActivityIndicator /> : "Salvar"}
-            </Text>
-          </View>
+        {/* Botão Salvar */}
+        <TouchableOpacity
+          onPress={onAddProductToOrder}
+          activeOpacity={0.85}
+          className="h-14 bg-[#092D5D] border border-[#092D5D] rounded-xl items-center justify-center shadow-md"
+        >
+          <Text className="text-center text-white font-extrabold text-sm uppercase tracking-wide">
+            {isItemLoading ? <ActivityIndicator color="#ffffff" /> : "Salvar Produto"}
+          </Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

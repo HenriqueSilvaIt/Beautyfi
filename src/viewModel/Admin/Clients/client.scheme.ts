@@ -5,10 +5,12 @@ export const clientScheme = yup.object({
   birthDate: yup
     .string()
     .optional()
-    .test("valid-date", "Data inválida", (value) => {
-      if (!value) return true; // ✅ aqui
+    .nullable()
+    .test("valid-date", "Data inválida (use DD/MM/AAAA)", (value) => {
+      if (!value || value.trim() === "") return true;
 
       const [d, m, y] = value.split("/").map(Number);
+      if (!d || !m || !y) return false;
       const date = new Date(y, m - 1, d);
 
       return (
@@ -17,15 +19,26 @@ export const clientScheme = yup.object({
         date.getDate() === d
       );
     }),
-  email: yup.string().optional(),
-  profileUrl: yup.string().optional(),
+  email: yup
+    .string()
+    .optional()
+    .nullable()
+    .transform((v) => (v === "" ? undefined : v))
+    .email("E-mail inválido"),
+  profileUrl: yup.string().optional().nullable(),
   phone: yup
     .string()
     .required("Telefone é obrigatório")
-    .matches(
-      /^\(\d{2}\)\s\d{5}-\d{4}$/,
-      "Telefone inválido. Use (99) 99999-9999",
-    ),
+    .test("valid-phone", "Telefone inválido. Digite DDD + Número (ex: 11 99999-9999)", (value) => {
+      if (!value) return false;
+      const digits = value.replace(/\D/g, "");
+      return digits.length >= 10 && digits.length <= 11;
+    }),
+  allergies: yup.string().optional().nullable(),
+  skinHairType: yup.string().optional().nullable(),
+  preExistingConditions: yup.string().optional().nullable(),
+  medications: yup.string().optional().nullable(),
+  observations: yup.string().optional().nullable(),
 });
 
 export type ClientFormData = yup.InferType<typeof clientScheme>;

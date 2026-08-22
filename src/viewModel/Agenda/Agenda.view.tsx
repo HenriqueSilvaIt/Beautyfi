@@ -3,12 +3,15 @@ import { StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { useAgendaViewModel } from "./useAgendaViewModel";
 import { AppEmployeeSelector } from "@/shared/components/AppEmployeeSelector";
 import { AppAgenda } from "@/shared/components/AppAgenda";
+import { AppWeeklyAgenda } from "@/shared/components/AppWeeklyAgenda";
+import { AppMonthlyAgenda } from "@/shared/components/AppMonthlyAgenda";
 import { Loading } from "@/shared/components/Loading";
 import { colors } from "@/styles/colors";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/shared/components/AppHeader";
 import { useUserStore } from "@/shared/store/user-store";
+import { useState } from "react";
 
 export function AgendaView({
   employeeDataPagged,
@@ -45,6 +48,7 @@ export function AgendaView({
   setOpenMenu,
   onDeleteAppointment,
   modalVisible,
+  employeeIsSelected,
   isLoading,
   showModal,
   employeeRefetch,
@@ -57,6 +61,7 @@ export function AgendaView({
   isDeleteLoading,
 }: ReturnType<typeof useAgendaViewModel>) {
   const { safePush } = useSafeNavigation();
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
 
   function handleBlockAgendaButton() {
     setOpenMenu(false);
@@ -81,72 +86,161 @@ export function AgendaView({
     );
   };
 
+  const handleAppointmentPress = (id: number) => {
+    safePush(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${id}`);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background-agenda">
       <StatusBar
-        barStyle="dark-content" // ícones escuros, bom para fundo branco
-        backgroundColor={colors["background-primary"]} // funciona só no Android
+        barStyle="dark-content"
+        backgroundColor={colors["background-primary"]}
       />
       
       <AppHeader user={user} token={access_token} />
 
-      <View className=" pt-3 justify-center pb-3 bg-background-primary">
-        <AppDaySelector
-          selectedDay={selectedDay}
-          setCurrentDate={setCurrentDate}
-          currentDate={currentDate}
-          handleDateSelect={handleDateSelect}
-        />
+      {/* View Mode Selector: Dia / Semana / Mês */}
+      <View className="flex-row items-center justify-between px-4 py-2 bg-background-primary border-b border-gray-700/50">
+        <Text className="text-font-primary text-xs font-bold uppercase tracking-wider">
+          Visualização
+        </Text>
+        <View className="flex-row bg-background-tertiary rounded-xl p-1 gap-1">
+          <TouchableOpacity
+            onPress={() => setViewMode("day")}
+            activeOpacity={0.8}
+            className={`px-3 py-1 rounded-lg ${
+              viewMode === "day" ? "bg-accent-gold" : ""
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold ${
+                viewMode === "day" ? "text-black" : "text-font-primary"
+              }`}
+            >
+              Dia
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setViewMode("week")}
+            activeOpacity={0.8}
+            className={`px-3 py-1 rounded-lg ${
+              viewMode === "week" ? "bg-accent-gold" : ""
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold ${
+                viewMode === "week" ? "text-black" : "text-font-primary"
+              }`}
+            >
+              Semana
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setViewMode("month")}
+            activeOpacity={0.8}
+            className={`px-3 py-1 rounded-lg ${
+              viewMode === "month" ? "bg-accent-gold" : ""
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold ${
+                viewMode === "month" ? "text-black" : "text-font-primary"
+              }`}
+            >
+              Mês
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {employeeDataPagged && (
-        <View className="mb-4 items-center  py-2 border-t bg-background-primary border-gray-600">
-          <AppEmployeeSelector
-            employeeId={employeeId}
-            employeeIsSelected
-            employees={employeeDataPagged}
-            handleEmployeeSelect={handleEmployeeSelect}
-            type="admin"
-            onRefetch={employeeRefetch}
-            hasNextPage={employeeHasNextPage}
-            isFetchingNextPage={employeeIsFetchingNextPage}
-            isLoading={employeeIsLoading}
-            isRefetching={employeeIsRefetching}
-            fetchNextPage={employeeFetchNextPage}
-          />
-        </View>
+      {/* RENDERIZADO CONFORME O MODO DE VISUALIZAÇÃO */}
+      {viewMode === "day" && (
+        <>
+          <View className="pt-3 justify-center pb-3 bg-background-primary">
+            <AppDaySelector
+              selectedDay={selectedDay}
+              setCurrentDate={setCurrentDate}
+              currentDate={currentDate}
+              handleDateSelect={handleDateSelect}
+            />
+          </View>
+
+          {employeeDataPagged && (
+            <View className="mb-4 items-center py-2 border-t bg-background-primary border-gray-600">
+              <AppEmployeeSelector
+                employeeId={employeeId}
+                employeeIsSelected={employeeIsSelected}
+                employees={employeeDataPagged}
+                handleEmployeeSelect={handleEmployeeSelect}
+                type="admin"
+                onRefetch={employeeRefetch}
+                hasNextPage={employeeHasNextPage}
+                isFetchingNextPage={employeeIsFetchingNextPage}
+                isLoading={employeeIsLoading}
+                isRefetching={employeeIsRefetching}
+                fetchNextPage={employeeFetchNextPage}
+              />
+            </View>
+          )}
+          {appointments && (
+            <View className="flex-1 bg-background-agenda">
+              <AppAgenda
+                appointments={appointments}
+                safeEmployee={employee}
+                CONTENT_HEIGHT={CONTENT_HEIGHT}
+                SLOT_HEIGHT={SLOT_HEIGHT}
+                blockedRanges={blockedRanges}
+                getCurrentTimePosition={getCurrentTimePosition}
+                slots={slots}
+                scrollRef={scrollRef}
+                selectedTime={selectedTime}
+                overlapsAppointment={overlapsAppointment}
+                isWorkingTime={isWorkingTime}
+                currentY={currentY}
+                getEndTime={getEndTime}
+                appointmentGroups={appointmentGroups}
+                handleSlotPress={handleSlotPress}
+                isDeleting={isDeleting}
+                hideModal={hideModal}
+                showModal={showModal}
+                isDeleteLoading={isDeleteLoading}
+                modalVisible={modalVisible}
+                handleDeleteAppointment={onDeleteAppointment}
+                setSelectedAppointmentId={setSelectedAppointmentId}
+                selectedAppointmentCancelId={selectedAppointmentCancelId}
+                setSelectedCancelAppointmentId={setSelectedCancelAppointmentId}
+                selectedAppointmentId={selectedAppointmentId}
+                deleteAppointmentBlocked={deleteAppointmentBlocked}
+              />
+            </View>
+          )}
+        </>
       )}
-      {appointments && (
-        <View className="flex-1 bg-background-agenda">
-          <AppAgenda
-            appointments={appointments}
-            safeEmployee={employee}
-            CONTENT_HEIGHT={CONTENT_HEIGHT}
-            SLOT_HEIGHT={SLOT_HEIGHT}
-            blockedRanges={blockedRanges}
-            getCurrentTimePosition={getCurrentTimePosition}
-            slots={slots}
-            scrollRef={scrollRef}
-            selectedTime={selectedTime}
-            overlapsAppointment={overlapsAppointment}
-            isWorkingTime={isWorkingTime}
-            currentY={currentY}
-            getEndTime={getEndTime}
-            appointmentGroups={appointmentGroups}
-            handleSlotPress={handleSlotPress}
-            isDeleting={isDeleting}
-            hideModal={hideModal}
-            showModal={showModal}
-            isDeleteLoading={isDeleteLoading}
-            modalVisible={modalVisible}
-            handleDeleteAppointment={onDeleteAppointment}
-            setSelectedAppointmentId={setSelectedAppointmentId}
-            selectedAppointmentCancelId={selectedAppointmentCancelId}
-            setSelectedCancelAppointmentId={setSelectedCancelAppointmentId}
-            selectedAppointmentId={selectedAppointmentId}
-            deleteAppointmentBlocked={deleteAppointmentBlocked}
-          />
-        </View>
+
+      {viewMode === "week" && (
+        <AppWeeklyAgenda
+          currentDate={currentDate}
+          appointments={appointments || []}
+          onAppointmentPress={handleAppointmentPress}
+          onSelectDay={(date) => {
+            handleDateSelect(date);
+            setViewMode("day");
+          }}
+        />
+      )}
+
+      {viewMode === "month" && (
+        <AppMonthlyAgenda
+          currentDate={currentDate}
+          appointments={appointments || []}
+          onAppointmentPress={handleAppointmentPress}
+          onSelectDay={(date) => {
+            handleDateSelect(date);
+            setViewMode("day");
+          }}
+        />
       )}
 
       {/* BOTÃO FLUTUANTE */}
@@ -186,7 +280,7 @@ export function AgendaView({
           <Text className="text-font-primary text-3xl">+</Text>
         </TouchableOpacity>
       </View>
-      {!isToday(currentDate) && (
+      {viewMode === "day" && !isToday(currentDate) && (
         <View className="absolute left-14 bottom-10">
           <TouchableOpacity
             className="p-3 rounded-md bg-app-theme-primary justify-center items-center"

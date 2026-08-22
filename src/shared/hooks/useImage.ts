@@ -3,9 +3,6 @@ import { useModalStore } from "../store/modal-store";
 import { useAppModal } from "./useAppModal";
 import { useCamera } from "./useCamera";
 import { useGallery } from "./useGallery";
-import { useUserStore } from "../store/user-store";
-import { UserProps } from "../interfaces/user";
-
 interface UseImageParams extends ImagePickerOptions {
   callback: (uri: string) => void;
 }
@@ -14,8 +11,6 @@ export const useImage = ({ callback, ...pickerOptions }: UseImageParams) => {
   const { openCamera, isLoading: isCameraLoading } = useCamera(pickerOptions);
   const { openGallery, isLoading: isGalleryLoading } =
     useGallery(pickerOptions);
-
-  const { setUser, user } = useUserStore();
 
   const isLoading = isCameraLoading || isGalleryLoading;
 
@@ -26,10 +21,6 @@ export const useImage = ({ callback, ...pickerOptions }: UseImageParams) => {
     close();
     if (uri) {
       callback(uri);
-      setUser({
-        ...user,
-        avatarUrl: uri,
-      } as UserProps);
     }
   };
 

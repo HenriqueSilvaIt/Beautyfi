@@ -12,133 +12,160 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { useCompanyRegisterViewModel } from "./useCompanyRegisterViewModel";
-import { colors } from "@/styles/colors";
+import { AppInput } from "@/shared/components/AppInput";
 
-// ─── Progress Bar ─────────────────────────────────────────
+// ─── Progress Bar & Stepper Limpo (Fundo Claro) ───────────
 function ProgressBar({ step, total }: { step: number; total: number }) {
+  const percent = Math.round((step / total) * 100);
+
   return (
-    <View className="flex-row gap-1.5 px-6 pt-4 pb-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <View
-          key={i}
-          className="h-1 flex-1 rounded-full"
-          style={{
-            backgroundColor: i < step ? colors["app-theme-primary"] : "#334155",
-          }}
-        />
-      ))}
+    <View className="px-5 pt-3 pb-4 bg-white border-b border-gray-100">
+      <View className="flex-row items-center justify-between mb-2">
+        {Array.from({ length: total }).map((_, i) => {
+          const isCompleted = i < step;
+          const isCurrent = i === step - 1;
+          return (
+            <React.Fragment key={i}>
+              <View
+                className={`w-7 h-7 rounded-full items-center justify-center ${
+                  isCompleted
+                    ? "bg-[#CBA35D]"
+                    : isCurrent
+                    ? "bg-[#092D5D] border-2 border-[#CBA35D]"
+                    : "bg-gray-100 border border-gray-200"
+                }`}
+              >
+                {isCompleted ? (
+                  <Ionicons name="checkmark-sharp" size={14} color="#FFFFFF" />
+                ) : (
+                  <Text
+                    className={`text-[11px] font-black ${
+                      isCurrent ? "text-[#CBA35D]" : "text-gray-400"
+                    }`}
+                  >
+                    {i + 1}
+                  </Text>
+                )}
+              </View>
+              {i < total - 1 && (
+                <View className="flex-1 h-1 mx-1 rounded-full bg-gray-100 overflow-hidden">
+                  <View
+                    className="h-full bg-[#CBA35D] rounded-full"
+                    style={{
+                      width: i < step - 1 ? "100%" : "0%",
+                    }}
+                  />
+                </View>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </View>
+      <View className="flex-row justify-between items-center px-1">
+        <Text className="text-gray-500 text-[11px] font-semibold">
+          Etapa {step} de {total}
+        </Text>
+        <Text className="text-[#092D5D] text-[11px] font-black tracking-wide">
+          {percent}% concluído
+        </Text>
+      </View>
     </View>
   );
 }
 
-// ─── Page 1: Dados do Negócio e Conta de Acesso ───────────
+// ─── Step 1: Dados do Negócio e Conta de Acesso ───────────
 function Step1({ data, updateData, nextStep, canProceed }: any) {
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Crie seu negócio e conta
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Insira os dados da empresa e suas credenciais de login.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Crie seu negócio e conta
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Preencha os dados da empresa e crie suas credenciais de administrador.
+        </Text>
+      </View>
 
       {/* Seção Empresa */}
-      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-2 text-app-theme-primary">
-        Sobre a Empresa
-      </Text>
+      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4">
+        <View className="flex-row items-center gap-2 mb-3">
+          <Ionicons name="business" size={18} color="#092D5D" />
+          <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
+            Sobre o Estabelecimento
+          </Text>
+        </View>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-6">
-        <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
-          Nome da Empresa *
-        </Text>
-        <TextInput
-          value={data.name ?? ""}
+        <AppInput
+          label="Nome da Empresa *"
+          value={data.name}
           onChangeText={(v) => updateData({ name: v })}
-          placeholder="Ex: Barbearia do João"
-          placeholderTextColor="colors.gray[600]"
-          className="text-font-primary text-base"
+          placeholder="Ex: Barbearia Elegance"
+          leftIcon="business-outline"
+          containerClassName="mb-1"
         />
       </View>
 
-
-
       {/* Seção Admin */}
-      <Text className=" text-xs font-bold uppercase tracking-wider mb-2 text-app-theme-primary">
-        Conta do Administrador
-      </Text>
-
-      <View className="flex-row gap-3 mb-4">
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
-            Primeiro Nome *
+      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-6 gap-3">
+        <View className="flex-row items-center gap-2 mb-1">
+          <Ionicons name="person" size={18} color="#092D5D" />
+          <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
+            Conta do Administrador
           </Text>
-          <TextInput
-            value={data.firstName ?? ""}
-            onChangeText={(v) => updateData({ firstName: v })}
-            placeholder="Ex: João"
-            placeholderTextColor={colors.black}
-            className="text-font-primary text-base"
-          />
         </View>
 
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary font-semibold text-xs mb-1 uppercase tracking-wider">
-            Sobrenome
-          </Text>
-          <TextInput
-            value={data.lastName ?? ""}
-            onChangeText={(v) => updateData({ lastName: v })}
-            placeholder="Ex: Silva"
-            placeholderTextColor={colors.black}
-            className="text-font-primary text-base"
-          />
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <AppInput
+              label="Primeiro Nome *"
+              value={data.firstName}
+              onChangeText={(v) => updateData({ firstName: v })}
+              placeholder="Ex: João"
+              leftIcon="person-outline"
+            />
+          </View>
+          <View className="flex-1">
+            <AppInput
+              label="Sobrenome"
+              value={data.lastName}
+              onChangeText={(v) => updateData({ lastName: v })}
+              placeholder="Ex: Silva"
+              leftIcon="person-outline"
+            />
+          </View>
         </View>
-      </View>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary  font-semibold text-xs mb-1 uppercase tracking-wider">
-          Email de Acesso *
-        </Text>
-        <TextInput
-          value={data.email ?? ""}
+        <AppInput
+          label="E-mail de Acesso *"
+          value={data.email}
           onChangeText={(v) => updateData({ email: v.trim() })}
           placeholder="Ex: joao@email.com"
-          placeholderTextColor="colors.gray[600]"
-          className="text-font-primary text-base"
+          leftIcon="mail-outline"
           autoCapitalize="none"
           keyboardType="email-address"
         />
-      </View>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary font-semibold text-xs mb-1 uppercase tracking-wider">
-          Senha de Acesso (mín. 6 caracteres) *
-        </Text>
-        <TextInput
-          value={data.password ?? ""}
+        <AppInput
+          label="Senha de Acesso (mín. 6 caracteres) *"
+          value={data.password}
           onChangeText={(v) => updateData({ password: v })}
           placeholder="Sua senha secreta"
-          placeholderTextColor="colors.gray[600]"
-          className="text-font-primary text-base"
+          leftIcon="lock-closed-outline"
           secureTextEntry
           autoCapitalize="none"
         />
-      </View>
 
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-8">
-        <Text className="text-font-primary font-semibold  text-xs mb-1 uppercase tracking-wider">
-          Celular / Telefone *
-        </Text>
-        <TextInput
-          value={data.phone ?? ""}
+        <AppInput
+          label="Celular / WhatsApp *"
+          value={data.phone}
           onChangeText={(v) => updateData({ phone: v })}
           placeholder="Ex: (11) 99999-9999"
-          placeholderTextColor={colors.black}
-          className="text-font-primary text-base"
+          leftIcon="call-outline"
           keyboardType="phone-pad"
         />
       </View>
@@ -146,12 +173,12 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
       <TouchableOpacity
         disabled={!canProceed}
         onPress={nextStep}
-        className={`py-4 rounded-2xl items-center ${
-          canProceed ? "" : "opacity-40"
+        activeOpacity={0.85}
+        className={`h-14 rounded-2xl items-center justify-center shadow-md ${
+          canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
         }`}
-        style={{ backgroundColor: colors["app-theme-primary"] }}
       >
-        <Text className="text-font-secundary font-bold text-base">
+        <Text className="text-white font-black text-sm uppercase tracking-wide">
           Continuar
         </Text>
       </TouchableOpacity>
@@ -159,7 +186,7 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
   );
 }
 
-// ─── Page 2: Categoria ────────────────────────────────────
+// ─── Step 2: Categoria / Segmento ─────────────────────────
 function Step2({
   data,
   updateData,
@@ -176,44 +203,61 @@ function Step2({
     });
   };
 
+  const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+    Manicure: "sparkles-outline",
+    Sobrancelhas: "eye-outline",
+    Maquiagem: "color-palette-outline",
+    Cabelos: "cut-outline",
+    Barbearia: "scissor-outline",
+    Podologia: "footsteps-outline",
+  };
+
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Em qual segmento você atua?
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Selecione uma ou mais categorias.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Em qual segmento você atua?
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Selecione uma ou mais categorias de atendimento do seu salão ou barbearia.
+        </Text>
+      </View>
 
       <View className="flex-row flex-wrap gap-3 mb-8">
         {CATEGORIES.map((cat: string) => {
           const selected = (data.categories ?? []).includes(cat);
+          const iconName = categoryIcons[cat] || "grid-outline";
           return (
             <TouchableOpacity
               key={cat}
               onPress={() => toggleCategory(cat)}
-              className={`px-4 py-2.5 rounded-full border ${
+              activeOpacity={0.85}
+              className={`flex-row items-center gap-2.5 px-4 py-4 rounded-2xl border shadow-sm ${
                 selected
-                  ? "border-app-theme-primary"
-                  : "border-gray-700 bg-background-tertiary"
+                  ? "bg-[#092D5D] border-[#092D5D]"
+                  : "bg-white border-gray-200"
               }`}
-              style={
-                selected
-                  ? { backgroundColor: colors["app-theme-primary"] + "20" }
-                  : {}
-              }
+              style={{ width: "48%" }}
             >
+              <Ionicons
+                name={iconName}
+                size={20}
+                color={selected ? "#CBA35D" : "#6b7280"}
+              />
               <Text
-                style={{
-                  color: colors["app-theme-primary"],
-                }}
-                className="font-semibold text-sm"
+                className={`font-bold text-xs flex-1 ${
+                  selected ? "text-white" : "text-gray-800"
+                }`}
               >
                 {cat}
               </Text>
+              {selected && (
+                <Ionicons name="checkmark-circle" size={18} color="#CBA35D" />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -222,19 +266,20 @@ function Step2({
       <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
-          className={`flex-1 py-4 rounded-2xl items-center ${
-            canProceed ? "" : "opacity-40"
+          activeOpacity={0.85}
+          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
           }`}
-          style={{ backgroundColor: colors["app-theme-primary"] }}
         >
-          <Text className="text-font-secundary font-bold text-base">
+          <Text className="text-white font-black text-sm uppercase tracking-wide">
             Continuar
           </Text>
         </TouchableOpacity>
@@ -243,7 +288,7 @@ function Step2({
   );
 }
 
-// ─── Page 3: Tamanho da Equipe ────────────────────────────
+// ─── Step 3: Tamanho da Equipe ────────────────────────────
 function Step3({
   data,
   updateData,
@@ -254,15 +299,18 @@ function Step3({
 }: any) {
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Quantas pessoas trabalham com você?
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Isso nos ajuda a configurar melhor a agenda.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Tamanho da sua equipe
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Quantas pessoas atendem clientes com você? Isso ajusta a agenda.
+        </Text>
+      </View>
 
       <View className="gap-3 mb-8">
         {TEAM_SIZES.map((ts: { label: string; value: string }) => {
@@ -271,31 +319,32 @@ function Step3({
             <TouchableOpacity
               key={ts.value}
               onPress={() => updateData({ teamSize: ts.value })}
-              className={`flex-row items-center justify-between px-5 py-4 rounded-2xl border ${
+              activeOpacity={0.85}
+              className={`flex-row items-center justify-between p-4.5 rounded-2xl border shadow-sm ${
                 selected
-                  ? "border-app-theme-primary"
-                  : "border-gray-700 bg-background-tertiary"
+                  ? "bg-[#092D5D] border-[#092D5D]"
+                  : "bg-white border-gray-200"
               }`}
-              style={
-                selected
-                  ? { backgroundColor: colors["app-theme-primary"] + "15" }
-                  : {}
-              }
             >
-              <Text
-                style={{
-                  color: colors["app-theme-primary"],
-                }}
-                className="font-semibold text-base"
-              >
-                {ts.label}
-              </Text>
-              {selected && (
+              <View className="flex-row items-center gap-3">
                 <Ionicons
-                  name="checkmark-circle"
+                  name={ts.value === "1" ? "person" : "people"}
                   size={22}
-                  color={colors["app-theme-primary"]}
+                  color={selected ? "#CBA35D" : "#6b7280"}
                 />
+                <Text
+                  className={`font-bold text-sm ${
+                    selected ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {ts.label}
+                </Text>
+              </View>
+
+              {selected ? (
+                <Ionicons name="radio-button-on" size={20} color="#CBA35D" />
+              ) : (
+                <Ionicons name="radio-button-off" size={20} color="#9ca3af" />
               )}
             </TouchableOpacity>
           );
@@ -305,19 +354,20 @@ function Step3({
       <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
-          className={`flex-1 py-4 rounded-2xl items-center ${
-            canProceed ? "" : "opacity-40"
+          activeOpacity={0.85}
+          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
           }`}
-          style={{ backgroundColor: colors["app-theme-primary"] }}
         >
-          <Text className="text-font-secundary font-bold text-base">
+          <Text className="text-white font-black text-sm uppercase tracking-wide">
             Continuar
           </Text>
         </TouchableOpacity>
@@ -326,7 +376,7 @@ function Step3({
   );
 }
 
-// ─── Page 4: Localização Detalhada via CEP ────────────────
+// ─── Step 4: Localização Detalhada via CEP ────────────────
 function Step4({
   data,
   updateData,
@@ -338,153 +388,136 @@ function Step4({
 }: any) {
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Onde fica o seu negócio?
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Digite o CEP para buscar as informações do endereço automaticamente e depois digite o número.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Onde fica o seu negócio?
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Digite o CEP para preencher o endereço automaticamente.
+        </Text>
+      </View>
 
-      {/* CEP */}
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4 flex-row items-center justify-between">
-        <View className="flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
+      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-6 gap-3">
+        {/* CEP */}
+        <View className="mb-1">
+          <Text className="text-gray-700 font-bold text-xs mb-1.5">
             CEP *
           </Text>
-          <TextInput
-            value={data.cep ?? ""}
-            onChangeText={searchCep}
-            placeholder="Ex: 01310-100"
-            placeholderTextColor="colors.gray[600]"
-            className="text-font-primary text-base"
-            keyboardType="numeric"
-            maxLength={9}
-          />
+          <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-3.5 h-12 shadow-sm focus:border-[#092D5D]">
+            <Ionicons name="location-outline" size={18} color="#092D5D" style={{ marginRight: 10 }} />
+            <TextInput
+              value={data.cep ?? ""}
+              onChangeText={searchCep}
+              placeholder="Ex: 01310-100"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+              maxLength={9}
+              className="flex-1 text-gray-900 text-sm font-semibold p-0"
+            />
+            {addressLoading && (
+              <ActivityIndicator size="small" color="#092D5D" />
+            )}
+          </View>
         </View>
-        {addressLoading && (
-          <ActivityIndicator size="small" color={colors["app-theme-primary"]} />
-        )}
-      </View>
 
-      {/* Rua */}
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-          Rua / Logradouro *
-        </Text>
-        <TextInput
-          value={data.street ?? ""}
+        {/* Rua */}
+        <AppInput
+          label="Rua / Logradouro *"
+          value={data.street}
           onChangeText={(v) => updateData({ street: v })}
           placeholder="Ex: Avenida Paulista"
-          placeholderTextColor="colors.gray[600]"
-          className="text-font-primary text-base"
+          leftIcon="navigate-outline"
         />
-      </View>
 
-      {/* Número e Complemento */}
-      <View className="flex-row gap-3 mb-4">
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-            Número *
-          </Text>
-          <TextInput
-            value={data.number ?? ""}
-            onChangeText={(v) => updateData({ number: v })}
-            placeholder="Ex: 1000"
-            placeholderTextColor="colors.gray[600]"
-            className="text-font-primary text-base"
-            keyboardType="numeric"
-          />
+        {/* Número e Complemento */}
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <AppInput
+              label="Número *"
+              value={data.number}
+              onChangeText={(v) => updateData({ number: v })}
+              placeholder="Ex: 1000"
+              leftIcon="home-outline"
+              keyboardType="numeric"
+            />
+          </View>
+          <View className="flex-1">
+            <AppInput
+              label="Complemento"
+              value={data.complement}
+              onChangeText={(v) => updateData({ complement: v })}
+              placeholder="Ex: Sala 42"
+              leftIcon="business-outline"
+            />
+          </View>
         </View>
 
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-            Complemento
-          </Text>
-          <TextInput
-            value={data.complement ?? ""}
-            onChangeText={(v) => updateData({ complement: v })}
-            placeholder="Ex: Sala 42"
-            placeholderTextColor="colors.gray[600]"
-            className="text-font-primary text-base"
-          />
-        </View>
-      </View>
-
-      {/* Bairro */}
-      <View className="bg-background-tertiary rounded-2xl px-4 py-3 mb-4">
-        <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-          Bairro *
-        </Text>
-        <TextInput
-          value={data.neighborhood ?? ""}
+        {/* Bairro */}
+        <AppInput
+          label="Bairro *"
+          value={data.neighborhood}
           onChangeText={(v) => updateData({ neighborhood: v })}
           placeholder="Ex: Bela Vista"
-          placeholderTextColor="colors.gray[600]"
-          className="text-font-primary text-base"
+          leftIcon="map-outline"
         />
-      </View>
 
-      {/* Cidade e Estado */}
-      <View className="flex-row gap-3 mb-6">
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 flex-1">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-            Cidade *
-          </Text>
-          <TextInput
-            value={data.city ?? ""}
-            onChangeText={(v) => updateData({ city: v })}
-            placeholder="Ex: São Paulo"
-            placeholderTextColor="colors.gray[600]"
-            className="text-font-primary text-base"
-          />
-        </View>
-
-        <View className="bg-background-tertiary rounded-2xl px-4 py-3 w-24">
-          <Text className="text-font-primary text-xs mb-1 uppercase tracking-wider">
-            UF *
-          </Text>
-          <TextInput
-            value={data.state ?? ""}
-            onChangeText={(v) => updateData({ state: v.toUpperCase() })}
-            placeholder="SP"
-            placeholderTextColor="colors.gray[600]"
-            className="text-font-primary text-base"
-            maxLength={2}
-            autoCapitalize="characters"
-          />
+        {/* Cidade e Estado */}
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <AppInput
+              label="Cidade *"
+              value={data.city}
+              onChangeText={(v) => updateData({ city: v })}
+              placeholder="Ex: São Paulo"
+              leftIcon="location-sharp"
+            />
+          </View>
+          <View className="w-24">
+            <AppInput
+              label="UF *"
+              value={data.state}
+              onChangeText={(v) => updateData({ state: v.toUpperCase() })}
+              placeholder="SP"
+              leftIcon="flag-outline"
+              maxLength={2}
+              autoCapitalize="characters"
+            />
+          </View>
         </View>
       </View>
 
       {/* Preview Endereço Completo */}
       {data.address ? (
-        <View className="bg-green-900/20 border border-green-800 rounded-2xl p-4 mb-6 flex-row items-center gap-3">
-          <Ionicons name="checkmark-circle" size={22} color="#4ade80" />
-          <Text className="text-green-400 text-sm flex-1" numberOfLines={3}>
+        <View className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex-row items-center gap-3">
+          <Ionicons name="checkmark-circle" size={22} color="#10b981" />
+          <Text className="text-emerald-800 text-xs font-bold flex-1" numberOfLines={3}>
             {data.address}
           </Text>
         </View>
       ) : null}
 
-      <View className="flex-row gap-3 mt-4">
+      <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
-          className={`flex-1 py-4 rounded-2xl items-center ${
-            canProceed ? "" : "opacity-40"
+          activeOpacity={0.85}
+          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
           }`}
-          style={{ backgroundColor: colors["app-theme-primary"] }}
         >
-          <Text className="text-font-secundary font-bold text-base">
+          <Text className="text-white font-black text-sm uppercase tracking-wide">
             Continuar
           </Text>
         </TouchableOpacity>
@@ -493,7 +526,7 @@ function Step4({
   );
 }
 
-// ─── Page 5: Serviços Sugeridos ───────────────────────────
+// ─── Step 5: Serviços Sugeridos ───────────────────────────
 function Step5({
   nextStep,
   prevStep,
@@ -513,39 +546,42 @@ function Step5({
 
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Quais serviços você oferece?
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Sugestões baseadas na sua categoria. Você pode editar depois.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Quais serviços você oferece?
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Sugestões baseadas no seu segmento. Você pode adicionar ou alterar depois.
+        </Text>
+      </View>
 
-      <View className="flex-row flex-wrap gap-3 mb-8">
+      <View className="flex-row flex-wrap gap-2.5 mb-8">
         {suggestedServices.map((s: string) => {
           const selected = (data.defaultServices ?? []).includes(s);
           return (
             <TouchableOpacity
               key={s}
               onPress={() => toggleService(s)}
-              className={`px-4 py-2.5 rounded-full border ${
+              activeOpacity={0.85}
+              className={`flex-row items-center gap-2 px-4 py-3 rounded-2xl border shadow-sm ${
                 selected
-                  ? "border-app-theme-primary"
-                  : "border-gray-700 bg-background-tertiary"
+                  ? "bg-[#092D5D] border-[#092D5D]"
+                  : "bg-white border-gray-200"
               }`}
-              style={
-                selected
-                  ? { backgroundColor: colors["app-theme-primary"] + "20" }
-                  : {}
-              }
             >
+              <Ionicons
+                name={selected ? "checkmark-circle" : "ellipse-outline"}
+                size={16}
+                color={selected ? "#CBA35D" : "#9ca3af"}
+              />
               <Text
-                style={{
-                  color: selected ? colors["app-theme-primary"] : "#9ca3af",
-                }}
-                className="font-semibold text-sm"
+                className={`font-bold text-xs ${
+                  selected ? "text-white" : "text-gray-800"
+                }`}
               >
                 {s}
               </Text>
@@ -553,9 +589,8 @@ function Step5({
           );
         })}
         {suggestedServices.length === 0 && (
-          <Text className="text-gray-600 text-sm">
-            Nenhuma sugestão disponível. Você pode adicionar serviços depois no
-            SaaS.
+          <Text className="text-gray-500 text-xs">
+            Nenhuma sugestão cadastrada para essa categoria. Você poderá cadastrar serviços no painel admin.
           </Text>
         )}
       </View>
@@ -563,16 +598,17 @@ function Step5({
       <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={nextStep}
-          className="flex-1 py-4 rounded-2xl items-center"
-          style={{ backgroundColor: colors["app-theme-primary"] }}
+          activeOpacity={0.85}
+          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
-          <Text className="text-font-secundary font-bold text-base">
+          <Text className="text-white font-black text-sm uppercase tracking-wide">
             Continuar
           </Text>
         </TouchableOpacity>
@@ -581,7 +617,7 @@ function Step5({
   );
 }
 
-// ─── Page 6: Horário de Trabalho ───────────────────────────
+// ─── Step 6: Horário de Trabalho ───────────────────────────
 function Step6({
   data,
   updateData,
@@ -601,20 +637,23 @@ function Step6({
 
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Seu horário de trabalho
-      </Text>
-      <Text className="text-font-primary text-sm mb-6">
-        Selecione os dias da semana que você atende e defina seus turnos.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Horário de Atendimento
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Defina os dias da semana e turnos de expediente.
+        </Text>
+      </View>
 
       {/* Dias da semana */}
-      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-3 text-app-theme-primary">
-        Dias de Atendimento
+      <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider mb-2.5">
+        Dias de Funcionamento
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-6">
         {DAYS_OF_WEEK.map((day) => {
@@ -623,22 +662,17 @@ function Step6({
             <TouchableOpacity
               key={day}
               onPress={() => toggleDay(day)}
-              className={`px-4 py-2 rounded-full border ${
+              activeOpacity={0.85}
+              className={`px-4 py-3 rounded-2xl border shadow-sm ${
                 selected
-                  ? "border-app-theme-primary"
-                  : "border-gray-700 bg-background-tertiary"
+                  ? "bg-[#092D5D] border-[#092D5D]"
+                  : "bg-white border-gray-200"
               }`}
-              style={
-                selected
-                  ? { backgroundColor: colors["app-theme-primary"] + "20" }
-                  : {}
-              }
             >
               <Text
-                style={{
-                  color: selected ? colors["app-theme-primary"] : "#9ca3af",
-                }}
-                className="font-semibold text-sm"
+                className={`font-bold text-xs ${
+                  selected ? "text-white" : "text-gray-700"
+                }`}
               >
                 {day}
               </Text>
@@ -648,36 +682,36 @@ function Step6({
       </View>
 
       {/* Horários */}
-      <Text className="text-font-primary text-xs font-bold uppercase tracking-wider mb-3 text-app-theme-primary">
+      <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider mb-2.5">
         Horários de Turno
       </Text>
 
       {/* Turno da Manhã */}
-      <View className="bg-background-tertiary rounded-2xl p-4 mb-4">
-        <Text className="text-font-primary font-semibold text-xs mb-3 uppercase tracking-wider">
+      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4">
+        <Text className="text-gray-900 font-extrabold text-xs mb-3 uppercase tracking-wider">
           Turno da Manhã (Ex: 09:00 - 12:00)
         </Text>
         <View className="flex-row gap-3">
-          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
-            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Entrada</Text>
+          <View className="flex-1 bg-gray-50 rounded-2xl px-3.5 py-2.5 border border-gray-200">
+            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-0.5">Entrada</Text>
             <TextInput
               value={data.scheduleStart ?? "09:00"}
               onChangeText={(v) => updateData({ scheduleStart: v })}
               placeholder="09:00"
-              placeholderTextColor="#666"
-              className="text-font-primary text-base p-0"
+              placeholderTextColor="#9ca3af"
+              className="text-gray-900 font-bold text-base p-0"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
             />
           </View>
-          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
-            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Almoço (Saída)</Text>
+          <View className="flex-1 bg-gray-50 rounded-2xl px-3.5 py-2.5 border border-gray-200">
+            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-0.5">Saída Almoço</Text>
             <TextInput
               value={data.scheduleLunchStart ?? "12:00"}
               onChangeText={(v) => updateData({ scheduleLunchStart: v })}
               placeholder="12:00"
-              placeholderTextColor="#666"
-              className="text-font-primary text-base p-0"
+              placeholderTextColor="#9ca3af"
+              className="text-gray-900 font-bold text-base p-0"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
             />
@@ -686,31 +720,31 @@ function Step6({
       </View>
 
       {/* Turno da Tarde */}
-      <View className="bg-background-tertiary rounded-2xl p-4 mb-8">
-        <Text className="text-font-primary font-semibold text-xs mb-3 uppercase tracking-wider">
+      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-8">
+        <Text className="text-gray-900 font-extrabold text-xs mb-3 uppercase tracking-wider">
           Turno da Tarde (Ex: 13:00 - 18:00)
         </Text>
         <View className="flex-row gap-3">
-          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
-            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Retorno</Text>
+          <View className="flex-1 bg-gray-50 rounded-2xl px-3.5 py-2.5 border border-gray-200">
+            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-0.5">Retorno Almoço</Text>
             <TextInput
               value={data.scheduleLunchEnd ?? "13:00"}
               onChangeText={(v) => updateData({ scheduleLunchEnd: v })}
               placeholder="13:00"
-              placeholderTextColor="#666"
-              className="text-font-primary text-base p-0"
+              placeholderTextColor="#9ca3af"
+              className="text-gray-900 font-bold text-base p-0"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
             />
           </View>
-          <View className="flex-1 bg-background-primary/40 rounded-xl px-3 py-2">
-            <Text className="text-gray-400 text-[10px] mb-0.5 uppercase">Fim / Saída</Text>
+          <View className="flex-1 bg-gray-50 rounded-2xl px-3.5 py-2.5 border border-gray-200">
+            <Text className="text-gray-500 text-[10px] font-bold uppercase mb-0.5">Encerramento</Text>
             <TextInput
               value={data.scheduleEnd ?? "18:00"}
               onChangeText={(v) => updateData({ scheduleEnd: v })}
               placeholder="18:00"
-              placeholderTextColor="#666"
-              className="text-font-primary text-base p-0"
+              placeholderTextColor="#9ca3af"
+              className="text-gray-900 font-bold text-base p-0"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
             />
@@ -721,19 +755,20 @@ function Step6({
       <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
-          className={`flex-1 py-4 rounded-2xl items-center ${
-            canProceed ? "" : "opacity-40"
+          activeOpacity={0.85}
+          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
           }`}
-          style={{ backgroundColor: colors["app-theme-primary"] }}
         >
-          <Text className="text-font-secundary font-bold text-base">
+          <Text className="text-white font-black text-sm uppercase tracking-wide">
             Continuar
           </Text>
         </TouchableOpacity>
@@ -742,21 +777,24 @@ function Step6({
   );
 }
 
-// ─── Page 7: Revisão Final ────────────────────────────────
+// ─── Step 7: Revisão Final ────────────────────────────────
 function Step7({ data, prevStep, submitCompany, isSubmitting }: any) {
   return (
     <ScrollView
-      className="flex-1 px-6 pt-6"
+      className="flex-1 px-5 pt-4 bg-gray-50"
       contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
     >
-      <Text className="text-font-primary text-3xl font-bold mb-2">
-        Pronto para começar! 🎉
-      </Text>
-      <Text className="text-font-primary text-sm mb-8">
-        Revise os dados abaixo e confirme a criação de sua conta e estabelecimento.
-      </Text>
+      <View className="mb-4">
+        <Text className="text-gray-900 text-2xl font-black mb-1">
+          Pronto para começar! 🎉
+        </Text>
+        <Text className="text-gray-500 text-xs font-medium">
+          Confira o resumo das informações antes de criar sua conta.
+        </Text>
+      </View>
 
-      <View className="gap-4 mb-8">
+      <View className="gap-3 mb-8">
         <InfoRow icon="business-outline" label="Empresa" value={data.name} />
         <InfoRow
           icon="person-outline"
@@ -766,7 +804,7 @@ function Step7({ data, prevStep, submitCompany, isSubmitting }: any) {
         <InfoRow icon="mail-outline" label="E-mail de Login" value={data.email} />
         <InfoRow
           icon="pricetag-outline"
-          label="Segmento"
+          label="Segmentos"
           value={(data.categories ?? []).join(", ") || "—"}
         />
         <InfoRow
@@ -776,37 +814,38 @@ function Step7({ data, prevStep, submitCompany, isSubmitting }: any) {
         />
         <InfoRow
           icon="time-outline"
-          label="Horário de Atendimento"
+          label="Atendimento"
           value={`${(data.workDays ?? []).join(", ") || "—"} • ${data.scheduleStart} - ${data.scheduleLunchStart} / ${data.scheduleLunchEnd} - ${data.scheduleEnd}`}
         />
         <InfoRow
           icon="location-outline"
           label="Endereço"
-          value={data.address?.substring(0, 80) || "Não informado"}
+          value={data.address || "Não informado"}
         />
       </View>
 
       <View className="flex-row gap-3">
         <TouchableOpacity
           onPress={prevStep}
-          className="flex-1 py-4 rounded-2xl items-center bg-background-tertiary"
           disabled={isSubmitting}
+          activeOpacity={0.85}
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-font-primary font-bold text-base">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={submitCompany}
           disabled={isSubmitting}
-          className={`flex-1 py-4 rounded-2xl items-center ${
+          activeOpacity={0.85}
+          className={`flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-lg ${
             isSubmitting ? "opacity-60" : ""
           }`}
-          style={{ backgroundColor: colors["app-theme-primary"] }}
         >
           {isSubmitting ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-font-secundary font-bold text-base">
-              Criar conta e Empresa
+            <Text className="text-white font-black text-sm uppercase tracking-wide">
+              Criar Conta e Empresa
             </Text>
           )}
         </TouchableOpacity>
@@ -825,12 +864,14 @@ function InfoRow({
   value?: string;
 }) {
   return (
-    <View className="flex-row items-start gap-3 bg-background-tertiary p-4 rounded-2xl">
-      <Ionicons name={icon} size={20} color={colors["app-theme-primary"]} />
+    <View className="flex-row items-center gap-3.5 bg-white border border-gray-100 shadow-sm p-4.5 rounded-2xl">
+      <View className="w-10 h-10 rounded-2xl bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
+        <Ionicons name={icon} size={20} color="#092D5D" />
+      </View>
       <View className="flex-1">
-        <Text className="text-font-primary text-xs mb-0.5">{label}</Text>
+        <Text className="text-gray-400 text-[10px] font-bold uppercase mb-0.5">{label}</Text>
         <Text
-          className="text-font-primary text-sm font-semibold"
+          className="text-gray-900 text-sm font-bold"
           numberOfLines={2}
         >
           {value || "—"}
@@ -846,34 +887,44 @@ export function CompanyRegisterView() {
   const totalSteps = 7;
 
   const titles = [
-    "Seu negócio",
-    "Segmento",
-    "Equipe",
-    "Localização",
+    "Seu Negócio",
+    "Segmentos",
+    "Tamanho da Equipe",
+    "Endereço",
     "Serviços",
-    "Horário",
+    "Horário de Atendimento",
     "Confirmação",
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
-      {/* Header */}
-      <View className="flex-row items-center px-4 pt-2 pb-1 gap-3">
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Header Limpo com Fundo Branco */}
+      <View className="flex-row items-center px-5 py-3.5 bg-white border-b border-gray-100 justify-between">
         <TouchableOpacity
           onPress={() => {
             if (vm.step === 1) router.back();
             else vm.prevStep();
           }}
-          className="bg-background-tertiary p-2 rounded-full"
+          activeOpacity={0.8}
+          className="bg-gray-100 p-2.5 rounded-full border border-gray-200"
         >
-          <Ionicons name="arrow-back" size={22} color="white" />
+          <Ionicons name="arrow-back" size={20} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-font-primary font-semibold text-base flex-1">
-          {titles[vm.step - 1]}
-        </Text>
-        <Text className="text-font-primary text-sm">
-          {vm.step}/{totalSteps}
-        </Text>
+
+        <View className="items-center">
+          <Text className="text-gray-400 text-[10px] font-extrabold uppercase tracking-widest">
+            Cadastro de Empresa
+          </Text>
+          <Text className="text-gray-900 font-black text-sm">
+            {titles[vm.step - 1]}
+          </Text>
+        </View>
+
+        <View className="bg-[#092D5D]/10 px-3 py-1 rounded-full border border-[#092D5D]/20">
+          <Text className="text-[#092D5D] text-xs font-black">
+            {vm.step}/{totalSteps}
+          </Text>
+        </View>
       </View>
 
       <ProgressBar step={vm.step} total={totalSteps} />

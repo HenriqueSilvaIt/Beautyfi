@@ -29,10 +29,11 @@ export async function updateUser(dataBody: Partial<UserInterface>, userId?: numb
 
 export async function userCompleteSignup(dataBody: UpdateUserSignupInterface ) {
 
-    const { data } = await styleAppApiClient.patch<UserInterface>(
+  const { data } = await styleAppApiClient.patch<UserProps>(
     `/users/me/complete-signup`,
     dataBody
   );
+  return data;
 }
 
 export async function updateUserPreference(dataBody: UpdateUserPreferencesInterface) {

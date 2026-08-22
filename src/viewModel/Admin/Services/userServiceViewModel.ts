@@ -15,6 +15,11 @@ import { useUploadAvatarGenericMutation } from "@/shared/queries/company/use-upl
 import { parseMoney, parseQuantity } from "@/utils/moneyMapper";
 import { InfiniteData } from "@tanstack/react-query";
 import { queryClient } from "../../../../queryClient";
+import { ServiceEmployeeParam } from "@/shared/interfaces/http/employee";
+
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserStore } from "@/shared/store/user-store";
+import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 
 export function useServiceViewModel(serviceId: number | undefined) {
   const isEditMode = Number.isFinite(serviceId);
@@ -26,6 +31,30 @@ export function useServiceViewModel(serviceId: number | undefined) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [availableInApp, setAvailableInApp] = useState(false);
+  const [requiresDeposit, setRequiresDeposit] = useState(false);
+  const [depositType, setDepositType] = useState<"PERCENTAGE" | "FIXED">("FIXED");
+  const [isStripeModalVisible, setIsStripeModalVisible] = useState(false);
+
+  const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
+  const user = useUserStore((state) => state.user);
+  const companyId = selectedCompanyId ?? user?.companyId;
+
+  const { useGetCompanyDetailsQuery } = useCompanyDetailsMutation();
+  const { data: companyDetails } = useGetCompanyDetailsQuery(companyId ? Number(companyId) : undefined);
+
+  const hasStripeConnected = Boolean(
+    companyDetails?.stripeAccountId && companyDetails.stripeAccountId.trim().length > 0,
+  );
+
+  function handleToggleRequiresDeposit() {
+    if (!requiresDeposit) {
+      if (!hasStripeConnected) {
+        setIsStripeModalVisible(true);
+        return;
+      }
+    }
+    setRequiresDeposit((prev) => !prev);
+  }
 
   // Estado para armazenar o caminho da imagem que selecionaros ou tirarmos foto
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -63,7 +92,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
     hasNextPage: serviceHasNextPage,
     fetchNextPage: serviceFetchNextPage,
     isRefetching: serviceIsRefetching,
-  } = useGetServiceMutation(debouncedSearch);
+  } = useGetServiceMutation(undefined, debouncedSearch);
 
   const serviceDataPagged =
     services?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -82,7 +111,6 @@ export function useServiceViewModel(serviceId: number | undefined) {
     hasUserToggled.current = true;
     setAvailableInApp((prev) => !prev);
   }
-  // Função para atualizar os dados da empresa
 
   const onServiceUpdate = handleSubmit(async (serviceData) => {
     try {
@@ -92,22 +120,25 @@ export function useServiceViewModel(serviceId: number | undefined) {
 
       const updateService: CompanyServicesInterface = {
         name: serviceData.name,
-        duration: parseQuantity(serviceData.duration) ?? "",
+        duration: parseQuantity(serviceData.duration ?? "") ?? 0,
         price: parseMoney(serviceData.price) ?? 0,
         commissionServiceFee: parseMoney(
           serviceData.commissionServiceFee ?? "",
         ),
-        imgUrl: serviceData.imgUrl,
+        requiresDeposit: requiresDeposit,
+        depositType: depositType,
+        depositAmount: parseMoney(serviceData.depositAmount ?? ""),
+        availableInApp: availableInApp,
+        imgUrl: serviceData.imgUrl ?? "",
         priceDescription: serviceData.priceDescription ?? "",
-        employees: serviceData.employees,
-        description: serviceData.description,
+        employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
+        description: serviceData.description ?? "",
       };
       const response = await serviceUpdateMutation.mutateAsync({
         serviceId: serviceId,
         data: updateService,
       });
 
-      // extrai o item atualizado do response
       const updatedItem: CompanyServicesInterface = response;
 
       notify({ message: "Serviço atualizado com sucesso!", type: "SUCCESS" });
@@ -137,13 +168,8 @@ export function useServiceViewModel(serviceId: number | undefined) {
     }
   });
 
-  // Hook global para seleção de imagem (camera ou galeria)
-
   const { handleSelectImage } = useImage({
     callback: async (uri) => {
-      console.log("📸 Nova URI selecionada:", uri);
-
-      // Atualiza estado
       setAvatarUri(uri);
     },
     cameraType: CameraType.front,
@@ -153,81 +179,97 @@ export function useServiceViewModel(serviceId: number | undefined) {
     await handleSelectImage();
   }
 
-  // Função para criar serviço
-  const onSubmit = handleSubmit(async (serviceData) => {
-    try {
-      setIsLoading(true);
+  const onSubmit = handleSubmit(
+    async (serviceData) => {
+      try {
+        setIsLoading(true);
 
-      let finalServiceId = serviceId;
+        let finalServiceId = serviceId;
 
-      if (isEditMode && serviceId) {
-        const updateService: CompanyServicesInterface = {
-          name: serviceData.name,
-          duration: parseQuantity(serviceData.duration) ?? "",
-          price: parseMoney(serviceData.price) ?? 0,
-                 commissionServiceFee: parseMoney(serviceData.commissionServiceFee ?? ""),
-          imgUrl: serviceData.imgUrl,
-          employees: serviceData.employees,
-          availableInApp: availableInApp,
-          priceDescription: serviceData.priceDescription ?? "",
-          description: serviceData.description,
-        };
+        if (isEditMode && serviceId) {
+          const updateService: CompanyServicesInterface = {
+            name: serviceData.name,
+            duration: parseQuantity(serviceData.duration ?? "") ?? 0,
+            price: parseMoney(serviceData.price) ?? 0,
+            commissionServiceFee: parseMoney(serviceData.commissionServiceFee ?? ""),
+            requiresDeposit: requiresDeposit,
+            depositType: depositType,
+            depositAmount: parseMoney(serviceData.depositAmount ?? ""),
+            imgUrl: avatarUri ?? serviceData.imgUrl ?? "",
+            employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
+            availableInApp: availableInApp,
+            priceDescription: serviceData.priceDescription ?? "",
+            description: serviceData.description ?? "",
+          };
 
-        // 1️⃣ Atualiza dados do serviço
-        const updatedService = await serviceUpdateMutation.mutateAsync({
-          serviceId,
-          data: updateService,
+          const updatedService = await serviceUpdateMutation.mutateAsync({
+            serviceId,
+            data: updateService,
+          });
+
+          finalServiceId = updatedService.id;
+        } else {
+          const payload: CompanyServicesInterface = {
+            name: serviceData?.name,
+            price: parseMoney(serviceData.price) ?? 0,
+            imgUrl: avatarUri ?? serviceData.imgUrl ?? "",
+            duration: parseQuantity(serviceData.duration ?? "") ?? 0,
+            commissionServiceFee: parseMoney(
+              serviceData.commissionServiceFee ?? "",
+            ),
+            requiresDeposit: requiresDeposit,
+            depositType: depositType,
+            depositAmount: parseMoney(serviceData.depositAmount ?? ""),
+            employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
+            availableInApp: availableInApp,
+            priceDescription: serviceData.priceDescription ?? "",
+            description: serviceData.description ?? "",
+          };
+          const createdService = await servicePostMutation.mutateAsync(payload);
+          finalServiceId = createdService.id;
+        }
+
+        // 2️⃣ Se trocou a imagem, faz upload agora
+        if (avatarUri && finalServiceId) {
+          setIsUploadingAvatar(true);
+
+          await uploadServiceAvatarMutation.mutateAsync({
+            segment: "services",
+            avatarUri: avatarUri,
+            id: finalServiceId,
+          });
+
+          setIsUploadingAvatar(false);
+        }
+
+        notify({
+          message: isEditMode
+            ? "Serviço atualizado com sucesso!"
+            : "Serviço criado com sucesso!",
+          type: "SUCCESS",
         });
 
-        finalServiceId = updatedService.id;
-      } else {
-        const payload: CompanyServicesInterface = {
-          name: serviceData?.name,
-          price: parseMoney(serviceData.price) ?? 0,
-          imgUrl: serviceData.imgUrl,
-          duration: parseQuantity(serviceData.duration) ?? "",
-          commissionServiceFee: parseMoney(
-            serviceData.commissionServiceFee ?? "",
-          ),
-          employees: serviceData.employees,
-          availableInApp: availableInApp,
-          priceDescription: serviceData.priceDescription ?? "",
-          description: serviceData.description,
-        };
-        const createdService = await servicePostMutation.mutateAsync(payload);
-        finalServiceId = createdService.id;
+        await queryClient.invalidateQueries({ queryKey: ["services"] });
+        if (finalServiceId) {
+          await queryClient.invalidateQueries({ queryKey: ["service", finalServiceId] });
+        }
+        await serviceRefetch();
+        router.back();
+      } catch (error) {
+        handleError(error, "Falha ao criar ou atualizar serviço");
+      } finally {
+        setIsLoading(false);
       }
-
-      // 2️⃣ Se trocou a imagem, faz upload agora
-      if (avatarUri && finalServiceId) {
-        setIsUploadingAvatar(true);
-
-        const avatarResponse = await uploadServiceAvatarMutation.mutateAsync({
-          segment: "services",
-          avatarUri: avatarUri,
-          id: finalServiceId,
-        });
-
-        // sincroniza estado local
-
-        setIsUploadingAvatar(false);
-      }
-
+    },
+    (errors) => {
+      console.log("Validation errors on service submission:", errors);
+      const firstError = Object.values(errors)[0]?.message;
       notify({
-        message: isEditMode
-          ? "Serviço atualizado com sucesso!"
-          : "Serviço criado com sucesso!",
-        type: "SUCCESS",
+        message: firstError ? String(firstError) : "Preencha todos os campos obrigatórios",
+        type: "WARNING",
       });
-
-      await serviceRefetch();
-      router.back();
-    } catch (error) {
-      handleError(error, "Falha ao criar ou atualizar serviço");
-    } finally {
-      setIsLoading(false);
     }
-  });
+  );
   // Função para deletar serviço
 
   async function onServiceDelete(serviceId: number) {
@@ -261,14 +303,18 @@ export function useServiceViewModel(serviceId: number | undefined) {
 
     reset({
       name: serviceContent.name,
-      description: serviceContent.description,
-      duration: String(serviceContent.duration),
-      priceDescription: serviceContent.priceDescription,
+      description: serviceContent.description ?? "",
+      duration: String(serviceContent.duration ?? ""),
+      priceDescription: serviceContent.priceDescription ?? "",
       imgUrl: avatarUri ?? serviceContent.imgUrl,
       employees: serviceContent.employees,
-      price: String(serviceContent.price),
-      commissionServiceFee: String(serviceContent.commissionServiceFee),
+      price: serviceContent.price != null ? String(serviceContent.price) : "",
+      commissionServiceFee: serviceContent.commissionServiceFee != null ? String(serviceContent.commissionServiceFee) : "",
+      depositAmount: serviceContent.depositAmount != null ? String(serviceContent.depositAmount) : "",
     });
+
+    setRequiresDeposit(Boolean(serviceContent.requiresDeposit));
+    setDepositType(serviceContent.depositType === "PERCENTAGE" ? "PERCENTAGE" : "FIXED");
 
     if (!hasUserToggled.current) {
       setAvailableInApp(Boolean(serviceContent.availableInApp));
@@ -286,8 +332,11 @@ export function useServiceViewModel(serviceId: number | undefined) {
       commissionServiceFee: "",
       price: "",
       priceDescription: "",
+      depositAmount: "",
       employees: [],
     });
+    setRequiresDeposit(false);
+    setDepositType("FIXED");
   }, [isEditMode]);
 
   return {
@@ -315,7 +364,14 @@ export function useServiceViewModel(serviceId: number | undefined) {
     setAvailableInApp,
     availableInApp,
     handleToggleAvailableInApp,
+    requiresDeposit,
+    setRequiresDeposit,
+    handleToggleRequiresDeposit,
+    depositType,
+    setDepositType,
     searchValue,
     setSearchValue,
+    isStripeModalVisible,
+    setIsStripeModalVisible,
   };
 }

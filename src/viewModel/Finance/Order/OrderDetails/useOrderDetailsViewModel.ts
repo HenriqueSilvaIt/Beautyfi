@@ -466,8 +466,12 @@ export function useOrderDetailsViewModel(orderId?: number) {
     }
   }, [orderContent]);
   const displayTotal = useMemo(() => {
+    const itemsSum = calculateOrderTotal(order?.items ?? []);
+    if (itemsSum > 0) {
+      return itemsSum;
+    }
     return Number(order?.total ?? 0);
-  }, [order?.total]);
+  }, [order?.total, order?.items]);
   return {
     isLoading,
     orderByIdRefetch,

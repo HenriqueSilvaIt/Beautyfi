@@ -21,6 +21,7 @@ import { useAppointmentMutation } from "@/shared/queries/company/use-appointment
 import { useBookingMutation } from "@/shared/queries/company/use-booking.mutation";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
 import { useAgendaStore } from "@/shared/store/agenda-store";
+import { useCompanyStore } from "@/shared/store/company-store";
 import { useModalStore } from "@/shared/store/modal-store";
 import { useUserStore } from "@/shared/store/user-store";
 import { format } from "date-fns";
@@ -71,10 +72,13 @@ export function useAgendaViewModel() {
 
   const { useGetEmployeeMutation } = useEmployeeMutation();
   const isAdmin =
-    user?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
+    user?.roles?.some(
+      (role) =>
+        role.authority === "ROLE_ADMIN" || role.authority === "ROLE_MODERATOR"
+    ) ?? false;
 
   const employeeSearchId = isAdmin ? undefined : Number(user?.employeeId);
-  const userCompanyId = user?.companyId ? String(user.companyId) : undefined;
+  const currentCompanyId = user?.companyId || useCompanyStore.getState().selectedCompanyId;
 
   const {
     data: employeeData,
@@ -87,12 +91,10 @@ export function useAgendaViewModel() {
     isFetchingNextPage: employeeIsFetchingNextPage,
   } = useGetEmployeeMutation({
     employeeId: employeeSearchId,
-    companyId: userCompanyId,
+    companyId: currentCompanyId?.toString(),
   });
   const { refetch: appointmentSheduledRefetch } = useGetAppointmentMutation();
-  const {
-    data: employeeUpdated
-  } = useGetEmployeeMutation();
+  const { data: employeeUpdated } = useGetEmployeeMutation();
 
   const allEmployees =
     employeeData?.pages.flatMap((page) => page.content ?? []) ?? [];
@@ -505,37 +507,70 @@ export function useAgendaViewModel() {
   }, []);
 
   useEffect(() => {
-    if (user?.employeeId) {
-      setEmployeeId(user.employeeId);
-      setEmployeeIsSelected(true);
-      const selected = employeeDataPagged.find((e) => e.id === user.employeeId);
-      if (selected) {
-        setEmployee(selected);
+    if (employeeDataPagged.length > 0) {
+      const currentSelectedId = employeeId || user?.employeeId;
+      const defaultId =
+        currentSelectedId &&
+        employeeDataPagged.some((e) => e.id === currentSelectedId)
+          ? currentSelectedId
+          : employeeDataPagged[0]?.id;
+
+      if (defaultId) {
+        const selected = employeeDataPagged.find((e) => e.id === defaultId);
+        if (selected && (employeeId !== selected.id || !employee)) {
+          setEmployeeId(selected.id);
+          setEmployee(selected);
+          setEmployeeIsSelected(true);
+        }
       }
     }
-  }, [user?.employeeId]);
+  }, [employeeDataPagged, user?.employeeId, employeeId, employee]);
 
-  const lastFetchRef = useRef<{ employeeId?: number; day?: string }>({});
+  // Recarrega funcionários quando a companyId do usuário carregar do armazenamento
+  useEffect(() => {
+    if (user?.companyId) {
+      employeeRefetch();
+    }
+  }, [user?.companyId]);
+
+  // Recarrega agendamentos sempre que o funcionário selecionado ou dia mudar
+  useEffect(() => {
+    if (employeeId && selectedDay) {
+      getAppointment();
+    }
+  }, [employeeId, selectedDay]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!employeeId || !selectedDay) return;
+      // Sempre recarrega profissionais ao voltar para a aba da agenda
+      employeeRefetch();
 
-      // limpa seleção sempre que volta pra agenda
+      // Limpa seleção temporária ao voltar pra agenda
       setSelectedAppointmentId(undefined);
 
       if (!initialized) {
-        setEmployeeId(user?.employeeId);
+        if (user?.employeeId) {
+          setEmployeeId(user?.employeeId);
+        }
         setInitialized(true);
       }
 
-      getAppointment();
+      if (employeeId && selectedDay) {
+        getAppointment();
+      }
 
-      // opcional: cleanup ao sair da agenda
       return () => {
         setSelectedAppointmentId(undefined);
       };
-    }, [employeeId, selectedDay, initialized, user?.employeeId, employeeTimes, employeeUpdated]),
+    }, [
+      employeeId,
+      selectedDay,
+      initialized,
+      user?.employeeId,
+      user?.companyId,
+      employeeTimes,
+      employeeUpdated,
+    ]),
   );
 
   const currentTime = useCurrentTime();
@@ -558,7 +593,6 @@ export function useAgendaViewModel() {
       animated: true,
     });
   }, [currentY]);
-  const employeesFetchedRef = useRef(false);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -577,14 +611,6 @@ export function useAgendaViewModel() {
       }, 300);
     }
   }, [selectedDay, employee]);
-
-  useEffect(() => {
-    if (employeesFetchedRef.current) return;
-
-    employeesFetchedRef.current = true;
-    employeeRefetch();
-  }, []);
-
 
   return {
     setCurrentDate,

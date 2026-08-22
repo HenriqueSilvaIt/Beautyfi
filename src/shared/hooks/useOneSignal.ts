@@ -1,10 +1,17 @@
-import { useEffect } from "react"
-import { OneSignal } from "react-native-onesignal";
+import { useEffect } from "react";
 import { Alert } from "react-native";
 import { usePreferencesStore } from "@/shared/store/preferences-store";
 import { useNotificationStore } from "@/shared/store/notification-store";
 import { useUserStore } from "@/shared/store/user-store";
 import { styleAppApiClient } from "@/shared/api/styleAppBackend";
+import { router } from "expo-router";
+
+let OneSignal: any;
+try {
+  OneSignal = require("react-native-onesignal").OneSignal;
+} catch (e) {
+  console.warn("OneSignal native module not available:", e);
+}
 
 const ONESIGNAL_APP_ID = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID;
 
@@ -13,7 +20,6 @@ export function useOneSignal() {
   const { addNotification } = useNotificationStore();
   const { user } = useUserStore();
 
-  // Sync token to backend helper
   const syncPushToken = async (subId: string) => {
     if (user?.id && subId) {
       try {
@@ -28,85 +34,152 @@ export function useOneSignal() {
   };
 
   useEffect(() => {
-    try {
-      if (!ONESIGNAL_APP_ID) {
-        console.warn("OneSignal App ID não definido");
-        return;
+    if (user?.id && OneSignal?.User?.pushSubscription) {
+      try {
+        const subId = OneSignal.User.pushSubscription?.id;
+        if (subId) {
+          syncPushToken(subId);
+        }
+      } catch (e) {
+        console.warn("Error reading push subscription id:", e);
       }
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!ONESIGNAL_APP_ID || !OneSignal) {
+      return;
+    }
+
+    try {
       OneSignal.initialize(ONESIGNAL_APP_ID);
 
-      // Listen to push subscription updates
       const onSubscriptionChange = (event: any) => {
-        const subId = event.current.id;
-        if (subId) {
-          syncPushToken(subId);
-        }
+        try {
+          const subId = event?.current?.id;
+          if (subId) {
+            syncPushToken(subId);
+          }
+        } catch (e) {}
       };
-      OneSignal.User.pushSubscription.addEventListener('change', onSubscriptionChange);
 
-      // Initial check on mount
+      if (OneSignal?.User?.pushSubscription?.addEventListener) {
+        OneSignal.User.pushSubscription.addEventListener("change", onSubscriptionChange);
+      }
+
       const checkSubscriptionId = () => {
-        const subId = (OneSignal.User.pushSubscription as any).id;
-        if (subId) {
-          syncPushToken(subId);
-        } else {
-          // If not registered yet, check again shortly
-          setTimeout(checkSubscriptionId, 2000);
+        try {
+          const subId = OneSignal?.User?.pushSubscription?.id;
+          if (subId) {
+            syncPushToken(subId);
+          }
+        } catch (e) {}
+      };
+
+      // Solicitar permissão de notificação (Android 13+ e iOS)
+      if (OneSignal?.Notifications?.requestPermission) {
+        OneSignal.Notifications.requestPermission(true);
+      }
+
+      const handleForegroundWillDisplay = (event: any) => {
+        try {
+          const notification = event.getNotification();
+          const data = notification?.getAdditionalData() as any;
+
+          addNotification({
+            id: notification?.getNotificationId() || String(Date.now()),
+            title: notification?.getTitle() || "Notificação",
+            body: notification?.getBody() || "",
+          });
+
+          if (data && data.type === "NEW_APPOINTMENT") {
+            if (showInAppNewAppointmentModal) {
+              event.preventDefault();
+              Alert.alert(
+                "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
+                notification.getBody() || "",
+                [
+                  {
+                    text: "Ver Agendamento",
+                    onPress: () => {
+                      if (data?.id) {
+                        try {
+                          router.push(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${data.id}`);
+                        } catch (e) {
+                          router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                        }
+                      } else {
+                        router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                      }
+                    },
+                  },
+                  {
+                    text: "OK",
+                    style: "cancel",
+                  },
+                ],
+                { cancelable: false }
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("Error in foregroundWillDisplay listener:", e);
         }
       };
 
-      setTimeout(checkSubscriptionId, 1000);
+      const handleClick = (event: any) => {
+        try {
+          const notification = event?.notification;
+          const data = notification?.getAdditionalData() as any;
 
-      // Event listener para quando o app está aberto em primeiro plano (foreground)
-      OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event: any) => {
-        const notification = event.getNotification();
-        const data = notification.getAdditionalData() as any;
-
-        // Store notification locally
-        addNotification({
-          id: notification.getNotificationId(),
-          title: notification.getTitle() || "Notificação",
-          body: notification.getBody() || "",
-        });
-
-        if (data && data.type === 'NEW_APPOINTMENT') {
-          if (showInAppNewAppointmentModal) {
-            // Previne a notificação push padrão e mostra o modal se habilitado nas configurações
-            event.preventDefault();
+          if (data && data.type === "NEW_APPOINTMENT") {
             Alert.alert(
               "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
               notification.getBody() || "",
-              [{ text: "Fechar", style: "cancel" }]
+              [
+                {
+                  text: "Ver Agendamento",
+                  onPress: () => {
+                    if (data?.id) {
+                      try {
+                        router.push(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${data.id}`);
+                      } catch (e) {
+                        router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                      }
+                    } else {
+                      router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                    }
+                  },
+                },
+                {
+                  text: "OK",
+                  style: "cancel",
+                },
+              ],
+              { cancelable: false }
             );
           }
+        } catch (e) {
+          console.warn("Error in click listener:", e);
         }
-      });
-
-      // Event listener para quando clica na notificação em segundo plano
-      OneSignal.Notifications.addEventListener('click', (event: any) => {
-        const notification = event.notification;
-        const data = notification.getAdditionalData() as any;
-        
-        // Store notification locally
-        addNotification({
-          id: notification.getNotificationId(),
-          title: notification.getTitle() || "Notificação",
-          body: notification.getBody() || "",
-        });
-
-        if (data && data.type === 'NEW_APPOINTMENT') {
-          Alert.alert(
-            "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
-            notification.getBody() || "",
-            [{ text: "Fechar", style: "cancel" }]
-          );
-        }
-      });
-
-      return () => {
-        OneSignal.User.pushSubscription.removeEventListener('change', onSubscriptionChange);
       };
 
+      if (OneSignal?.Notifications?.addEventListener) {
+        OneSignal.Notifications.addEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
+        OneSignal.Notifications.addEventListener("click", handleClick);
+      }
+
+      return () => {
+        try {
+          if (OneSignal?.User?.pushSubscription?.removeEventListener) {
+            OneSignal.User.pushSubscription.removeEventListener("change", onSubscriptionChange);
+          }
+          if (OneSignal?.Notifications?.removeEventListener) {
+            OneSignal.Notifications.removeEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
+            OneSignal.Notifications.removeEventListener("click", handleClick);
+          }
+        } catch (e) {}
+      };
     } catch (e) {
       console.warn("OneSignal init error:", e);
     }

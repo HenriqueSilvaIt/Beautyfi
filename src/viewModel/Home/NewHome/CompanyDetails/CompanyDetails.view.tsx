@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Modal,
   ScrollView,
   Text,
   TextInput,
@@ -20,7 +21,6 @@ import { CompanyDetails } from "@/shared/components/CompanyTabs/CompanyDetails";
 import { CompanyServices } from "@/shared/components/BusinessTabs/CompanyServices";
 import { CompanyProduct } from "@/shared/components/BusinessTabs/CompanyProduct";
 import { FlatList } from "react-native-gesture-handler";
-import { AppInput } from "@/shared/components/AppInput";
 import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -55,10 +55,14 @@ export function CompanyDetailsView(
   } = props;
   const insets = useSafeAreaInsets();
 
+  // State for Full Screen Image Viewer Modal with horizontal swipe
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const fullscreenFlatListRef = React.useRef<FlatList>(null);
+
   if (companyDetailsLoading && !companyDetailsData) {
     return (
       <SafeAreaView className="flex-1 bg-background-primary justify-center items-center">
-        <ActivityIndicator size="large" color="#12294A" />
+        <ActivityIndicator size="large" color="#092D5D" />
       </SafeAreaView>
     );
   }
@@ -71,7 +75,7 @@ export function CompanyDetailsView(
         </Text>
         <TouchableOpacity
           onPress={handleGoBack}
-          className="bg-[#12294A] px-6 py-3 rounded-xl"
+          className="bg-[#092D5D] px-6 py-3 rounded-xl"
         >
           <Text className="text-white font-bold">Voltar</Text>
         </TouchableOpacity>
@@ -79,26 +83,276 @@ export function CompanyDetailsView(
     );
   }
 
-  // Parse db images or fallback to high-quality mock carousel images
-  const dbImages = companyDetailsData.imagesUrl
+  // Parse space images or fallback to default
+  const dbSpaceImages = companyDetailsData?.imagesUrl
     ? companyDetailsData.imagesUrl
+        .replace(/[\[\]"']/g, "")
         .split(",")
         .map((x: string) => x.trim())
-        .filter(Boolean)
+        .filter(
+          (x: string) =>
+            x.length > 5 &&
+            (x.startsWith("http://") ||
+              x.startsWith("https://") ||
+              x.startsWith("file://") ||
+              x.startsWith("data:")),
+        )
     : [];
-  const images = dbImages.length > 0 ? dbImages : defaultCarouselImages;
+  const images = dbSpaceImages.length > 0 ? dbSpaceImages : defaultCarouselImages;
+
+  // Parse portfolio images
+  const portfolioImages = companyDetailsData?.portfolioImagesUrl
+    ? companyDetailsData.portfolioImagesUrl
+        .replace(/[\[\]"']/g, "")
+        .split(",")
+        .map((x: string) => x.trim())
+        .filter(
+          (x: string) =>
+            x.length > 5 &&
+            (x.startsWith("http://") ||
+              x.startsWith("https://") ||
+              x.startsWith("file://") ||
+              x.startsWith("data:")),
+        )
+    : [];
+
+  const allGalleryImages = Array.from(new Set([...images, ...portfolioImages]));
+
+  const openViewerImage = (imgUrl: string) => {
+    if (!allGalleryImages || allGalleryImages.length === 0) return;
+    const idx = allGalleryImages.findIndex((url) => url === imgUrl);
+    setViewerIndex(idx >= 0 && idx < allGalleryImages.length ? idx : 0);
+  };
 
   const tabs: CompanyDetailTab[] = [
     "Serviços",
     "Produtos",
     "Pacotes",
+    "Fidelidade",
     "Detalhes",
     "Avaliações",
     "Assinaturas",
   ];
 
+  const tabFlatListRef = React.useRef<any>(null);
+
+  const handleTabSelect = (tab: CompanyDetailTab, index: number) => {
+    setActiveTab(tab);
+    try {
+      tabFlatListRef.current?.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    } catch (e) {
+      console.log("Erro ao rolar menu de abas:", e);
+    }
+  };
+
   const renderActiveTabContent = () => {
     switch (activeTab) {
+      case "Fidelidade": {
+        const isLoyaltyActive = Boolean(companyDetailsData.loyaltyActive);
+        const ptsPerReal = companyDetailsData.loyaltyPointsPerReal;
+        const minPts = companyDetailsData.loyaltyMinPoints;
+        const rewardVal = companyDetailsData.loyaltyRewardValue;
+        const rewardDesc = companyDetailsData.loyaltyRewardDescription;
+        const ruleDesc = companyDetailsData.loyaltyRuleDescription;
+
+        const hasConfiguredReward = Boolean(
+          rewardDesc?.trim() || (rewardVal != null && rewardVal > 0) || (minPts != null && minPts > 0)
+        );
+
+        const userPts = (props.user as any)?.loyaltyPoints ?? 0;
+        const targetMinPts = minPts || 100;
+        const progressPercent = Math.min(100, Math.round((userPts / targetMinPts) * 100));
+
+        if (!isLoyaltyActive || !hasConfiguredReward) {
+          return (
+            <View className="px-4 py-12 items-center justify-center bg-white rounded-2xl border border-gray-100 my-4 shadow-sm">
+              <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3">
+                <Ionicons name="gift-outline" size={32} color="#9CA3AF" />
+              </View>
+              <Text className="text-gray-900 font-bold text-base text-center">
+                Sem Itens no Programa de Fidelidade
+              </Text>
+              <Text className="text-gray-500 text-xs text-center mt-1.5 px-6 leading-5">
+                Este estabelecimento ainda não possui recompensas ou prêmios ativos no programa de fidelidade.
+              </Text>
+            </View>
+          );
+        }
+
+        return (
+          <View className="px-4 py-3 gap-4">
+            {/* Banner com gradiente e status */}
+            <View className="p-5 rounded-3xl bg-gradient-to-r from-[#092D5D] to-[#1E3A8A] shadow-md border border-[#CBA35D]/30">
+              <View className="flex-row justify-between items-start mb-3">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-12 h-12 rounded-2xl bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                    <Ionicons name="trophy" size={24} color="#CBA35D" />
+                  </View>
+                  <View>
+                    <Text className="text-white font-bold text-base">
+                      Clube de Fidelidade
+                    </Text>
+                    <Text className="text-gray-300 text-xs mt-0.5">
+                      {companyDetailsData.name}
+                    </Text>
+                  </View>
+                </View>
+                <View className="px-3 py-1 rounded-full bg-[#CBA35D]/20 border border-[#CBA35D]/40">
+                  <Text className="text-[#CBA35D] font-bold text-[10px] uppercase">
+                    VIP
+                  </Text>
+                </View>
+              </View>
+
+              {/* Card de Pontuação do Usuário se Logado */}
+              {props.user ? (
+                <View className="mt-2 pt-3 border-t border-white/10">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-gray-200 text-xs font-semibold">
+                      Seus Pontos Acumulados:
+                    </Text>
+                    <Text className="text-[#CBA35D] font-black text-lg">
+                      {userPts} pts
+                    </Text>
+                  </View>
+
+                  {/* Barra de Progresso */}
+                  <View className="h-3 w-full bg-black/30 rounded-full overflow-hidden mb-1 border border-white/10">
+                    <View
+                      className="h-full bg-gradient-to-r from-[#CBA35D] to-[#F59E0B] rounded-full"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </View>
+                  <View className="flex-row justify-between items-center mt-1">
+                    <Text className="text-gray-300 text-[10px]">0 pts</Text>
+                    <Text className="text-[#CBA35D] text-[10px] font-bold">
+                      {progressPercent}% da recompensa
+                    </Text>
+                    <Text className="text-gray-300 text-[10px]">{minPts} pts</Text>
+                  </View>
+                </View>
+              ) : (
+                <View className="mt-2 pt-3 border-t border-white/10">
+                  <Text className="text-gray-200 text-xs">
+                    Faça login para acompanhar seus pontos e resgatar cupons exclusivos!
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Recompensa Disponível */}
+            <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <View className="flex-row items-center gap-2 mb-2">
+                <Ionicons name="gift" size={20} color="#092D5D" />
+                <Text className="text-gray-900 font-bold text-sm">
+                  Benefício / Prêmio em Destaque
+                </Text>
+              </View>
+
+              <View className="p-4 rounded-xl bg-[#F8FAFC] border border-gray-200/60 flex-row items-center justify-between">
+                <View className="flex-1 pr-3">
+                  <Text className="text-[#092D5D] font-black text-base">
+                    {rewardDesc || `Benefício de R$ ${rewardVal != null ? rewardVal.toFixed(2).replace(".", ",") : "0,00"}`}
+                  </Text>
+                  {minPts != null && minPts > 0 ? (
+                    <Text className="text-gray-500 text-xs mt-1">
+                      Meta: {minPts} pontos acumulados
+                    </Text>
+                  ) : null}
+                </View>
+
+                {rewardVal != null && rewardVal > 0 ? (
+                  <View className="bg-[#092D5D] px-3 py-2 rounded-xl">
+                    <Text className="text-white font-bold text-xs">
+                      R$ {rewardVal.toFixed(2).replace(".", ",")} OFF
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            {/* Como Funciona / Regras */}
+            <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Ionicons name="information-circle-outline" size={20} color="#092D5D" />
+                <Text className="text-gray-900 font-bold text-sm">
+                  Como Funciona o Programa
+                </Text>
+              </View>
+              <Text className="text-gray-600 text-xs leading-5">
+                {ruleDesc}
+              </Text>
+
+              <View className="mt-4 pt-3 border-t border-gray-100 flex-row items-center gap-3">
+                <View className="w-8 h-8 rounded-full bg-[#092D5D]/10 items-center justify-center">
+                  <Ionicons name="sparkles" size={16} color="#092D5D" />
+                </View>
+                <Text className="text-gray-700 text-xs font-semibold flex-1">
+                  Ganhe {ptsPerReal} ponto(s) automático a cada R$ 1,00 gasto ao concluir um agendamento!
+                </Text>
+              </View>
+            </View>
+
+            {/* Lista de Itens de Recompensa (Serviços e Produtos) */}
+            <View className="mt-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <Text className="text-gray-900 font-bold text-sm mb-3">
+                Itens e Prêmios Resgatáveis (Serviços & Produtos)
+              </Text>
+              {props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0 ? (
+                <View className="gap-2.5">
+                  {props.loyaltyProgramData.items.map((item: any) => (
+                    <View
+                      key={item.id}
+                      className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 flex-row items-center justify-between"
+                    >
+                      <View className="flex-1 mr-2">
+                        <View className="flex-row items-center gap-1.5 mb-1">
+                          <View className="px-2 py-0.5 rounded-md bg-[#092D5D]/10">
+                            <Text className="text-[#092D5D] font-bold text-[10px] uppercase">
+                              {item.itemType === "SERVICE" ? "Serviço" : item.itemType === "PRODUCT" ? "Produto" : "Prêmio"}
+                            </Text>
+                          </View>
+                          {item.servicePrice ? (
+                            <Text className="text-gray-500 text-xs font-semibold">
+                              R$ {Number(item.servicePrice).toFixed(2).replace(".", ",")}
+                            </Text>
+                          ) : item.productPrice ? (
+                            <Text className="text-gray-500 text-xs font-semibold">
+                              R$ {Number(item.productPrice).toFixed(2).replace(".", ",")}
+                            </Text>
+                          ) : null}
+                        </View>
+                        <Text className="text-gray-900 font-bold text-xs">
+                          {item.title}
+                        </Text>
+                        {item.description ? (
+                          <Text className="text-gray-500 text-[11px] mt-0.5">
+                            {item.description}
+                          </Text>
+                        ) : null}
+                      </View>
+
+                      <View className="px-3 py-1.5 rounded-xl bg-[#CBA35D]/15 border border-[#CBA35D]/40 items-center">
+                        <Text className="text-[#CBA35D] font-black text-xs">
+                          {item.pointsRequired} pts
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text className="text-gray-500 text-xs italic text-center py-2">
+                  Consulte os prêmios e condições diretamente no salão.
+                </Text>
+              )}
+            </View>
+          </View>
+        );
+      }
       case "Serviços":
         return (
           <View className="flex-1 min-h-[300px]">
@@ -161,7 +415,7 @@ export function CompanyDetailsView(
           <CompanyDetails
             data={[companyDetailsData]}
             employees={props.employeesList}
-            reviews={[]} // reviews removidos daqui para a aba própria
+            reviews={[]}
           />
         );
       case "Avaliações":
@@ -189,7 +443,7 @@ export function CompanyDetailsView(
             {props.user && !props.isAdmin && (
               <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-6 shadow-sm">
                 <Text className="text-gray-900 font-bold text-sm mb-2">
-                  Deixe sua Avaliação
+                  {props.editingReview ? "Editar Avaliação" : "Deixe sua Avaliação"}
                 </Text>
 
                 {/* Star Selector */}
@@ -212,7 +466,6 @@ export function CompanyDetailsView(
                 <TextInput
                   placeholder="Escreva seu comentário aqui..."
                   placeholderTextColor={colors["app-theme-primary"]}
-
                   value={props.newComment}
                   onChangeText={props.setNewComment}
                   multiline
@@ -221,18 +474,33 @@ export function CompanyDetailsView(
                   style={{ textAlignVertical: "top" }}
                 />
 
-                <TouchableOpacity
-                  onPress={props.handleSubmitReview}
-                  disabled={props.isSubmittingReview}
-                  activeOpacity={0.8}
-                  className="bg-[#12294A] py-3.5 rounded-xl items-center mt-4"
-                >
-                  <Text className="text-white text-sm font-bold">
-                    {props.isSubmittingReview
-                      ? "Enviando..."
-                      : "Enviar Avaliação"}
-                  </Text>
-                </TouchableOpacity>
+                <View className="flex-row gap-3 mt-4">
+                  {props.editingReview && (
+                    <TouchableOpacity
+                      onPress={props.handleCancelEdit}
+                      activeOpacity={0.8}
+                      className="flex-1 bg-gray-200 py-3.5 rounded-xl items-center"
+                    >
+                      <Text className="text-gray-700 text-sm font-bold">
+                        Cancelar
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    onPress={props.handleSubmitReview}
+                    disabled={props.isSubmittingReview}
+                    activeOpacity={0.8}
+                    className="flex-1 bg-[#092D5D] py-3.5 rounded-xl items-center"
+                  >
+                    <Text className="text-white text-sm font-bold">
+                      {props.isSubmittingReview
+                        ? "Enviando..."
+                        : props.editingReview
+                          ? "Atualizar Avaliação"
+                          : "Enviar Avaliação"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -280,6 +548,32 @@ export function CompanyDetailsView(
                         {rev.comment}
                       </Text>
                     ) : null}
+
+                    {props.user && props.user.id === rev.userId && (
+                      <View className="flex-row justify-end gap-4 mt-3 pt-3 border-t border-gray-100">
+                        <TouchableOpacity
+                          onPress={() => props.handleEditReview(rev)}
+                          activeOpacity={0.7}
+                          className="flex-row items-center"
+                        >
+                          <Ionicons name="create-outline" size={16} color="#4b5563" />
+                          <Text className="text-gray-600 text-xs font-semibold ml-1">
+                            Editar
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          onPress={() => props.handleDeleteReview(rev.id)}
+                          activeOpacity={0.7}
+                          className="flex-row items-center"
+                        >
+                          <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                          <Text className="text-red-500 text-xs font-semibold ml-1">
+                            Excluir
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
                 ))}
               </View>
@@ -327,7 +621,7 @@ export function CompanyDetailsView(
                     </Text>
                     <TouchableOpacity
                       onPress={handleGoToSubscriptionTab}
-                      className="bg-[#12294A] px-4 py-2 rounded-xl"
+                      className="bg-[#092D5D] px-4 py-2 rounded-xl"
                     >
                       <Text className="text-white text-xs font-bold">
                         Assinar Plano
@@ -397,7 +691,7 @@ export function CompanyDetailsView(
                       onPress={() =>
                         handleBookPackage(pkg.items?.map((i) => i.serviceId) ?? [])
                       }
-                      className="bg-[#12294A] px-4 py-2 rounded-xl"
+                      className="bg-[#092D5D] px-4 py-2 rounded-xl"
                     >
                       <Text className="text-white text-xs font-bold">
                         Agendar Combo
@@ -419,7 +713,7 @@ export function CompanyDetailsView(
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Cover Carousel */}
+        {/* Cover Carousel (Fotos do Espaço) */}
         <View style={{ height: 260, width: "100%", position: "relative" }}>
           <FlatList
             data={images}
@@ -428,11 +722,16 @@ export function CompanyDetailsView(
             showsHorizontalScrollIndicator={false}
             keyExtractor={(img, index) => `detail-img-${index}`}
             renderItem={({ item: img }) => (
-              <Image
-                source={{ uri: img }}
-                resizeMode="cover"
-                style={{ width: screenWidth, height: 260 }}
-              />
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => openViewerImage(img)}
+              >
+                <Image
+                  source={{ uri: img }}
+                  resizeMode="cover"
+                  style={{ width: screenWidth, height: 260 }}
+                />
+              </TouchableOpacity>
             )}
           />
 
@@ -440,7 +739,7 @@ export function CompanyDetailsView(
           <TouchableOpacity
             onPress={handleGoBack}
             activeOpacity={0.7}
-            className="absolute left-4 top-12 bg-white/90 p-2.5 rounded-full shadow-md"
+            className="absolute left-4 top-14 bg-white/90 p-2.5 rounded-full shadow-md z-10"
           >
             <Ionicons name="arrow-back" size={22} color="#1f2937" />
           </TouchableOpacity>
@@ -449,7 +748,7 @@ export function CompanyDetailsView(
           <TouchableOpacity
             onPress={handleToggleFavorite}
             activeOpacity={0.7}
-            className="absolute right-4 top-12 bg-white/90 p-2.5 rounded-full shadow-md"
+            className="absolute right-4 top-14 bg-white/90 p-2.5 rounded-full shadow-md z-10"
           >
             <Ionicons
               name={isFavorite ? "heart" : "heart-outline"}
@@ -477,35 +776,80 @@ export function CompanyDetailsView(
             )}
           </View>
 
-          <Text className="text-gray-600 text-sm mb-5 leading-relaxed">
+          <Text className="text-gray-600 text-sm mb-4 leading-relaxed">
             {companyDetailsData.description || "Nenhuma descrição fornecida."}
           </Text>
+
+          {/* Carrossel Horizontal de Portfólio de Trabalhos (se houver) */}
+          {portfolioImages.length > 0 && (
+            <View className="mb-5">
+              <View className="flex-row items-center justify-between mb-2.5">
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name="images" size={18} color="#092D5D" />
+                  <Text className="text-[#092D5D] font-extrabold text-sm uppercase tracking-wide">
+                    Portfólio de Trabalhos
+                  </Text>
+                </View>
+                <Text className="text-slate-400 text-xs font-semibold">
+                  {portfolioImages.length} foto{portfolioImages.length > 1 ? "s" : ""}
+                </Text>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 10 }}
+              >
+                {portfolioImages.map((imgUrl, idx) => (
+                  <TouchableOpacity
+                    key={`portfolio-${idx}`}
+                    activeOpacity={0.85}
+                    onPress={() => openViewerImage(imgUrl)}
+                    className="rounded-xl overflow-hidden border border-slate-200 shadow-sm"
+                  >
+                    <Image
+                      source={{ uri: imgUrl }}
+                      className="w-[100px] h-[100px]"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {/* Horizontal Tabs Menu */}
           <View className="border-b border-gray-100 pb-2 mb-4">
             <FlatList
+              ref={tabFlatListRef}
               data={tabs}
               horizontal
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item) => item}
               contentContainerStyle={{ gap: 20 }}
-              renderItem={({ item }) => {
+              onScrollToIndexFailed={(info) => {
+                tabFlatListRef.current?.scrollToOffset({
+                  offset: info.averageItemLength * info.index,
+                  animated: true,
+                });
+              }}
+              renderItem={({ item, index }) => {
                 const isSelected = activeTab === item;
                 return (
                   <TouchableOpacity
-                    onPress={() => setActiveTab(item)}
+                    onPress={() => handleTabSelect(item, index)}
                     activeOpacity={0.8}
                     className="pb-2"
                     style={
                       isSelected
-                        ? { borderBottomWidth: 3, borderBottomColor: "#12294A" }
+                        ? { borderBottomWidth: 3, borderBottomColor: "#092D5D" }
                         : {}
                     }
                   >
                     <Text
                       className={`text-sm ${
                         isSelected
-                          ? "text-[#12294A] font-extrabold"
+                          ? "text-[#092D5D] font-extrabold"
                           : "text-gray-600 font-semibold"
                       }`}
                     >
@@ -538,11 +882,11 @@ export function CompanyDetailsView(
           zIndex: 999,
         }}
       >
-        {activeTab === "Serviços" && selectedServices.length === 0 ? (
+        {(activeTab as string) === "Serviços" && selectedServices.length === 0 ? (
           <View
-            className="bg-gray-100 h-[54px] rounded-xl items-center justify-center border border-gray-200"
+            className="bg-gray-200 h-[54px] rounded-xl items-center justify-center border border-gray-300"
           >
-            <Text className="text-gray-400 font-bold text-base">
+            <Text className="text-gray-600 font-bold text-base">
               Escolha um serviço
             </Text>
           </View>
@@ -550,7 +894,7 @@ export function CompanyDetailsView(
           <TouchableOpacity
             onPress={handleBookSelectedServices}
             activeOpacity={0.8}
-            className="bg-[#12294A] h-[54px] rounded-xl items-center justify-center shadow-lg"
+            className="bg-[#092D5D] h-[54px] rounded-xl items-center justify-center shadow-lg"
           >
             <Text className="text-white font-bold text-base">
               Agendar {selectedServices.length} Serviço
@@ -559,6 +903,70 @@ export function CompanyDetailsView(
           </TouchableOpacity>
         ) : null}
       </View>
+
+      {/* Modal Visualizador em Tela Cheia Swipeable (Fundo Preto) */}
+      <Modal
+        visible={viewerIndex !== null && viewerIndex >= 0}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setViewerIndex(null)}
+      >
+        <SafeAreaView className="flex-1 bg-black justify-between items-center relative">
+          {/* Top Bar com Contador de Fotos e Botão Fechar */}
+          <View className="w-full flex-row justify-between items-center px-6 pt-4 pb-2 z-50">
+            <View className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+              <Text className="text-white font-bold text-xs">
+                {viewerIndex !== null ? viewerIndex + 1 : 1} de {allGalleryImages.length}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setViewerIndex(null)}
+              activeOpacity={0.8}
+              className="p-2.5 rounded-full bg-white/20 border border-white/20"
+            >
+              <Ionicons name="close" size={22} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Carrossel de Fotos em Tela Cheia com Swipe Horizontal */}
+          <FlatList
+            ref={fullscreenFlatListRef}
+            data={allGalleryImages}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(img, index) => `fullscreen-img-${index}`}
+            initialScrollIndex={
+              viewerIndex !== null && viewerIndex >= 0 && viewerIndex < allGalleryImages.length
+                ? viewerIndex
+                : 0
+            }
+            getItemLayout={(_, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
+            onScrollToIndexFailed={(info) => {
+              setTimeout(() => {
+                fullscreenFlatListRef.current?.scrollToIndex({ index: info.index, animated: false });
+              }, 100);
+            }}
+            onMomentumScrollEnd={(e) => {
+              const newIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+              setViewerIndex(newIndex);
+            }}
+            renderItem={({ item: imgUrl }) => (
+              <View style={{ width: screenWidth, height: "100%", justifyContent: "center", alignItems: "center" }}>
+                <Image
+                  source={{ uri: imgUrl }}
+                  style={{ width: screenWidth, height: "80%" }}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

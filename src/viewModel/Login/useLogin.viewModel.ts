@@ -19,12 +19,21 @@ import { LoginHttpResponse } from "@/shared/interfaces/http/login";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { getUserLogged } from "@/shared/services/user.service";
 import { queryClient } from "../../../queryClient";
-// ✅ Fora do hook — configura uma única vez
-if (GOOGLE_WEB_CLIENT_ID && GOOGLE_IOS_CLIENT_ID) {
+const webClientId =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  GOOGLE_WEB_CLIENT_ID ||
+  "666853975186-n7kgnfi8vggt49bn1o9tbkqjq8bu8k2n.apps.googleusercontent.com";
+
+const iosClientId =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
+  GOOGLE_IOS_CLIENT_ID ||
+  "666853975186-0jlnben8a2i3d82v5qqe2qufnb5bqv89.apps.googleusercontent.com";
+
+if (webClientId && iosClientId) {
   GoogleSignin.configure({
     scopes: ["email", "profile"],
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    webClientId: webClientId,
+    iosClientId: iosClientId,
   });
 } else {
   console.warn("⚠️ Google Client IDs não definidos");
@@ -80,6 +89,10 @@ export function useLoginViewModel() {
 
   // Funções depois dos hooks
   async function handleLoginSuccess(data: LoginHttpResponse) {
+    // 1. Limpa qualquer cache e estado anterior
+    queryClient.removeQueries({ queryKey: ["user-logged"] });
+    queryClient.clear();
+
     setSession({
       access_token: data.access_token,
       token_type: data.token_type,
@@ -92,11 +105,9 @@ export function useLoginViewModel() {
       useUserStore.getState().access_token?.slice(0, 20),
     );
 
-    const userLogged = await queryClient.fetchQuery({
-      queryKey: ["user-logged"],
-      queryFn: getUserLogged,
-    });
-    console.log("👤 userLogged:", userLogged);
+    // 2. Busca direta na API (sem usar cache do cliente anterior)
+    const userLogged = await getUserLogged();
+    console.log("👤 userLogged atualizado da API:", userLogged);
 
     if (!userLogged) {
       handleError(new Error("Sem dados de usuário"), "Erro ao carregar perfil");
@@ -104,6 +115,7 @@ export function useLoginViewModel() {
     }
 
     setUser(userLogged);
+    queryClient.setQueryData(["user-logged"], userLogged);
     useUserStore.getState().setAuthReady(true);
     // ✅ Determina a rota correta pela role e limpa o histórico
     const isAdmin =

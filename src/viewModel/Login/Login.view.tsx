@@ -22,7 +22,7 @@ export function LoginView({
 
   return (
     <KeyboardContainer>
-      <View className=" pt-20 px-[40px]">
+      <View className=" pt-15 px-[40px]">
         <View className="w-full">
           <AppFormHeader
             title="Acesse sua conta para continuar"

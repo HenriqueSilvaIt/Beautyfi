@@ -1,4 +1,4 @@
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboardComandasViewModel } from "./useDashboardComandasViewModel";
 import { FlatList, Text, TouchableOpacity, View, Modal } from "react-native";
 import { moneyMapper } from "@/utils/moneyMapper";
@@ -25,6 +25,7 @@ export function DashboardComandasView({
   dateParam,
   setDateParam,
 }: ReturnType<typeof useDashboardComandasViewModel>) {
+  const insets = useSafeAreaInsets();
   const startDate = DateIsoToBR(dateParam.startDate ?? "");
   const endDate = DateIsoToBR(dateParam.endDate ?? "");
   
@@ -211,7 +212,10 @@ export function DashboardComandasView({
       {/* Modal para seleção de Profissionais */}
       <Modal visible={showEmployeeModal} transparent animationType="slide">
         <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white p-6 rounded-t-[28px] max-h-[70%] border-t border-gray-600 shadow-2xl">
+          <View 
+            style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+            className="bg-white p-6 rounded-t-[28px] max-h-[70%] border-t border-gray-600 shadow-2xl"
+          >
             <Text className="text-[#12294A] font-bold text-lg mb-4 text-center">Selecionar Profissional</Text>
             
             <TouchableOpacity
@@ -227,6 +231,11 @@ export function DashboardComandasView({
             <FlatList
               data={employees}
               keyExtractor={(item) => item.id!.toString()}
+              ListEmptyComponent={
+                <View className="py-6 items-center">
+                  <Text className="text-gray-400 text-sm">Nenhum profissional cadastrado</Text>
+                </View>
+              }
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {

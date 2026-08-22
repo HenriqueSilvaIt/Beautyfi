@@ -14,6 +14,7 @@ import {
   UpdateUserSignupInterface,
   UserChangePasswordInterface,
   UserInterface,
+  UserProps,
 } from "@/shared/interfaces/user";
 import { appleAuth, googleAuth } from "@/shared/services/auth.service";
 import { queryClient } from "../../../../queryClient";
@@ -40,11 +41,17 @@ export const userKeys = {
   detail: (userId: number | string) => [...userKeys.all, userId] as const,
 };
 export function useUserLoggedQuery(options?: UserLoggedQueryOptions) {
-  const { access_token, hasHydrated } = useUserStore();
+  const { access_token, hasHydrated, setUser } = useUserStore();
 
   return useQuery({
     queryKey: userKeys.all,
-    queryFn: getUserLogged,
+    queryFn: async () => {
+      const data = await getUserLogged();
+      if (data) {
+        setUser(data);
+      }
+      return data;
+    },
     enabled: hasHydrated && !!access_token,
     staleTime: 0,
     refetchOnWindowFocus: false, // não refaz consulta ao voltar para a tela
@@ -59,6 +66,8 @@ export function useUserLogged() {
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(userKeys.all, updatedUser);
       queryClient.setQueryData(["user-logged"], updatedUser);
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["user-logged"] });
     },
   });
 
@@ -84,13 +93,16 @@ export function useUserUserUpdatePreferences() {
 }
 
 export function useUserCompleteSignupMutation() {
+  const setUser = useUserStore((state) => state.setUser);
   const userCompleteSignupMutation = useMutation({
     mutationFn: (data: UpdateUserSignupInterface) => userCompleteSignup(data),
 
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(["user-logged"], updatedUser);
-
       queryClient.setQueryData(userKeys.all, updatedUser);
+      if (updatedUser) {
+        setUser(updatedUser as UserProps);
+      }
     },
   });
   return {

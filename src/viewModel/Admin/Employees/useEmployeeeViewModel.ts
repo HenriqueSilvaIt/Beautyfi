@@ -101,18 +101,23 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
       const { name, email, password, description, avatarUrl, phone } =
         employeeData;
 
+      const updatePayload: EmployeeInterface = {
+        name,
+        email,
+        description,
+        avatarUrl,
+        phone: unmask(phone ?? ""),
+        services: employeeData.services ?? [],
+        schedule: employeeData.schedule ?? [],
+      };
+
+      if (password && password.trim().length > 0) {
+        updatePayload.password = password.trim();
+      }
+
       const response = await employeeUpdateMutation.mutateAsync({
         employeeId: employeeId,
-        data: {
-          name,
-          email,
-          password,
-          description,
-          avatarUrl,
-          phone: unmask(phone ?? ""),
-          services: employeeData.services ?? [],
-          schedule: employeeData.schedule ?? [],
-        },
+        data: updatePayload,
       });
 
       const updatedItem: EmployeeInterface = response;
@@ -173,13 +178,16 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
       const payload: EmployeeInterface = {
         name: employeeData.name,
         email: employeeData.email,
-        password: employeeData.password ?? "",
         description: employeeData.description,
         avatarUrl: employeeData.avatarUrl,
         schedule: employeeData.schedule,
         services: employeeData.services,
         phone: unmask(employeeData.phone ?? ""),
       };
+
+      if (employeeData.password && employeeData.password.trim().length > 0) {
+        payload.password = employeeData.password.trim();
+      }
 
       let updatedEmployee: EmployeeInterface | undefined;
 
@@ -319,7 +327,7 @@ export function useEmployeeViewModel(employeeId: number | undefined) {
       reset({
         name: employeeContent.name,
         email: employeeEmail || employeeContent.email,
-        password: employeeContent.password,
+        password: "",
         description: employeeContent.description,
         avatarUrl: avatarUri ?? employeeContent.avatarUrl,
         phone: employeeContent.phone ? maskPhone(employeeContent.phone) : "",

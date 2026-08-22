@@ -14,27 +14,34 @@ import { STRIPE_PUBLIC_KEY_PROD } from "@env";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 export default function RootLayout() {
-
   useNotifications();
   useOneSignal();
+
+  const stripeKey = STRIPE_PUBLIC_KEY_PROD || "";
 
   return (
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StripeProvider
-            publishableKey={STRIPE_PUBLIC_KEY_PROD}
+            publishableKey={stripeKey}
             merchantIdentifier="merchant.com.henoliver.dompalaganiapp"
           >
             <SnackbarContextProvider>
               <BottomSheetProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(public)" />
-                    <Stack.Screen name="(private)" />
-                  </Stack>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(public)" />
+                  <Stack.Screen name="(private)" />
+                </Stack>
               </BottomSheetProvider>
               <Snackbar />
             </SnackbarContextProvider>

@@ -14,9 +14,12 @@ export function ClientView({
   handleSelectAvatar,
   avatarUri,
   clientId,
+  clientAllowWhatsAppNotification,
+  setClientAllowWhatsAppNotification,
+  handleToggleAllowWhatAppMessage,
   onClientDelete,
+  clientLoyaltyPointsData,
 }: ReturnType<typeof useClientViewModel>) {
-
   return (
     <>
       <KeyboardContainer>
@@ -34,18 +37,23 @@ export function ClientView({
             clientContent={clientContent}
             onDelete={onClientDelete}
             title="cliente"
+            clientAllowWhatsAppNotification={clientAllowWhatsAppNotification}
+            setClientAllowWhatsAppNotification={setClientAllowWhatsAppNotification}
+            handleToggleAllowWhatAppMessage={handleToggleAllowWhatAppMessage}
+            clientLoyaltyPointsData={clientLoyaltyPointsData}
             fields={[
               {
                 name: "name",
                 label: "Nome do Cliente",
                 leftIcon: "person",
                 placeholder: "Digite o nome",
+                type: "client",
               },
               {
                 name: "email",
                 label: "E-mail (opcional)",
                 leftIcon: "mail-outline",
-                placeholder: "mail@mail.com"
+                placeholder: "mail@mail.com",
               },
               {
                 name: "birthDate",

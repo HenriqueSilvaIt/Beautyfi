@@ -2,18 +2,15 @@ import { Resolver, useForm } from "react-hook-form";
 import { RegisterFormData, registerScheme } from "./register.scheme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRegisterMutation } from "../../shared/queries/auth/use-register.mutation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback,  useState } from "react";
 import { useMask } from "@/shared/hooks/useMask";
 import { useFocusEffect } from "expo-router";
-import { COMPANY_ID } from "@env";
 import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 
 export function useRegisterViewModel() {
-  const COMPANY_ID_NUMBER = Number(COMPANY_ID)
-    ? Number(COMPANY_ID)
-    : (Number(process.env.EXPO_PUBLIC_COMPANY_ID) ?? 0);
+
 
   const userRegisterMutation = useRegisterMutation();
   const { handleError } = useErrorHandler();
@@ -31,7 +28,6 @@ export function useRegisterViewModel() {
       registerScheme,
     ),
     defaultValues: {
-      companyId: COMPANY_ID_NUMBER,
       firstName: "",
       email: "",
       password: "",
@@ -65,7 +61,6 @@ export function useRegisterViewModel() {
 useFocusEffect(
   useCallback(() => {
     reset({
-      companyId: COMPANY_ID_NUMBER,
       email: "",
       firstName: "",
       password: "",

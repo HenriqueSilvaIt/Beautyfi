@@ -2,20 +2,24 @@ import * as yup from "yup";
 
 export const serviceScheme = yup.object({
   name: yup.string().required("Nome do serviço é obrigatório"),
-  price: yup.string().min(0, "O valor deve ser maior que  R$ 0.0").required("É obrigatório informar o preço"),
-  commissionServiceFee: yup.string().min(0, "O valor deve ser maior que  R$ 0.0").optional(),
-  description: yup.string().optional(),
+  price: yup.string().required("É obrigatório informar o preço"),
+  commissionServiceFee: yup.string().optional().nullable(),
+  description: yup.string().optional().nullable(),
   priceDescription: yup.string().optional().nullable(),
-  imgUrl: yup.string().optional(),
-  duration: yup.string().required(),  
+  imgUrl: yup.string().optional().nullable(),
+  requiresDeposit: yup.boolean().optional(),
+  depositType: yup.string().optional().nullable(),
+  depositAmount: yup.string().optional().nullable(),
+  noShowFee: yup.string().optional().nullable(),
+  duration: yup.string().optional().nullable(),  
   employees: yup
       .array()
       .of(
         yup.object({
-          id: yup.number().required("Necessário o id do serviço").optional(),
+          id: yup.number().optional(),
         }),
       )
-      .optional(),
+      .optional().nullable(),
 });
 
 

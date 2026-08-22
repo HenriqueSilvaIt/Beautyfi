@@ -27,16 +27,18 @@ import { useStripe } from "@stripe/stripe-react-native";
 import { useStripeMutation } from "@/shared/queries/stripe/use-stripe-mutataion";
 import {
   ESubscriptionState,
+  PaymentIntentDTO,
   PaymentIntentParam,
 } from "@/shared/interfaces/http/stripe";
-import { useAdvertisementMutation } from "@/shared/queries/company/use-advertisement.mutation";
 import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
+import { useCompanyServicesMutation } from "@/shared/queries/company/use-company-services.mutation";
 import { useWaitListMutation } from "@/shared/queries/company/use-waitlist.mutation";
 import { getEmployeesByServiceId } from "@/shared/services/employee.service";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "../../../queryClient";
 
-export function useScheduleViewModel(serviceIds: number[]) {
+export function useScheduleViewModel(serviceIds: number[], companyId?: number) {
     const [serviceIdList, setServiceIdList] = useState<number[]>(() => serviceIds);
 
   const [services, setServices] = useState<CompanyServicesProps>();
@@ -76,12 +78,14 @@ export function useScheduleViewModel(serviceIds: number[]) {
     services: serviceIdList.map((id) => ({ serviceId: id })),
     status: bookingStatus,
     employeeId: employeeId,
+    companyId: companyId,
   });
 
   const data: AvailableAppointmentsHttpParams = {
     date: dateBooking,
     employeeId: employeeId,
     serviceIds: serviceIdList,
+    companyId: companyId,
   };
 
   const [confirmationMessage, setConfirmationMessage] =
@@ -106,6 +110,7 @@ export function useScheduleViewModel(serviceIds: number[]) {
     employeeId: null,
     serviceIds: serviceIdList.length > 0 ? serviceIdList : serviceIds, // fallback para prop
     date: dateBooking,
+    companyId: companyId,
   });
   const { refetch: appointmentSheduledRefetch } = useGetAppointmentMutation();
   const availableAppointments = useMemo(() => {
@@ -147,28 +152,43 @@ export function useScheduleViewModel(serviceIds: number[]) {
   const { paymentIntentMutation } = useStripeMutation();
 const { getCompanyByIdMutation } = useCompanyDetailsMutation();
 
-  async function handlePaymentIntent(dataBody: PaymentIntentParam) {
-    const amountCaculated = dataBody.amount * 100;
+  async function handlePaymentIntent(dataBody: PaymentIntentParam): Promise<PaymentIntentDTO> {
+    const amountCaculated = Math.round(dataBody.amount * 100);
     const response = await paymentIntentMutation.mutateAsync({
-      customerId: "cus_U9JOBIf4GXihBt",
+      customerId: user?.stripeCustomerId || "",
       amount: amountCaculated,
       productName: dataBody.productName,
       productId: dataBody.productId,
+      companyId: dataBody.companyId,
     });
+
+    // Se o backend retornou QR Code/Copia e Cola do PIX diretamente
+    if (response.pixCopiaECola || response.pixQrCodeUrl) {
+      return response;
+    }
 
     const clientSecret = response.clientSecret;
 
-    const { error } = await initPaymentSheet({
+    const { error: initError } = await initPaymentSheet({
       paymentIntentClientSecret: clientSecret,
-      merchantDisplayName: "Dom Palagani",
+      merchantDisplayName: "Beautyfi",
+      allowsDelayedPaymentMethods: true,
+      returnURL: "beautyfi://stripe-redirect",
     });
 
-    if (error) {
-      console.log(error);
-      return;
+    if (initError) {
+      console.log("Erro ao inicializar PaymentSheet:", initError);
+      throw new Error(initError.message || "Erro ao iniciar tela de pagamento.");
     }
 
-    await presentPaymentSheet();
+    const { error: presentError } = await presentPaymentSheet();
+
+    if (presentError) {
+      console.log("Pagamento do sinal não concluído:", presentError);
+      throw new Error(presentError.message || "Pagamento do sinal cancelado ou não concluído.");
+    }
+
+    return response;
   }
 
   const uniqueEmployees = Array.from(
@@ -302,6 +322,7 @@ const { getCompanyByIdMutation } = useCompanyDetailsMutation();
         status: AppointmentStatus.SCHEDULED,
         employeeId: resolvedEmployeeId,
         usingSubscription: mySubscriptionIsActive,
+        companyId: companyId,
       };
 
       setDataBody(payload);
@@ -473,6 +494,11 @@ await continuarCreate(true);
 
       const data = await createBookingMutation.mutateAsync(dataBody);
 
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await queryClient.refetchQueries({ queryKey: ["appointments"] });
+      await queryClient.invalidateQueries({ queryKey: ["available-appointments"] });
+      await queryClient.invalidateQueries({ queryKey: ["agenda"] });
+
       setIsCreated(true);
 
       notify({
@@ -516,13 +542,28 @@ await continuarCreate(true);
     });
   }, [availableAppointments, employeeId, dateBooking]);
 
+  const { useGetServiceAvailableInAppMutation } = useCompanyServicesMutation();
+  const { data: companyServicesData } = useGetServiceAvailableInAppMutation(companyId);
+
   const serviceCheckIn = useMemo(() => {
-    return Array.from(
-      new Map(
-        hoursForEmployee.flatMap((item) => item.service).map((e) => [e.id, e]),
-      ).values(),
-    );
-  }, [hoursForEmployee]);
+    const allCompanyServices = companyServicesData?.pages.flatMap((page) => page.content ?? []) ?? [];
+    const slotServices = hoursForEmployee.flatMap((item) => item.service ?? []);
+
+    const map = new Map<number, CompanyServicesProps>();
+
+    for (const s of allCompanyServices) {
+      if (s.id && serviceIdList.includes(s.id)) {
+        map.set(s.id, s as any);
+      }
+    }
+    for (const s of slotServices) {
+      if (s.id && serviceIdList.includes(s.id) && !map.has(s.id)) {
+        map.set(s.id, s as any);
+      }
+    }
+
+    return Array.from(map.values());
+  }, [companyServicesData, hoursForEmployee, serviceIdList]);
 
   /*  useEffect(() => {
     if (!dateBooking || !bodyServiceId) return;

@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Linking,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -14,6 +15,45 @@ import { Image as ExpoImage } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { router } from "expo-router";
+
+function PartnerRegistrationCard() {
+  const handleOpenPartnerContact = () => {
+    Linking.openURL("https://www.beautyfi.com.br").catch(() => {});
+  };
+
+  return (
+    <View className="bg-[#092D5D] rounded-3xl border border-[#CBA35D]/40 p-6 my-4 overflow-hidden relative shadow-md">
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center gap-2 bg-[#CBA35D]/20 px-3 py-1 rounded-full border border-[#CBA35D]/40">
+          <Ionicons name="sparkles" size={14} color="#CBA35D" />
+          <Text className="text-[#CBA35D] text-xs font-bold uppercase tracking-wider">
+            Seja um Parceiro
+          </Text>
+        </View>
+        <Ionicons name="storefront-outline" size={28} color="#CBA35D" />
+      </View>
+
+      <Text className="text-white text-xl font-black mb-2">
+        Tem um Salão ou Barbearia?
+      </Text>
+
+      <Text className="text-gray-300 text-xs leading-5 mb-5">
+        Cadastre seu estabelecimento no Beautyfi! Tenha agendamentos 24/7, lembretes automáticos e receba pagamentos via PIX diretamente no seu banco.
+      </Text>
+
+      <TouchableOpacity
+        onPress={handleOpenPartnerContact}
+        activeOpacity={0.85}
+        className="bg-[#CBA35D] py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm"
+      >
+        <Ionicons name="globe-outline" size={18} color="#092D5D" />
+        <Text className="text-[#092D5D] font-extrabold text-xs uppercase tracking-wide">
+          Cadastrar Meu Estabelecimento
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
 import user from "@/app/(private)/(tabs)/(client-tabs)/(menu)/user";
@@ -79,7 +119,7 @@ function CompanyImageCarousel({
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
 
   return (
-    <View style={{ height: 160, width: "100%", position: "relative" }}>
+    <View style={{ height: 210, width: "100%", position: "relative" }}>
       <FlatList
         data={images}
         horizontal
@@ -92,7 +132,7 @@ function CompanyImageCarousel({
         keyExtractor={(img, index) => `${companyId}-img-${index}`}
         renderItem={({ item: img, index }) => (
           <TouchableOpacity activeOpacity={0.9} onPress={onCardPress}>
-            <View style={{ width: cardWidth, height: 160 }}>
+            <View style={{ width: cardWidth, height: 210 }}>
               {!loaded[index] && (
                 <Skeleton
                   style={{
@@ -100,13 +140,13 @@ function CompanyImageCarousel({
                     top: 0,
                     left: 0,
                     width: cardWidth,
-                    height: 160,
+                    height: 210,
                   }}
                 />
               )}
               <ExpoImage
                 source={{ uri: img }}
-                style={{ width: cardWidth, height: 160 }}
+                style={{ width: cardWidth, height: 210 }}
                 contentFit="cover"
                 transition={250}
                 placeholder={{ blurhash: BLURHASH }}
@@ -200,7 +240,7 @@ export function AppCardCompany({
       return (
         <View className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
           {/* Cover Carousel */}
-          <View style={{ height: 160, width: "100%", position: "relative" }}>
+          <View style={{ height: 210, width: "100%", position: "relative" }}>
             {images.length > 0 ? (
               <CompanyImageCarousel
                 images={images}
@@ -214,7 +254,7 @@ export function AppCardCompany({
               >
                 <ExpoImage
                   source={require("@assets/images/cort.png")}
-                  style={{ width: "100%", height: 160 }}
+                  style={{ width: "100%", height: 210 }}
                   contentFit="cover"
                   transition={200}
                 />
@@ -368,7 +408,10 @@ export function AppCardCompany({
           flexGrow: 1,
         }}
         ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator className="my-4" /> : null
+          <View>
+            {isFetchingNextPage && <ActivityIndicator className="my-4" color="#092D5D" />}
+            <PartnerRegistrationCard />
+          </View>
         }
         renderItem={renderItem}
         // ⚡ performance da lista

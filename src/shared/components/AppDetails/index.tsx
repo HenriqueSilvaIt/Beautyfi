@@ -19,6 +19,7 @@ import { AdvertisementInterface } from "@/shared/interfaces/http/advertisement";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { StripePlanDTO } from "@/shared/interfaces/http/stripe";
 import { usePlanStore } from "@/shared/store/plan-store";
+import { AppToggle } from "../AppToggle";
 
 interface AppDetailsItemBase {
   title: string;
@@ -44,6 +45,7 @@ interface AppDetailsField<T extends FieldValues> {
     | "employee"
     | "date"
     | "url"
+    | "client"
     | "service"
     | "product"
     | "subscription-details";
@@ -83,6 +85,17 @@ interface AppDetailsProps<T extends FieldValues> {
   availableInApp?: boolean;
   setAvailableInApp?: Dispatch<SetStateAction<boolean>>;
   handleToggleAvailableInApp?: () => void;
+
+  clientAllowWhatsAppNotification?: boolean;
+  setClientAllowWhatsAppNotification?: Dispatch<SetStateAction<boolean>>;
+  handleToggleAllowWhatAppMessage?: () => void;
+
+  clientLoyaltyPointsData?: any;
+
+  requiresDeposit?: boolean;
+  handleToggleRequiresDeposit?: () => void;
+  depositType?: "PERCENTAGE" | "FIXED";
+  setDepositType?: Dispatch<SetStateAction<"PERCENTAGE" | "FIXED">>;
 }
 
 export default function AppDetails<T extends FieldValues>({
@@ -109,7 +122,15 @@ export default function AppDetails<T extends FieldValues>({
   onDelete,
   handleToggleAvailableInApp,
   availableInApp,
-  setAvailableInApp,
+  setAvailableInApp, 
+  clientAllowWhatsAppNotification,
+  setClientAllowWhatsAppNotification,
+  handleToggleAllowWhatAppMessage,
+  clientLoyaltyPointsData,
+  requiresDeposit,
+  handleToggleRequiresDeposit,
+  depositType,
+  setDepositType,
 }: AppDetailsProps<T>) {
   const [modalVisible, setModalVisible] = useState(false);
   const setPlanId = usePlanStore((state) => state.setPlanId);
@@ -141,6 +162,8 @@ export default function AppDetails<T extends FieldValues>({
     (field) => field.type === "service" || field.type === "product",
   );
 
+  const clientFields = fields.filter((field) => field.type === "client");
+
   const subscriptionDetailsFields = fields.filter(
     (field) => field.type === "subscription-details",
   );
@@ -166,6 +189,8 @@ export default function AppDetails<T extends FieldValues>({
         return maskMoneyBR;
       case "amount":
         return maskMoneyBR;
+      case "depositAmount":
+        return depositType === "PERCENTAGE" ? (text: string) => text.replace(/[^\d]/g, "") : maskMoneyBR;
       case "cutsAllowed":
         return (text: string) => text.replace(/[^\d]/g, "");
       case "quantity":
@@ -238,7 +263,9 @@ export default function AppDetails<T extends FieldValues>({
             }
             className="w-full bg-background-tertiary justify-center rounded-md  h-[40px] mb-5 "
           >
-            <Text className="text-font-primary text-center">Associar serviços</Text>
+            <Text className="text-font-primary text-center">
+              Associar serviços
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -289,34 +316,170 @@ export default function AppDetails<T extends FieldValues>({
           </TouchableOpacity>
         )}
 
-        {availability.length > 0  &&  (
-          <View className="mb-5 rounded-2xl border border-zinc-800 bg-background-tertiary p-4">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 pr-3">
-                <Text
-                  className={`text-base font-semibold ${availableInApp ? "text-app-theme-primary" : "text-font-primary"}`}
-                >
-                  Disponível na vitrine
-                </Text>
-                <Text className="mt-1 text-sm text-gray-500">
-                  {availableInApp
-                    ? "Este item ficará visível na vitrine do app."
-                    : "Este item ficará oculto na vitrine do app."}
+        {availability.length > 0 && title?.toLowerCase() !== "cliente" && (
+          <AppToggle
+            value={availableInApp ?? false}
+            onValueChange={() => handleToggleAvailableInApp?.()}
+            textTrue="Este item ficará visível na vitrine do app."
+            textFalse="Este item ficará oculto na vitrine do app."
+            title="Disponível na vitrine"
+          />
+        )}
+        {(clientFields.length > 0 || title?.toLowerCase() === "cliente" || !!clientContent) && (
+          <View className="mb-6 gap-4">
+            {/* Card Último Agendamento */}
+            <View className="bg-background-quartenary p-4 rounded-2xl border border-white/5">
+              <View className="flex-row items-center gap-2 mb-2">
+                <Ionicons name="calendar-outline" size={20} color="#CBA35D" />
+                <Text className="text-font-primary text-sm font-bold">
+                  Último Agendamento
                 </Text>
               </View>
-              <Switch
-                value={availableInApp ?? false}
-                onValueChange={() => handleToggleAvailableInApp?.()} // ✅ optional chaining
-                thumbColor={
-                  availableInApp ? colors["app-theme-primary"] : colors.white
-                }
-                trackColor={{
-                  false: colors.gray[800],
-                  true: colors["app-theme-primary-light"],
-                }}
-                ios_backgroundColor={colors.gray[800]}
-              />
+              {clientContent?.lastAppointmentDate ? (
+                <View className="bg-background-tertiary p-3 rounded-xl border border-white/5">
+                  <Text className="text-accent-gold font-bold text-sm">
+                    {clientContent.lastAppointmentService || "Serviço realizado"}
+                  </Text>
+                  <Text className="text-font-secondary text-xs mt-1">
+                    📅 {clientContent.lastAppointmentDate.includes("T") ? clientContent.lastAppointmentDate.split("T")[0].split("-").reverse().join("/") + " às " + clientContent.lastAppointmentDate.split("T")[1].substring(0, 5) : clientContent.lastAppointmentDate}
+                  </Text>
+                </View>
+              ) : (
+                <View className="bg-background-tertiary p-3 rounded-xl border border-white/5 items-center">
+                  <Text className="text-font-secondary text-xs italic">
+                    Sem agendamento registrado
+                  </Text>
+                </View>
+              )}
             </View>
+
+            {/* Card Programa de Fidelidade */}
+            <View className="bg-background-quartenary p-4 rounded-2xl border border-white/5 flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="w-10 h-10 rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                  <Ionicons name="trophy" size={20} color="#CBA35D" />
+                </View>
+                <View>
+                  <Text className="text-font-primary text-sm font-bold">
+                    Programa de Fidelidade
+                  </Text>
+                  <Text className="text-font-secondary text-xs">
+                    Pontos acumulados pelo cliente
+                  </Text>
+                </View>
+              </View>
+              <View className="px-3 py-1.5 rounded-xl bg-[#CBA35D]/20 border border-[#CBA35D]/40">
+                <Text className="text-[#CBA35D] font-black text-sm">
+                  {clientLoyaltyPointsData?.pointsBalance ?? clientContent?.loyaltyPoints ?? 0} pts
+                </Text>
+              </View>
+            </View>
+
+            {/* Card Ficha de Anamnese */}
+            {isEditMode && id && (
+              <TouchableOpacity
+                onPress={() => safePush(`/(private)/(crud)/clients/anamnesis/${id}`)}
+                activeOpacity={0.8}
+                className="bg-background-quartenary p-4 rounded-2xl border border-white/5 flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-10 h-10 rounded-full bg-purple-500/20 items-center justify-center border border-purple-500/40">
+                    <Ionicons name="clipboard" size={20} color="#a855f7" />
+                  </View>
+                  <View>
+                    <Text className="text-font-primary text-sm font-bold">
+                      Ficha de Anamnese
+                    </Text>
+                    <Text className="text-font-secondary text-xs">
+                      {clientContent?.anamnesis?.allergies || clientContent?.anamnesis?.skinHairType || clientContent?.anamnesis?.observations
+                        ? "Ver e editar histórico de saúde / alergias"
+                        : "Clique para preencher a anamnese do cliente"}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBA35D" />
+              </TouchableOpacity>
+            )}
+
+            <AppToggle
+              value={clientAllowWhatsAppNotification ?? false}
+              onValueChange={() => handleToggleAllowWhatAppMessage?.()}
+              textTrue="O cliente receberá notificações via WhatsApp (Aceitou receber)."
+              textFalse="O cliente não receberá notificações via WhatsApp."
+              title="Permitir Notificações via WhatsApp"
+            />
+          </View>
+        )}
+
+        {requiresDeposit !== undefined && (
+          <View className="mb-4">
+            <AppToggle
+              value={requiresDeposit ?? false}
+              onValueChange={() => handleToggleRequiresDeposit?.()}
+              textTrue="O cliente pagará o sinal via PIX para garantir o agendamento."
+              textFalse="Sem exigência de pagamento prévio de sinal."
+              title="Cobrar Sinal (Prevenção de No-Show)"
+            />
+
+            {requiresDeposit && (
+              <View className="bg-background-tertiary p-4 rounded-xl mb-4 gap-3 border border-white/10">
+                <Text className="text-font-primary text-xs font-bold uppercase tracking-wider">
+                  Tipo do Valor do Sinal
+                </Text>
+
+                <View className="flex-row bg-background-primary rounded-xl p-1 gap-2 border border-white/10">
+                  <TouchableOpacity
+                    onPress={() => setDepositType?.("FIXED")}
+                    activeOpacity={0.8}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      borderRadius: 10,
+                      alignItems: "center",
+                      backgroundColor: depositType === "FIXED" ? "#CBA35D" : "#27272A",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "700",
+                        color: depositType === "FIXED" ? "#FFFFFF" : "#A1A1AA",
+                      }}
+                    >
+                      R$ Valor Fixo
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setDepositType?.("PERCENTAGE")}
+                    activeOpacity={0.8}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      borderRadius: 10,
+                      alignItems: "center",
+                      backgroundColor: depositType === "PERCENTAGE" ? "#CBA35D" : "#27272A",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "700",
+                        color: depositType === "PERCENTAGE" ? "#FFFFFF" : "#A1A1AA",
+                      }}
+                    >
+                      % Porcentagem
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View className="flex-row items-center gap-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 mt-1">
+                  <Text className="text-amber-400 text-xs flex-1 leading-4">
+                    💡 <Text className="font-bold">Prevenção de No-Show:</Text> O sinal será cobrado via PIX no checkout da reserva. Em caso de falta (não comparecimento), o valor do sinal cobrado cobre os custos do profissional.
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         )}
 

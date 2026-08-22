@@ -9,6 +9,7 @@ export enum AppointmentStatus {
   SCHEDULED = "SCHEDULED",
   CONFIRMED = "CONFIRMED",
   CANCELED = "CANCELED",
+  NO_SHOW = "NO_SHOW",
 }
 
 export enum EAppointmentType {
@@ -44,6 +45,8 @@ export interface AppointmentProps {
   orderNumber?: string;
   orderStatus?: EOrderStatus;
   usingSubscription?: boolean;
+  confirmationSent?: boolean;
+  reminderSent?: boolean;
 }
 
 export interface AppointmentServicesHttpParams {
@@ -76,6 +79,7 @@ export interface AppointmentHttpParams {
   schedulingFitIn?: boolean;
   usingSubscription?: boolean;
   client?: ClientInterface;
+  companyId?: number;
 }
 
 export interface AppointmentUpdateHttpParams {

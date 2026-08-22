@@ -43,9 +43,15 @@ export const useUserStore = create<UserStore>()(
         });
       },
       setUser: (value) =>
-        set((state) => ({
-          user: typeof value === "function" ? value(state.user) : value,
-        })),
+        set((state) => {
+          const newUser = typeof value === "function" ? value(state.user) : value;
+          if (newUser?.companyId) {
+            import("./company-store").then(({ useCompanyStore }) => {
+              useCompanyStore.getState().setSelectedCompanyId(newUser.companyId!);
+            }).catch(() => {});
+          }
+          return { user: newUser };
+        }),
       updateTokens: (data) => {
         set({
           access_token: data.access_token,
@@ -61,7 +67,10 @@ setAuthReady: (value: boolean) => set({ authReady: value }),
           access_token: null,
           token_type: null,
           expires_in: null,
+          authReady: false,
+          hasHydrated: true,
         });
+        AsyncStorage.removeItem("style-auth").catch(() => {});
       },
       hasHydrated: false,
       setHasHydated: (value) => set({ hasHydrated: value }),
@@ -72,6 +81,11 @@ setAuthReady: (value: boolean) => set({ authReady: value }),
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydated(true);
+        if (state?.user?.companyId) {
+          import("./company-store").then(({ useCompanyStore }) => {
+            useCompanyStore.getState().setSelectedCompanyId(state.user.companyId!);
+          }).catch(() => {});
+        }
       },
     },
   ),

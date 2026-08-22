@@ -5,6 +5,7 @@ import {
   getClients,
   postClients,
   updateClients,
+  updateClientAnamnesis,
 } from "@/shared/services/client.service";
 import { ClientInterface } from "@/shared/interfaces/http/client";
 import { queryClient } from "../../../../queryClient";
@@ -96,11 +97,24 @@ export function useClientMutation() {
     },
   });
 
+  const clientAnamnesisUpdateMutation = useMutation({
+    mutationFn: ({ clientId, anamnesisData }: { clientId: number; anamnesisData: any }) =>
+      updateClientAnamnesis(clientId, anamnesisData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.clientId) });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   return {
     clientPostMutation,
     useGetClientById,
     useGetClientMutation,
     clientDeleteByIdMutation,
     clientUpdateMutation,
+    clientAnamnesisUpdateMutation,
   };
 }

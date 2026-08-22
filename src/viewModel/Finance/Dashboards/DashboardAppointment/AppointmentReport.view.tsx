@@ -74,6 +74,8 @@ export function AppointmentReportView({
   selectedBar,
   setSelectedBar,
   highlightValue,
+  periodTotalCount,
+  selectedMonthLabel,
   barData,
   maxBarValue,
   appointmentsList,
@@ -112,7 +114,7 @@ export function AppointmentReportView({
   };
 
   return (
-        <SafeAreaView className="flex-1 bg-background-primary px-4">
+    <SafeAreaView className="flex-1 bg-background-primary px-4">
       {/* Header */}
       <AppAdminHeader
         title="Relatório de Agendamentos"
@@ -121,8 +123,20 @@ export function AppointmentReportView({
 
       {/* KPI Card */}
       <View className="mt-4 bg-background-quartenary p-5 rounded-xl border border-gray-700">
-        <Text className="text-app-theme-primary text-sm mb-1 font-semibold uppercase">Total de Agendamentos</Text>
-        <Text className="text-font-primary text-5xl font-bold">{highlightValue}</Text>
+        <Text className="text-app-theme-primary text-xs mb-1 font-bold uppercase tracking-wider">
+          {selectedMonthLabel ? `Total de Agendamentos (${selectedMonthLabel})` : "Total de Agendamentos no Período"}
+        </Text>
+        <Text className="text-font-primary text-5xl font-black mb-1">
+          {selectedBar !== null ? highlightValue : periodTotalCount}
+        </Text>
+        {selectedMonthLabel && (
+          <View className="flex-row items-center gap-1.5 mt-1 bg-background-tertiary px-3 py-1.5 rounded-lg border border-slate-800 self-start">
+            <Text className="text-gray-400 text-xs font-medium">Total no Período:</Text>
+            <Text className="text-app-theme-primary font-bold text-xs">
+              {periodTotalCount} agendamentos
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Gráfico Estilo Nubank (Pure Views) */}

@@ -122,7 +122,7 @@ export function ServiceEmployeesView() {
               activeOpacity={0.8}
               className="px-6 py-2 rounded-md bg-app-theme-primary items-center justify-center"
             >
-              <Text className="text-font-primary text-center text-base font-bold">
+              <Text className="text-font-secundary text-center text-base font-bold">
                 Voltar
               </Text>
             </TouchableOpacity>

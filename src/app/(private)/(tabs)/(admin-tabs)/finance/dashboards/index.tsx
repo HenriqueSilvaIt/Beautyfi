@@ -75,6 +75,21 @@ export default function DashboardPage() {
           >
             Relatório de Agendamentos
           </AppButton>
+
+          <AppButton
+            className=""
+            leftIcon="pie-chart-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Gráfico de pizza comparativo de entradas (comandas/serviços) e saídas"
+            onPress={() =>
+              safePush("/(private)/(tabs)/(admin-tabs)/finance/dashboards/cash-flow-report")
+            }
+          >
+            Relatório de Fluxo de Caixa (Entradas vs Saídas)
+          </AppButton>
         </View>
     </SafeAreaView>
   );

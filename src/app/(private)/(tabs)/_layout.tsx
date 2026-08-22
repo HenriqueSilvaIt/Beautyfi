@@ -21,12 +21,12 @@ export default function TabsLayout() {
               <Ionicons name="lock-closed" size={32} color="#CBA35D" />
             </View>
             <Text style={styles.paywallTitle}>Período de Teste Expirado</Text>
-            <Text style={styles.paywallText}>Seus 30 dias de acesso gratuito ao Beautyfi terminaram. Para reativar seu painel e continuar utilizando o app, escolha um plano de assinatura.</Text>
+            <Text style={styles.paywallText}>Seus 14 dias de acesso gratuito ao Beautyfi terminaram. Para reativar seu painel e continuar utilizando o app, escolha um plano de assinatura.</Text>
             
             <TouchableOpacity
               style={styles.paywallBtn}
               activeOpacity={0.8}
-              onPress={() => Linking.openURL("http://10.0.2.2:3000/#pricing")}
+              onPress={() => Linking.openURL("https://painel.beautyfi.com.br")}
             >
               <Text style={styles.paywallBtnText}>Escolher Plano</Text>
             </TouchableOpacity>

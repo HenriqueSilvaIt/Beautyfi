@@ -116,6 +116,8 @@ export interface OrderItemsInterface {
   name: string;
   commissionAtMomen: number;
   usingSubscription?: boolean;
+  requiresDeposit?: boolean;
+  depositAmount?: number;
   
   price: number;
   quantity: number;
@@ -148,6 +150,8 @@ export interface OrderInterface {
   totalEmployeeDiscount?: number;
   totalSubscription?: number;
   cardFeeAmount?: number;
+  totalDepositPaid?: number;
+  remainingAmountToPay?: number;
 }
 
 export interface OrderHttpResponse {

@@ -30,9 +30,11 @@ export interface CompanyInterface {
   logoUrl?: string;
   address: string;
   phone: string;
+  stripeAccountId?: string;
   rating?: number;
   reviewsCount?: number;
   imagesUrl?: string;
+  portfolioImagesUrl?: string;
   services?: any[];
   companyCategories?: any[];
   latitude?: number;
@@ -42,6 +44,12 @@ export interface CompanyInterface {
   reminderMinutesBefore?: number;
   bookingConfirmationEnabled?: boolean;
   type?: "MULTI_TENANT" | "WHITE_LABEL";
+  loyaltyActive?: boolean;
+  loyaltyPointsPerReal?: number;
+  loyaltyMinPoints?: number;
+  loyaltyRewardValue?: number;
+  loyaltyRewardDescription?: string;
+  loyaltyRuleDescription?: string;
   createdAt?: string;
   updatedAt?: string;
   subdomain?: string;
@@ -55,12 +63,15 @@ export interface CompanyProps {
   logoUrl: string;
   address: string;
   phone: string;
+  stripeAccountId?: string;
   openingHourDTOS: OpeningHourProps[];
   socialMediaDTOS: SocialMediaDTOS[];
   paymentMethodDTOS: PaymentMethodDTOS[];
+  employees?: any[];
   rating?: number;
   reviewsCount?: number;
   imagesUrl?: string;
+  portfolioImagesUrl?: string;
   services?: any[];
   latitude?: number;
   longitude?: number;
@@ -73,6 +84,12 @@ export interface CompanyProps {
   reminderMinutesBefore?: number;
   bookingConfirmationEnabled?: boolean;
   type?: "MULTI_TENANT" | "WHITE_LABEL";
+  loyaltyActive?: boolean;
+  loyaltyPointsPerReal?: number;
+  loyaltyMinPoints?: number;
+  loyaltyRewardValue?: number;
+  loyaltyRewardDescription?: string;
+  loyaltyRuleDescription?: string;
 }
 
 export interface CompanyDTO {
@@ -81,6 +98,7 @@ export interface CompanyDTO {
   description: string;
   cnpj: string;
   logoUrl: string;
+  stripeAccountId?: string;
   createdAt?: string;
   updatedAt?: string;
   address: string;
@@ -89,6 +107,7 @@ export interface CompanyDTO {
   rating?: number;
   reviewsCount?: number;
   imagesUrl?: string;
+  portfolioImagesUrl?: string;
   services?: any[];
   companyCategories?: any[];
   latitude?: number;
@@ -98,6 +117,12 @@ export interface CompanyDTO {
   reminderMinutesBefore?: number;
   bookingConfirmationEnabled?: boolean;
   type?: "MULTI_TENANT" | "WHITE_LABEL";
+  loyaltyActive?: boolean;
+  loyaltyPointsPerReal?: number;
+  loyaltyMinPoints?: number;
+  loyaltyRewardValue?: number;
+  loyaltyRewardDescription?: string;
+  loyaltyRuleDescription?: string;
 }
 
 export interface CompanyHttpResponse {

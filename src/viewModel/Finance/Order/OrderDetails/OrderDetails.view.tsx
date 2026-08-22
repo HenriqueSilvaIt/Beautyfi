@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
 import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,12 +26,14 @@ type ListItem =
 export type ButtonProps = {
   id: string;
   label: string;
+  icon: keyof typeof Ionicons.glyphMap;
 };
+
 const buttons: ButtonProps[] = [
-  { id: "1", label: "+ Produto" },
-  { id: "2", label: "+ Serviço" },
-  { id: "4", label: "+ Desconto" },
-  { id: "5", label: "+ Gorjeta" },
+  { id: "1", label: "Produto", icon: "cube-outline" },
+  { id: "2", label: "Serviço", icon: "cut-outline" },
+  { id: "4", label: "Desconto", icon: "pricetag-outline" },
+  { id: "5", label: "Gorjeta", icon: "gift-outline" },
 ];
 
 export function OrderDetailsView({
@@ -60,7 +63,6 @@ export function OrderDetailsView({
   isInstallmentAllowed,
 }: ReturnType<typeof useOrderDetailsViewModel>) {
   const [selectedFilter, setSelectedFilter] = useState("1");
-
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
 
   const serviceItems =
@@ -69,16 +71,14 @@ export function OrderDetailsView({
 
   const productItems =
     order?.items?.filter((item) => item.name && item.price > 0) ?? [];
+
   const combinedItems: ListItem[] = [
     { type: "header", title: "Serviços" },
-
     ...serviceItems.map((item) => ({
       ...item,
       type: "service" as const,
     })),
-
     { type: "header", title: "Produtos" },
-
     ...productItems.map((item) => ({
       ...item,
       type: "product" as const,
@@ -88,15 +88,12 @@ export function OrderDetailsView({
   const actions: Record<string, () => void> = {
     "1": () => {
       if (!order?.id) return;
-
       safePush(
         `/(private)/(tabs)/(admin-tabs)/finance/order/order-details/${order.id}/new-product-item`,
       );
     },
-
     "2": () => {
       if (!order?.id) return;
-
       safePush(
         `/(private)/(tabs)/(admin-tabs)/finance/order/order-details/${order.id}/new-service-item`,
       );
@@ -105,7 +102,30 @@ export function OrderDetailsView({
     "4": () => handleOpenDiscountModal(),
     "5": () => handleOpenTipModal(),
   };
-  // Botões
+
+  // Cálculo do Sinal Pago e Saldo Restante
+  const depositPaid = useMemo(() => {
+    if (order?.totalDepositPaid && order.totalDepositPaid > 0) {
+      return order.totalDepositPaid;
+    }
+    // Fallback calcula dos itens se não vier no objeto pai
+    return (
+      order?.items?.reduce((acc, item) => {
+        if (item.requiresDeposit && item.depositAmount) {
+          return acc + item.depositAmount;
+        }
+        return acc;
+      }, 0) || 0
+    );
+  }, [order]);
+
+  const remainingToPay = useMemo(() => {
+    if (order?.remainingAmountToPay !== undefined && order.remainingAmountToPay >= 0) {
+      return order.remainingAmountToPay;
+    }
+    const total = displayTotal || order?.total || 0;
+    return Math.max(0, total - depositPaid);
+  }, [order, displayTotal, depositPaid]);
 
   const renderButton = ({ item }: { item: ButtonProps }) => (
     <TouchableOpacity
@@ -113,111 +133,121 @@ export function OrderDetailsView({
         setSelectedFilter(item.id);
         actions[item.id]?.();
       }}
-      className={` h-[30px] items-center justify-center rounded-md border border-gray-600 mr-2
-        ${selectedFilter === item.id ? "bg-orange-500" : "bg-gray-700"}`}
+      activeOpacity={0.85}
+      className={`flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl border mr-2.5 ${
+        selectedFilter === item.id
+          ? "bg-[#092D5D] border-[#092D5D]"
+          : "bg-white border-slate-200 shadow-xs"
+      }`}
     >
-      <Text className=" px-4 text-font-primary">{item.label}</Text>
+      <Ionicons
+        name={item.icon}
+        size={15}
+        color={selectedFilter === item.id ? "#ffffff" : "#092D5D"}
+      />
+      <Text
+        className={`text-xs font-bold ${
+          selectedFilter === item.id ? "text-white" : "text-slate-800"
+        }`}
+      >
+        + {item.label}
+      </Text>
     </TouchableOpacity>
   );
-  //Serviço
 
   const renderService = useCallback(
     ({ item }: { item: OrderItemsInterface }) => (
-      <View>
+      <View key={item.id} className="mb-2.5">
         {item.employeeName && item.serviceName && (
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() =>
               safePush(
                 `/(private)/(tabs)/(admin-tabs)/finance/order/order-details/${order.id}/service-item-details/${item.serviceId}`,
               )
             }
-            className="flex-row rounded-md justify-between items-center px-2 max-h-[100%] bg-background-tertiary"
+            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs"
           >
-            <View className="max-w-[100%]">
-              <Text
-                className="text-base text-font-primary"
-                ellipsizeMode="tail"
-                numberOfLines={2}
-              >
-                Serviço: {item.serviceName}
-              </Text>
-              <Text
-                className="text-base text-font-primary"
-                ellipsizeMode="tail"
-                numberOfLines={2}
-              >
-                Horário: {formatIsoDateAndTimeToBR(item.dateScheduled)}
-              </Text>
-              {item.usingSubscription === false && (
-                <View className="flex-row gap-2">
-                  <Text className="text-font-primary">Cliente de assinatura</Text>
-                  <Ionicons
-                    name="diamond-outline"
-                    color={colors["app-theme-primary"]}
-                    size={20}
-                  />
+            <View className="flex-row justify-between items-start mb-2">
+              <View className="flex-1 pr-3">
+                <Text className="text-slate-900 font-extrabold text-base mb-1">
+                  {item.serviceName}
+                </Text>
+                <View className="flex-row items-center gap-1.5 mb-1">
+                  <Ionicons name="time-outline" size={14} color="#092D5D" />
+                  <Text className="text-slate-500 text-xs font-medium">
+                    {formatIsoDateAndTimeToBR(item.dateScheduled)}
+                  </Text>
                 </View>
-              )}
-              <Text
-                className="text-base text-font-primary"
-                ellipsizeMode="tail"
-                numberOfLines={2}
-              >
-                Profissional atendente: {item.employeeName}
-              </Text>
+                <View className="flex-row items-center gap-1.5">
+                  <Ionicons name="person-outline" size={14} color="#64748b" />
+                  <Text className="text-slate-600 text-xs font-medium">
+                    Profissional: <Text className="font-bold text-slate-900">{item.employeeName}</Text>
+                  </Text>
+                </View>
+              </View>
+
+              <View className="items-end">
+                <Text className="text-[#092D5D] font-black text-lg">
+                  {moneyMapper(item.servicePrice)}
+                </Text>
+                {item.usingSubscription === false && (
+                  <View className="flex-row items-center gap-1 mt-1 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30">
+                    <Ionicons name="diamond-outline" size={12} color="#d97706" />
+                    <Text className="text-amber-700 text-[10px] font-bold">Assinante</Text>
+                  </View>
+                )}
+              </View>
             </View>
-            <View className="items-center ">
-              <Text className="text-base text-font-primary text-center">
-                Preço: {moneyMapper(item.servicePrice)}
-              </Text>
-            </View>
+
+            {/* Tag do Sinal Pago no item de serviço */}
+            {(item.requiresDeposit || Boolean(item.depositAmount)) && (
+              <View className="mt-2.5 pt-2.5 border-t border-slate-100 flex-row items-center justify-between">
+                <View className="flex-row items-center gap-1.5">
+                  <Ionicons name="checkmark-circle" size={15} color="#10b981" />
+                  <Text className="text-emerald-600 text-xs font-extrabold">
+                    Sinal Pago via PIX
+                  </Text>
+                </View>
+                <Text className="text-emerald-600 text-xs font-black">
+                  - {moneyMapper(item.depositAmount || 0)}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         )}
       </View>
     ),
-    [],
+    [order?.id, formatIsoDateAndTimeToBR, safePush],
   );
 
-  //Produto
   const renderProduct = useCallback(
     ({ item }: { item: OrderItemsInterface }) => (
       <TouchableOpacity
+        key={item.id}
         onPress={() =>
           safePush(
             `/(private)/(tabs)/(admin-tabs)/finance/order/order-details/${order.id}/product-item-details/${item.productId}`,
           )
         }
-        activeOpacity={0.8}
-        className="flex-row rounded-md justify-between items-center p-2 h-[60px] bg-background-tertiary"
+        activeOpacity={0.85}
+        className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs mb-2.5 flex-row justify-between items-center"
       >
-        <View className="w-[200px]">
-          {item.name && (
-            <Text
-              className="text-base text-font-primary"
-              ellipsizeMode="tail"
-              numberOfLines={2}
-            >
-              Produto: {item.name}
-            </Text>
-          )}
+        <View className="flex-1 pr-3">
+          <Text className="text-slate-900 font-extrabold text-sm mb-1">
+            {item.name}
+          </Text>
+          <Text className="text-slate-500 text-xs">
+            Qtd: <Text className="font-bold text-slate-900">{item.quantity}</Text> × {moneyMapper(item.price)}
+          </Text>
         </View>
-        <View className="items-center p-2">
-          {item.price && (
-            <View className="items-end">
-              <Text className="text-font-primary text-sm">Qtd {item.quantity}</Text>
-              <Text className="text-base text-font-primary text-center">
-                Preço unitário: {moneyMapper(item.price)}
-              </Text>
-              <Text className="text-base text-font-primary text-center">
-                Preço total: {moneyMapper(item.price * item.quantity)}
-              </Text>
-            </View>
-          )}
-        </View>
+
+        <Text className="text-[#092D5D] font-black text-base">
+          {moneyMapper(item.price * item.quantity)}
+        </Text>
       </TouchableOpacity>
     ),
-    [],
+    [order?.id, safePush],
   );
 
   const renderItem = ({ item }: { item: ListItem }) => {
@@ -227,7 +257,7 @@ export function OrderDetailsView({
         (item.title === "Produtos" && productItems.length > 0))
     ) {
       return (
-        <Text className="text-app-theme-primary font-bold text-xl">
+        <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wider mt-3 mb-1.5 px-1">
           {item.title}
         </Text>
       );
@@ -244,24 +274,10 @@ export function OrderDetailsView({
     return null;
   };
 
-  const filteredItems = useMemo(() => {
-    switch (selectedFilter) {
-      case "2": // Serviços
-        return serviceItems;
-
-      case "3": // Produtos
-        return productItems;
-
-      case "1": // Todos
-      default:
-        return combinedItems;
-    }
-  }, [selectedFilter, serviceItems, productItems, combinedItems]);
-
   return (
-    <SafeAreaView className="flex-1 bg-background-primary">
+    <SafeAreaView className="flex-1 bg-slate-50">
       <AppAdminHeader
-        title={`Comissão Nº ${order?.orderNumber}`}
+        title={`Comanda Nº ${order?.orderNumber || ""}`}
         iconRightName="trash"
         iconRight={{
           icon: true,
@@ -270,128 +286,186 @@ export function OrderDetailsView({
         action={showDeleteModal}
       />
 
-      <View className="  flex-row items-center  px-2   justify-between pb-2 border-b border-gray-600 w-full">
+      {/* Card Header do Cliente */}
+      <View className="px-4 py-3.5 bg-white border-b border-slate-200 flex-row items-center justify-between shadow-xs">
         <TouchableOpacity
           onPress={handleOpenClientList}
-          className="flex-row items-center gap-2"
+          activeOpacity={0.8}
+          className="flex-row items-center gap-3 flex-1"
         >
           <Image
-            source={require("@assets/images/logo.png")}
-            className="w-[40px] h-[40px]"
+            source={
+              client?.profileUrl
+                ? { uri: client.profileUrl }
+                : require("@assets/images/logo.png")
+            }
+            style={{ width: 44, height: 44, borderRadius: 22 }}
+            className="border border-slate-200"
             resizeMode="cover"
           />
-          <Text className="text-base text-font-primary">Cliente:</Text>
-          <Text className="text-base text-font-primary">{client?.name}</Text>
+          <View className="flex-1">
+            <Text className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+              Cliente
+            </Text>
+            <Text className="text-slate-900 font-black text-base" numberOfLines={1}>
+              {client?.name || "Selecionar Cliente"}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#64748b" />
         </TouchableOpacity>
       </View>
-      <View className="flex-1 gap-2 mt-2 ">
-        <Text className="text-app-theme-primary text-center font-bold text-xl">
-          Itens
-        </Text>
-        <FlatList<ListItem>
-          data={combinedItems}
-          refreshControl={
-            <RefreshControl
-              refreshing={isLoading}
-              onRefresh={orderByIdRefetch}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={{ gap: 10, maxHeight: "auto" }}
-        />
 
-        <View className="bg-background-tertiary p-5   rounded-md gap-2  ">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 140 }}
+      >
+        {/* Banner Destaque do Sinal Pago (PIX) */}
+        {depositPaid > 0 && (
+          <View className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 mb-4 shadow-xs">
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="qr-code" size={20} color="#059669" />
+                <Text className="text-emerald-950 font-black text-sm uppercase tracking-wide">
+                  Sinal Pago via PIX
+                </Text>
+              </View>
+              <View className="px-2.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-300">
+                <Text className="text-emerald-800 font-black text-xs">Pago no Agendamento</Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between items-center pt-2.5 border-t border-emerald-200/60">
+              <View>
+                <Text className="text-slate-600 text-xs font-medium">Sinal Abatido:</Text>
+                <Text className="text-emerald-700 font-black text-lg">
+                  {moneyMapper(depositPaid)}
+                </Text>
+              </View>
+
+              <View className="items-end">
+                <Text className="text-slate-600 text-xs font-medium">Restante a Cobrar:</Text>
+                <Text className="text-[#092D5D] font-black text-xl">
+                  {moneyMapper(remainingToPay)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Bar de Adicionar Itens / Ações */}
+        <View className="mb-3">
           <FlatList
             data={buttons}
             renderItem={renderButton}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 5 }}
           />
+        </View>
+
+        {/* Lista de Itens */}
+        <Text className="text-slate-900 font-black text-sm uppercase tracking-wider mb-2">
+          Itens da Comanda
+        </Text>
+
+        <FlatList<ListItem>
+          data={combinedItems}
+          scrollEnabled={false}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={orderByIdRefetch} />
+          }
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+
+        {/* Configurações de Pagamento da Comanda */}
+        <View className="mt-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs gap-3">
+          <Text className="text-slate-400 text-xs font-extrabold uppercase tracking-wider mb-1">
+            Opções de Pagamento
+          </Text>
+
           <TouchableOpacity
             onPress={handleOpenPaymentMethodCheckbox}
             activeOpacity={0.8}
-            className="flex-row justify-between mt-5"
+            className="flex-row justify-between items-center py-1"
           >
-            <Text className="text-font-primary text-base">Forma de pagamento</Text>
-            <View className="flex-row gap-2">
-              <Text className="text-font-primary text-base">
+            <Text className="text-slate-600 text-sm font-semibold">Forma de pagamento</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-slate-900 font-extrabold text-sm">
                 {paymentMethod?.name ? paymentMethod.name : "Dinheiro"}
               </Text>
-              <Ionicons
-                name="chevron-down"
-                size={22}
-                color={colors["app-theme-primary"]}
-              />
+              <Ionicons name="chevron-down" size={18} color="#092D5D" />
             </View>
           </TouchableOpacity>
+
           {paymentMethod?.card && (
             <TouchableOpacity
               onPress={handleOpenPaymentFlagCheckbox}
               activeOpacity={0.8}
-              className="flex-row justify-between mt-5"
+              className="flex-row justify-between items-center py-1 border-t border-slate-100 pt-3"
             >
-              <Text className="text-font-primary text-base">Bandeira</Text>
-              <View className="flex-row gap-2">
-                <Text className="text-font-primary text-base">
-                  {paymentCardFlag ? paymentCardFlag.name : "escolher bandeira"}
+              <Text className="text-slate-600 text-sm font-semibold">Bandeira</Text>
+              <View className="flex-row items-center gap-1.5">
+                <Text className="text-slate-900 font-extrabold text-sm">
+                  {paymentCardFlag ? paymentCardFlag.name : "Escolher bandeira"}
                 </Text>
-                <Ionicons
-                  name="chevron-down"
-                  size={22}
-                  color={colors["app-theme-primary"]}
-                />
+                <Ionicons name="chevron-down" size={18} color="#092D5D" />
               </View>
             </TouchableOpacity>
+          )}
+
           {isInstallmentAllowed && (
-            <>
-              <View className="border-b border-gray-600"></View>
-              <TouchableOpacity
-                onPress={handleOpenInstallmentCheckbox}
-                activeOpacity={0.8}
-                className="flex-row justify-between"
-              >
-                <Text className="text-font-primary text-base">Parcela</Text>
-                <View className="flex-row gap-2">
-                  <Text className="text-font-primary text-base">
-                    {installment === 0 ? "À vista" : `${installment}x`}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={22}
-                    color={colors["app-theme-primary"]}
-                  />
-                </View>
-              </TouchableOpacity>
-            </>
+            <TouchableOpacity
+              onPress={handleOpenInstallmentCheckbox}
+              activeOpacity={0.8}
+              className="flex-row justify-between items-center py-1 border-t border-slate-100 pt-3"
+            >
+              <Text className="text-slate-600 text-sm font-semibold">Parcelamento</Text>
+              <View className="flex-row items-center gap-1.5">
+                <Text className="text-slate-900 font-extrabold text-sm">
+                  {installment === 0 ? "À vista" : `${installment}x`}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#092D5D" />
+              </View>
+            </TouchableOpacity>
           )}
         </View>
+      </ScrollView>
 
-        <View className="flex-row items-center justify-between border-t px-2 pt-2 border-gray-600 ">
-          <Text className="text-xl text-font-primary">Valor total</Text>
+      {/* Footer Fixo: Total e Fechar Comanda */}
+      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-slate-200 gap-3.5 shadow-lg">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-slate-400 text-xs font-bold uppercase">
+              {depositPaid > 0 ? "Saldo Restante a Cobrar" : "Valor Total"}
+            </Text>
+            <Text className="text-[#092D5D] text-2xl font-black">
+              {moneyMapper(depositPaid > 0 ? remainingToPay : displayTotal)}
+            </Text>
+            {depositPaid > 0 && (
+              <Text className="text-emerald-600 text-[10px] font-bold">
+                (Total: {moneyMapper(displayTotal)} - Sinal: {moneyMapper(depositPaid)})
+              </Text>
+            )}
+          </View>
+
           <TouchableOpacity
             onPress={() => handleOpenTotalModal()}
             activeOpacity={0.8}
+            className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 flex-row items-center gap-1.5"
           >
-            <View className="flex-row p-5 rounded-md border-gray-600 gap-2 bg-background-tertiary">
-              <Text className="text-xl text-font-primary">
-                {moneyMapper(displayTotal)}
-              </Text>
-              <Feather name="edit" size={22} color={colors["app-theme-primary"]} />
-            </View>
+            <Text className="text-slate-700 text-xs font-bold">Editar Total</Text>
+            <Feather name="edit" size={14} color="#092D5D" />
           </TouchableOpacity>
         </View>
+
         <TouchableOpacity
           onPress={() => onCloseOrder()}
-          activeOpacity={0.8}
-          className={`h-[40px] px-2 mx-10 bg-app-theme-primary rounded-md items-center justify-center 
-                ${isLoadingMessage ? "justify-between" : ""}`}
+          activeOpacity={0.85}
+          className="h-16 bg-[#092D5D] border border-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
-          <Text className="text-center text-xl text-font-secundary font-bold">
-            {isLoadingMessage ? <ActivityIndicator /> : "Fechar comanda"}
+          <Text className="text-center text-lg text-white font-extrabold uppercase tracking-wide">
+            {isLoadingMessage ? <ActivityIndicator color="#ffffff" size="large" /> : "Fechar Comanda"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -403,12 +477,12 @@ export function OrderDetailsView({
         confirmationButtonColor
         hideModal={hideDeleteModal}
         handleDelete={() => {
-          if (!order.id) return;
+          if (!order?.id) return;
           onDeleteOrder(order.id);
           hideDeleteModal();
         }}
-        description="Tem certeza que deseja deletar a comanda"
-        title="Deletar comanda"
+        description="Tem certeza que deseja deletar esta comanda?"
+        title="Deletar Comanda"
       />
     </SafeAreaView>
   );

@@ -82,7 +82,8 @@ export function useAppointmentsReportViewModel() {
       const d = new Date(app.dateScheduled);
       if (d >= dateStart && d <= dateEnd) {
         if (app.status === AppointmentStatus.SCHEDULED || app.status === AppointmentStatus.CONFIRMED) {
-          const monthStr = app.dateScheduled.substring(0, 7); // "YYYY-MM"
+          const dateStr = typeof app.dateScheduled === "string" ? app.dateScheduled : app.dateScheduled.toISOString();
+          const monthStr = dateStr.substring(0, 7); // "YYYY-MM"
           grouped[monthStr] = (grouped[monthStr] || 0) + 1;
         }
       }
@@ -121,45 +122,55 @@ export function useAppointmentsReportViewModel() {
     }
   }, [hasNextPage, isFetchingNextPage, appointmentsData]);
 
-  const appointmentsList = useMemo(() => {
+  const periodFilteredAppointments = useMemo(() => {
     let all = appointmentsData?.pages.flatMap((page) => page.content ?? []) ?? [];
     all = all.filter(
       (item) =>
-        (item.status === AppointmentStatus.SCHEDULED || item.status === AppointmentStatus.CONFIRMED) 
+        item.status === AppointmentStatus.SCHEDULED ||
+        item.status === AppointmentStatus.CONFIRMED,
     );
-    if (selectedBar !== null && barData[selectedBar]) {
-      const selectedMonthStr = barData[selectedBar].rawMonthYear; // "2026-06"
-      const [year, month] = selectedMonthStr.split('-').map(Number);
-
-      all = all.filter((app) => {
-        if (!app.dateScheduled) return false;
-        const date = new Date(app.dateScheduled);
-        return (
-          date.getFullYear() === year &&
-          date.getMonth() + 1 === month
-        );
-      });
-    } else {
-      // Filtro por intervalo de datas se nenhuma barra estiver selecionada
-      all = all.filter((app) => {
-        if (!app.dateScheduled) return false;
-        const date = new Date(app.dateScheduled);
-        return date >= dateStart && date <= dateEnd;
-      });
-    }
+    all = all.filter((app) => {
+      if (!app.dateScheduled) return false;
+      const date = new Date(app.dateScheduled);
+      return date >= dateStart && date <= dateEnd;
+    });
 
     if (selectedEmployeeId !== null) {
       all = all.filter((app) => app.employee?.id === selectedEmployeeId);
     }
 
     return all;
-  }, [appointmentsData, selectedBar, barData, dateStart, dateEnd, selectedEmployeeId]);
+  }, [appointmentsData, dateStart, dateEnd, selectedEmployeeId]);
+
+  const periodTotalCount = periodFilteredAppointments.length;
+
+  const appointmentsList = useMemo(() => {
+    if (selectedBar !== null && barData[selectedBar]) {
+      const selectedMonthStr = barData[selectedBar].rawMonthYear; // "2026-06"
+      const [year, month] = selectedMonthStr.split("-").map(Number);
+
+      return periodFilteredAppointments.filter((app) => {
+        if (!app.dateScheduled) return false;
+        const date = new Date(app.dateScheduled);
+        return date.getFullYear() === year && date.getMonth() + 1 === month;
+      });
+    }
+
+    return periodFilteredAppointments;
+  }, [periodFilteredAppointments, selectedBar, barData]);
+
+  const selectedMonthLabel =
+    selectedBar !== null && barData[selectedBar]
+      ? barData[selectedBar].label
+      : null;
 
   return {
     monthlyLoading,
     selectedBar,
     setSelectedBar,
     highlightValue,
+    periodTotalCount,
+    selectedMonthLabel,
     barData,
     maxBarValue,
     appointmentsList,

@@ -1,22 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Alert } from "react-native";
 import { useUserStore } from "@/shared/store/user-store";
+import { useCompanyStore } from "@/shared/store/company-store";
 import { styleAppApiClient } from "@/shared/api/styleAppBackend";
+import { useOrderMutation } from "@/shared/queries/finance/use-order-mutation";
+import { calculateOrderTotal } from "@/shared/helpers/orderCalc";
 
 export interface CashItem {
-  id: number;
+  id: string | number;
   description: string;
   value: number;
   type: "DEPOSIT" | "WITHDRAW";
   dateTime: string;
+  source?: "ORDER" | "CASH_MANUAL";
 }
 
 export function useCashFlowViewModel() {
-  const user = useUserStore((s) => s.user);
-  const companyId = user?.companyId || 1;
+  const currentUser = useUserStore((s) => s.user);
+  const selectedCompanyId = useCompanyStore((s) => s.selectedCompanyId);
+  const companyId = currentUser?.companyId ?? selectedCompanyId ?? 1;
 
-  const [transactions, setTransactions] = useState<CashItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [manualTransactions, setManualTransactions] = useState<CashItem[]>([]);
+  const [loadingCash, setLoadingCash] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   // Form states
@@ -24,29 +29,83 @@ export function useCashFlowViewModel() {
   const [value, setValue] = useState("");
   const [type, setType] = useState<"DEPOSIT" | "WITHDRAW">("DEPOSIT");
 
+  // Carrega comandas
+  const { useGetOrdersMutation } = useOrderMutation();
+  const {
+    data: ordersData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: ordersLoading,
+  } = useGetOrdersMutation(companyId);
+
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, ordersData]);
+
+  const allOrders = useMemo(
+    () => ordersData?.pages.flatMap((page) => page.content ?? []) ?? [],
+    [ordersData],
+  );
+
   useEffect(() => {
     loadTransactions();
-  }, []);
+  }, [companyId]);
 
   const loadTransactions = async () => {
-    setLoading(true);
+    setLoadingCash(true);
     try {
       const response = await styleAppApiClient.get<CashItem[]>(
         `/cash?companyId=${companyId}`,
       );
-      setTransactions(response.data);
+      setManualTransactions(
+        (response.data || []).map((t) => ({ ...t, source: "CASH_MANUAL" })),
+      );
     } catch (err) {
-      // fallback local
-      setTransactions([]);
+      setManualTransactions([]);
     } finally {
-      setLoading(false);
+      setLoadingCash(false);
     }
   };
+
+  const getOrderVal = (order: any) => {
+    if (order.total && Number(order.total) > 0) return Number(order.total);
+    return calculateOrderTotal(order.items ?? []);
+  };
+
+  // Consolidação de transações: Lançamentos do Caixa + Comandas Fechadas
+  const transactions = useMemo(() => {
+    const combined: CashItem[] = [...manualTransactions];
+
+    allOrders.forEach((order) => {
+      if (!order.moment) return;
+      const val = getOrderVal(order);
+      if (val <= 0) return;
+
+      const isProf = Boolean(order.isEmployee);
+      combined.push({
+        id: `order-${order.id}`,
+        description: isProf
+          ? `Comanda Profissional Nº ${order.orderNumber || order.id}`
+          : `Comanda Fechada Nº ${order.orderNumber || order.id} (${order.user?.name || "Cliente"})`,
+        value: val,
+        type: isProf ? "WITHDRAW" : "DEPOSIT",
+        dateTime: order.moment,
+        source: "ORDER",
+      });
+    });
+
+    return combined.sort(
+      (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+    );
+  }, [manualTransactions, allOrders]);
 
   const handleSave = async (
     descText?: string,
     valText?: string,
-    typeVal?: "DEPOSIT" | "WITHDRAW"
+    typeVal?: "DEPOSIT" | "WITHDRAW",
   ) => {
     const finalDesc = descText !== undefined ? descText : description;
     const finalVal = valText !== undefined ? valText : value;
@@ -69,15 +128,15 @@ export function useCashFlowViewModel() {
       resetForm();
       loadTransactions();
     } catch (e) {
-      // optimistic update
       const newItem: CashItem = {
         id: Date.now(),
         description: finalDesc.trim(),
         value: Number(finalVal),
         type: finalType,
         dateTime: new Date().toISOString(),
+        source: "CASH_MANUAL",
       };
-      setTransactions((prev) => [newItem, ...prev]);
+      setManualTransactions((prev) => [newItem, ...prev]);
       setModalVisible(false);
       resetForm();
     }
@@ -89,7 +148,7 @@ export function useCashFlowViewModel() {
     setType("DEPOSIT");
   };
 
-  const totals = () => {
+  const totals = useMemo(() => {
     let deposit = 0;
     let withdraw = 0;
     transactions.forEach((t) => {
@@ -97,13 +156,11 @@ export function useCashFlowViewModel() {
       else withdraw += t.value;
     });
     return { deposit, withdraw, balance: deposit - withdraw };
-  };
-
-  const { deposit, withdraw, balance } = totals();
+  }, [transactions]);
 
   return {
     transactions,
-    loading,
+    loading: loadingCash || ordersLoading,
     modalVisible,
     setModalVisible,
     description,
@@ -113,8 +170,8 @@ export function useCashFlowViewModel() {
     type,
     setType,
     handleSave,
-    deposit,
-    withdraw,
-    balance,
+    deposit: totals.deposit,
+    withdraw: totals.withdraw,
+    balance: totals.balance,
   };
 }

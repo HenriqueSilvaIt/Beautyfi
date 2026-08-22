@@ -7,6 +7,10 @@ export interface CompanyServicesProps {
   description?: string;
   priceDescription?: string;
   availableInApp?: boolean;
+  requiresDeposit?: boolean;
+  depositType?: "PERCENTAGE" | "FIXED";
+  depositAmount?: number;
+  noShowFee?: number;
   imgUrl?: string;
   duration: number;
   companyId?: number;
@@ -21,6 +25,10 @@ export interface CompanyServicesInterface {
   imgUrl?: string;
   duration: number;
   availableInApp?: boolean;
+  requiresDeposit?: boolean;
+  depositType?: "PERCENTAGE" | "FIXED";
+  depositAmount?: number;
+  noShowFee?: number;
   priceDescription?: string;
   employees?: ServiceEmployeeParam[];
 }
@@ -30,6 +38,10 @@ export interface CreateServiceDTO {
   price: number;
   description?: string;
   priceDescription?: string;
+  requiresDeposit?: boolean;
+  depositType?: "PERCENTAGE" | "FIXED";
+  depositAmount?: number;
+  noShowFee?: number;
   imgUrl?: string;
   duration?: number;
 }
@@ -50,6 +62,10 @@ export interface UpdateServiceDTO {
   price: number;
   priceDescription?: string;
   description?: string;
+  requiresDeposit?: boolean;
+  depositType?: "PERCENTAGE" | "FIXED";
+  depositAmount?: number;
+  noShowFee?: number;
   imgUrl?: string;
   duration?: number;
 }

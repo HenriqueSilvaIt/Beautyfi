@@ -51,6 +51,17 @@ export async function updateClients(
   return data;
 }
 
+export async function updateClientAnamnesis(
+  clientId: number,
+  anamnesisData: any,
+) {
+  const { data } = await styleAppApiClient.put<ClientInterface>(
+    `/clients/${clientId}/anamnesis`,
+    anamnesisData,
+  );
+  return data;
+}
+
 export async function deleteClientById(clientId: number) {
   await styleAppApiClient.delete<ClientInterface>(`/clients/${clientId}`);
 }

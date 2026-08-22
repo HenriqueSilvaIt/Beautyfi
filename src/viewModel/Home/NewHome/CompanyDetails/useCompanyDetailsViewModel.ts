@@ -3,6 +3,7 @@ import { useCompanyServicesMutation } from "@/shared/queries/company/use-company
 import { useProductMutation } from "@/shared/queries/company/use-product.mutation";
 import { usePackageMutation } from "@/shared/queries/company/use-package.mutation";
 import { useGetSubscriptionPlansQuery } from "@/shared/queries/stripe/use-stripe-mutataion";
+import { useLoyaltyMutation } from "@/shared/queries/company/use-loyalty.mutation";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
@@ -10,7 +11,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Avaliações" | "Assinaturas" | "Pacotes";
+export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Avaliações" | "Assinaturas" | "Pacotes" | "Fidelidade";
 
 
 export function useCompanyDetailsViewModel(companyId?: number) {
@@ -31,11 +32,15 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     useGetFavoritedIdsQuery,
     toggleFavoriteMutation,
     createCompanyReviewMutation,
+    updateCompanyReviewMutation,
+    deleteCompanyReviewMutation,
   } = useCompanyDetailsMutation();
 
   const { useGetServiceAvailableInAppMutation } = useCompanyServicesMutation();
   const { useGetProductsMutation } = useProductMutation();
   const { useGetPackagesMutation } = usePackageMutation();
+  const { useGetActiveProgramQuery } = useLoyaltyMutation();
+  const { data: loyaltyProgramData } = useGetActiveProgramQuery(companyId);
 
   const access_token = useUserStore((state) => state.access_token);
   const user = useUserStore((state) => state.user);
@@ -46,6 +51,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [editingReview, setEditingReview] = useState<any | null>(null);
 
   // Load details
   const {
@@ -55,7 +61,6 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     refetch: companyDetailsRefetch,
   } = useGetCompanyDetailsQuery(companyId);
 
-  // Set selected company dynamically in store when viewing details
   const { favoritedCompanyIds, setFavoritedCompanyIds, addFavoriteId, removeFavoriteId, setSelectedCompanyId } = useCompanyStore();
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     }
   }, [companyId]);
 
-  // Load services (only available in app)
+  // Load services
   const {
     data: serviceData,
     isLoading: serviceIsLoading,
@@ -103,7 +108,8 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   // Load employees
   const { useGetEmployeeMutation } = useEmployeeMutation();
   const { data: employeesData, isLoading: employeesIsLoading } = useGetEmployeeMutation({ companyId: companyId ? String(companyId) : undefined });
-  const employeesList = employeesData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  const fetchedEmployees = employeesData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  const employeesList = fetchedEmployees.length > 0 ? fetchedEmployees : ((companyDetailsData as any)?.employees ?? []);
 
   // Load reviews
   const { useGetCompanyReviewsQuery } = useCompanyDetailsMutation();
@@ -158,6 +164,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
         pathname: "/(private)/schedule",
         params: {
           serviceIds: selectedServices.join(","),
+          companyId: companyId ? String(companyId) : undefined,
         },
       });
     }
@@ -171,6 +178,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
         pathname: "/(private)/schedule",
         params: {
           serviceIds: packageServices.join(","),
+          companyId: companyId ? String(companyId) : undefined,
         },
       });
     }
@@ -205,14 +213,25 @@ export function useCompanyDetailsViewModel(companyId?: number) {
 
     setIsSubmittingReview(true);
     try {
-      await createCompanyReviewMutation.mutateAsync({
-        companyId,
-        rating: newRating,
-        comment: newComment.trim(),
-      });
+      if (editingReview) {
+        await updateCompanyReviewMutation.mutateAsync({
+          companyId,
+          reviewId: editingReview.id,
+          rating: newRating,
+          comment: newComment.trim(),
+        });
+        setEditingReview(null);
+        Alert.alert("Sucesso", "Sua avaliação foi atualizada com sucesso!");
+      } else {
+        await createCompanyReviewMutation.mutateAsync({
+          companyId,
+          rating: newRating,
+          comment: newComment.trim(),
+        });
+        Alert.alert("Sucesso", "Sua avaliação foi enviada com sucesso!");
+      }
       setNewComment("");
       setNewRating(5);
-      Alert.alert("Sucesso", "Sua avaliação foi enviada com sucesso!");
     } catch (err: any) {
       console.error(err);
       const msg = err instanceof Error ? err.message : "Erro ao enviar avaliação.";
@@ -222,7 +241,43 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     }
   };
 
-  // Extract content arrays from paginated data
+  const handleEditReview = (review: any) => {
+    setNewRating(review.rating);
+    setNewComment(review.comment);
+    setEditingReview(review);
+  };
+
+  const handleCancelEdit = () => {
+    setNewRating(5);
+    setNewComment("");
+    setEditingReview(null);
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!companyId) return;
+    Alert.alert(
+      "Confirmar Exclusão",
+      "Tem certeza que deseja excluir esta avaliação?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteCompanyReviewMutation.mutateAsync({ companyId, reviewId });
+              Alert.alert("Sucesso", "Sua avaliação foi excluída!");
+            } catch (err: any) {
+              console.error(err);
+              const msg = err instanceof Error ? err.message : "Erro ao excluir avaliação.";
+              Alert.alert("Erro", msg);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const rawServicesList = serviceData?.pages.flatMap((page) => page.content ?? []) ?? [];
   const servicesList = rawServicesList.filter((service) => {
     const matchesSearch = debouncedSearch
@@ -256,6 +311,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     servicesList,
     productsList,
     packagesList,
+    loyaltyProgramData,
     subscriptionPlans: subscriptionPlans ?? [],
     handleBookSelectedServices,
     handleBookPackage,
@@ -289,5 +345,9 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     setNewComment,
     isSubmittingReview,
     handleSubmitReview,
+    editingReview,
+    handleEditReview,
+    handleDeleteReview,
+    handleCancelEdit,
   };
 }

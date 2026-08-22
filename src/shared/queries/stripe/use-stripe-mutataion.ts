@@ -60,11 +60,11 @@ export interface RefundSubscriberInvoiceProps {
   amount?: number;
 }
 
-export function useGetSubscriptionPlansQuery(companyId?: number) {
+export function useGetSubscriptionPlansQuery(companyId?: number, isSaas?: boolean) {
   const queryClient = useQueryClient();
   return useQuery<StripePlanDTO[], Error>({
-    queryKey: ["subscription-plans", companyId],
-    queryFn: () => fetchSubscriptionPlans(companyId),
+    queryKey: ["subscription-plans", companyId, isSaas],
+    queryFn: () => fetchSubscriptionPlans(companyId, isSaas),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });

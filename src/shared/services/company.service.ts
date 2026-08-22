@@ -71,8 +71,9 @@ export async function createCompany(dataBody: CompanyInterface) {
 }
 
 export async function updateCompany(dataBody: CompanyInterface) {
+  const id = dataBody.id || getCompanyId();
   const { data } = await styleAppApiClient.put<CompanyProps>(
-    `/companies/1`,
+    `/companies/${id}`,
     dataBody,
   );
 
@@ -125,6 +126,18 @@ export async function createCompanyReview(companyId: number, dto: { rating: numb
     dto
   );
   return data;
+}
+
+export async function updateCompanyReview(companyId: number, reviewId: number, dto: { rating: number; comment: string }) {
+  const { data } = await styleAppApiClient.put<CompanyReviewProps>(
+    `/companies/${companyId}/reviews/${reviewId}`,
+    dto
+  );
+  return data;
+}
+
+export async function deleteCompanyReview(companyId: number, reviewId: number) {
+  await styleAppApiClient.delete(`/companies/${companyId}/reviews/${reviewId}`);
 }
 
 export async function updateOpeningHours(companyId: number, openingHours: any[]) {

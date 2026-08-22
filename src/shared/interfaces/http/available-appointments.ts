@@ -39,5 +39,6 @@ export interface AvailableAppointmentsHttpResponse {
 export interface AvailableAppointmentsHttpParams {
   employeeId?: number | null;
   serviceIds?: number[]; 
-    date: string;
+  date: string;
+  companyId?: number;
 }

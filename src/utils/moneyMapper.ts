@@ -16,11 +16,11 @@ export function parseQuantity(value: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
-export function parseMoney(value?: string) {
-
-  if (!value) return;
-  // "12,50" -> 12.50
-  const normalized = value.replace(/\./g, "").replace(",", ".");
+export function parseMoney(value?: string | number) {
+  if (value === undefined || value === null || value === "") return 0;
+  if (typeof value === "number") return value;
+  const clean = String(value).replace(/[^\d.,]/g, "");
+  const normalized = clean.replace(/\./g, "").replace(",", ".");
   const n = Number(normalized);
   return Number.isFinite(n) ? n : 0;
 }

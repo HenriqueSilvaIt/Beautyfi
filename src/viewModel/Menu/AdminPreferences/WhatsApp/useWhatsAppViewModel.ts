@@ -1,5 +1,6 @@
-// useWhatsAppViewModel.ts
 import { useState, useEffect } from "react";
+import { Linking } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { EvStatus } from "@/shared/interfaces/http/whatsapp";
@@ -8,6 +9,7 @@ import { connectionState } from "@/shared/services/ev.service";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserLoggedQuery, useUserUserUpdatePreferences } from "@/shared/queries/user/use-user-logged.mutation";
+import { styleAppApiClient } from "@/shared/api/styleAppBackend";
 
 export function useWhatsAppViewModel() {
   const [status, setStatus] = useState<EvStatus>(null);
@@ -218,18 +220,36 @@ export function useWhatsAppViewModel() {
     }
   }
 
-  const [remindersCount, setRemindersCount] = useState(84);
-  const [remindersLimit, setRemindersLimit] = useState(100);
+  // ─── Fetch Entitlements Real Usage & Limit ─────────────────────────────────
+  const { data: entitlements } = useQuery({
+    queryKey: ["entitlements", selectedCompanyId],
+    queryFn: async () => {
+      try {
+        const { data } = await styleAppApiClient.get("/me/entitlements");
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!selectedCompanyId,
+  });
+
+  const remindersCount = entitlements?.usage?.lembretes_mes ?? 0;
+  const rawLimit = entitlements?.limits?.lembretes_mes;
+  const remindersLimit = (rawLimit != null && rawLimit < 9999) ? rawLimit : (rawLimit ?? 100);
+  const planName = entitlements?.planName || "Starter";
 
   async function handleBuyMessages() {
     try {
-      notify({ message: "Direcionando para o Stripe Checkout...", type: "WARNING" });
-      setTimeout(() => {
-        setRemindersLimit((prev) => prev + 200);
-        notify({ message: "+200 lembretes adicionados à sua cota!", type: "SUCCESS" });
-      }, 2000);
+      const url = "https://www.painel.beautyfi.com.br";
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        await Linking.openURL("https://www.painel.beautyfi.com.br");
+      }
     } catch (error) {
-      handleError(error, "Erro ao processar checkout do Stripe");
+      handleError(error, "Erro ao abrir o painel web www.painel.beautify.com.br");
     }
   }
 

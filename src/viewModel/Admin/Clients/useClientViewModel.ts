@@ -1,12 +1,14 @@
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { ClientInterface } from "@/shared/interfaces/http/client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ClientFormData, clientScheme } from "./client.scheme";
 import { Resolver, useForm } from "react-hook-form";
 import {
   clientKeys,
   useClientMutation,
 } from "@/shared/queries/company/use.client.mutation";
+import { useLoyaltyMutation } from "@/shared/queries/company/use-loyalty.mutation";
+import { useCompanyStore } from "@/shared/store/company-store";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
@@ -37,6 +39,8 @@ export function useClientViewModel(clientId: number | undefined) {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
+  const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
+
   const uploadClientAvatarMutation =
     useUploadAvatarGenericMutation<ClientInterface>();
 
@@ -46,11 +50,24 @@ export function useClientViewModel(clientId: number | undefined) {
     clientPostMutation,
     clientDeleteByIdMutation,
     clientUpdateMutation,
+    clientAnamnesisUpdateMutation,
   } = useClientMutation();
+
+  const { useGetClientPointsQuery } = useLoyaltyMutation();
+  const { data: clientLoyaltyPointsData } = useGetClientPointsQuery(
+    clientId ? Number(clientId) : undefined,
+    selectedCompanyId ? Number(selectedCompanyId) : undefined
+  );
 
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const hasClientToggled = useRef(false);
+  const [clientAllowWhatsAppNotification, setClientAllowWhatsAppNotification] = useState(false);
 
+  function handleToggleAllowWhatAppMessage() {
+    hasClientToggled.current = true;
+    setClientAllowWhatsAppNotification((prev) => !prev);
+  }
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchValue);
@@ -79,12 +96,36 @@ export function useClientViewModel(clientId: number | undefined) {
     reset,
     formState: { errors },
   } = useForm<ClientFormData>({
-    // Cast the RESULT of yupResolver to the expected RHF Resolver type
     resolver: yupResolver(clientScheme) as unknown as Resolver<ClientFormData>,
     defaultValues: {},
   });
 
-  // Função para atualizar os dados da empresa
+  const onSaveAnamnesis = handleSubmit(async (formData) => {
+    if (!clientId) return;
+    try {
+      setIsLoading(true);
+      await clientAnamnesisUpdateMutation.mutateAsync({
+        clientId: Number(clientId),
+        anamnesisData: {
+          allergies: formData.allergies,
+          skinHairType: formData.skinHairType,
+          preExistingConditions: formData.preExistingConditions,
+          medications: formData.medications,
+          observations: formData.observations,
+        },
+      });
+
+      notify({
+        message: "Ficha de Anamnese salva com sucesso!",
+        type: "SUCCESS",
+      });
+      await clientRefetch();
+    } catch (error) {
+      handleError(error, "Falha ao salvar Ficha de Anamnese");
+    } finally {
+      setIsLoading(false);
+    }
+  });
 
   const onClientUpdate = handleSubmit(async (clientData) => {
     try {
@@ -95,38 +136,34 @@ export function useClientViewModel(clientId: number | undefined) {
         clientId: clientId,
         data: {
           name,
-          profileUrl,
+          profileUrl: profileUrl || undefined,
+          allowWhatsAppNotification: clientAllowWhatsAppNotification,
           phone: unmask(phone ?? ""),
           ...(birthDate && { birthDate: DateBRToISO(birthDate) }),
         },
       });
 
-      // extrai o item atualizado do response
       const updatedItem: ClientInterface = response;
+
+      if (clientData.allergies || clientData.skinHairType || clientData.preExistingConditions || clientData.medications || clientData.observations) {
+        await clientAnamnesisUpdateMutation.mutateAsync({
+          clientId: Number(clientId),
+          anamnesisData: {
+            allergies: clientData.allergies,
+            skinHairType: clientData.skinHairType,
+            preExistingConditions: clientData.preExistingConditions,
+            medications: clientData.medications,
+            observations: clientData.observations,
+          },
+        });
+      }
 
       notify({
         message: "Cliente atualizado com sucesso!",
         type: "SUCCESS",
       });
 
-      queryClient.setQueryData(
-        ["clients"],
-        (oldData?: InfiniteData<{ content: ClientInterface[] }>) => {
-          if (!oldData) return;
-
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              content: page.content.map((item) =>
-                item.id === updatedItem.id ? updatedItem : item,
-              ),
-            })),
-          };
-        },
-      );
       await clientRefetch();
-
       router.back();
     } catch (error) {
       handleError(error, "Falha ao atualizar cliente");
@@ -135,91 +172,88 @@ export function useClientViewModel(clientId: number | undefined) {
     }
   });
 
-  // Função para criar client
-  const onSubmit = handleSubmit(async (clientData) => {
-    try {
-      setIsLoading(true);
-      const payload: ClientInterface = {
-        ...clientData,
-        ...(clientData.birthDate && {
-          birthDate: DateBRToISO(clientData.birthDate),
-        }),
-      };
-      let savedClient: ClientInterface | undefined;
+  const onSubmit = handleSubmit(
+    async (clientData) => {
+      try {
+        setIsLoading(true);
+        let savedClient: ClientInterface | undefined;
 
-      if (isEditMode && clientId) {
-        savedClient = await clientUpdateMutation.mutateAsync({
-          clientId,
-          data: {
+        if (isEditMode && clientId) {
+          savedClient = await clientUpdateMutation.mutateAsync({
+            clientId,
+            data: {
+              name: clientData.name,
+              profileUrl: clientData.profileUrl || undefined,
+              allowWhatsAppNotification: clientAllowWhatsAppNotification,
+              phone: unmask(clientData.phone ?? ""),
+              ...(clientData.birthDate && {
+                birthDate: DateBRToISO(clientData.birthDate),
+              }),
+            },
+          });
+        } else {
+          const createPayload: ClientInterface = {
             name: clientData.name,
-            profileUrl: clientData.profileUrl,
-            phone: unmask(clientData.phone ?? ""),
-            ...(clientData.birthDate && {
-              birthDate: DateBRToISO(clientData.birthDate),
-            }),
-          },
-        });
+            birthDate: clientData.birthDate
+              ? DateBRToISO(clientData.birthDate)
+              : "",
+            profileUrl: clientData.profileUrl || undefined,
+            phone: unmask(clientData.phone),
+            allowWhatsAppNotification: clientAllowWhatsAppNotification,
+          };
+
+          savedClient = await clientPostMutation.mutateAsync(createPayload);
+        }
+
+        if (savedClient?.id && (clientData.allergies || clientData.skinHairType || clientData.preExistingConditions || clientData.medications || clientData.observations)) {
+          await clientAnamnesisUpdateMutation.mutateAsync({
+            clientId: Number(savedClient.id),
+            anamnesisData: {
+              allergies: clientData.allergies,
+              skinHairType: clientData.skinHairType,
+              preExistingConditions: clientData.preExistingConditions,
+              medications: clientData.medications,
+              observations: clientData.observations,
+            },
+          });
+        }
 
         notify({
-          message: "Cliente atualizado com sucesso!",
+          message: isEditMode ? "Cliente atualizado com sucesso!" : "Cliente criado com sucesso!",
           type: "SUCCESS",
         });
-      } else {
-        // 🔥 blindagem total
-        const createPayload: ClientInterface = {
-          name: clientData.name,
-          birthDate: clientData.birthDate
-            ? DateBRToISO(clientData.birthDate)
-            : "",
-          profileUrl: clientData.profileUrl,
-          phone: unmask(clientData.phone),
-        };
 
-        console.log("CREATE PAYLOAD:", createPayload);
+        if (avatarUri && savedClient?.id) {
+          setIsUploadingAvatar(true);
 
-        savedClient = await clientPostMutation.mutateAsync(createPayload);
+          await uploadClientAvatarMutation.mutateAsync({
+            segment: "clients",
+            avatarUri: avatarUri,
+            id: Number(savedClient.id),
+          });
 
+          setIsUploadingAvatar(false);
+        }
+
+        await clientRefetch();
+        router.back();
+      } catch (error) {
+        handleError(error, "Falha ao salvar cliente");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    (errors) => {
+      console.log("❌ Erros de validação do formulário de cliente:", errors);
+      const firstError = Object.values(errors)[0]?.message;
+      if (firstError) {
         notify({
-          message: "Cliente criado com sucesso!",
-          type: "SUCCESS",
+          message: String(firstError),
+          type: "ERROR",
         });
       }
-
-      //  Se trocou a imagem, faz upload agora
-      if (avatarUri) {
-        setIsUploadingAvatar(true);
-
-        const avatarResponse = await uploadClientAvatarMutation.mutateAsync({
-          segment: "clients",
-          avatarUri: avatarUri,
-          id: Number(savedClient.id),
-        });
-
-        // sincroniza estado local
-
-        queryClient.setQueryData(
-          clientKeys.detail(Number(clientId)),
-          (prev?: ClientInterface) => {
-            if (!prev) return prev;
-
-            return {
-              ...prev,
-              imgUrl: avatarResponse.profileUrl,
-            };
-          },
-        );
-        setIsUploadingAvatar(false);
-      }
-
-      await clientRefetch();
-      router.back();
-    } catch (error) {
-      handleError(error, "Falha ao criar cliente");
-    } finally {
-      setIsLoading(false);
     }
-  });
-  // Função para deletar Profissional
+  );
 
   async function onClientDelete(clientId: number) {
     try {
@@ -234,12 +268,6 @@ export function useClientViewModel(clientId: number | undefined) {
 
         await clientRefetch();
         router.back();
-      } else {
-        notify({
-          message: "Falha ao deletar cliente",
-          type: "ERROR",
-        });
-        console.log(`Cliente não existe`);
       }
     } catch (error) {
       handleError(error, "Falha ao deletar cliente");
@@ -248,13 +276,8 @@ export function useClientViewModel(clientId: number | undefined) {
     }
   }
 
-  // Hook global para seleção de imagem (camera ou galeria)
-
   const { handleSelectImage } = useImage({
     callback: async (uri) => {
-      console.log("📸 Nova URI selecionada:", uri);
-
-      // Atualiza estado
       setAvatarUri(uri);
     },
     cameraType: CameraType.front,
@@ -274,7 +297,16 @@ export function useClientViewModel(clientId: number | undefined) {
         : "",
       profileUrl: avatarUri ?? clientContent.profileUrl,
       phone: clientContent.phone ? maskPhone(clientContent.phone) : "",
+      allergies: clientContent.anamnesis?.allergies ?? "",
+      skinHairType: clientContent.anamnesis?.skinHairType ?? "",
+      preExistingConditions: clientContent.anamnesis?.preExistingConditions ?? "",
+      medications: clientContent.anamnesis?.medications ?? "",
+      observations: clientContent.anamnesis?.observations ?? "",
     });
+
+    if (!hasClientToggled.current) {
+      setClientAllowWhatsAppNotification(Boolean(clientContent.allowWhatsAppNotification));
+    }
   }, [clientContent]);
 
   useEffect(() => {
@@ -284,6 +316,12 @@ export function useClientViewModel(clientId: number | undefined) {
       name: "",
       birthDate: "",
       profileUrl: "",
+      phone: "",
+      allergies: "",
+      skinHairType: "",
+      preExistingConditions: "",
+      medications: "",
+      observations: "",
     });
   }, [isEditMode]);
 
@@ -296,6 +334,10 @@ export function useClientViewModel(clientId: number | undefined) {
     isEditMode,
     reset,
     clientContent,
+    clientAllowWhatsAppNotification,
+    setClientAllowWhatsAppNotification,
+    handleToggleAllowWhatAppMessage,
+    errors,
     handleSelectAvatar,
     avatarUri,
     isUploadingAvatar,
@@ -309,5 +351,6 @@ export function useClientViewModel(clientId: number | undefined) {
     clientIsFetchingNextPage,
     searchValue,
     setSearchValue,
+    clientLoyaltyPointsData,
   };
 }

@@ -124,6 +124,19 @@ export function CrudView() {
             Pacotes
           </AppButton>
           <AppButton
+            className=""
+            leftIcon="gift-outline"
+            rightIcon="chevron-forward"
+            variant="admin"
+            activeOpacity={0.8}
+            size={true}
+            description="Configure o programa de pontos e recompensas do seu salão"
+            onPress={() => safePush("/(private)/(crud)/loyalty")}
+          >
+            Fidelidade
+          </AppButton>
+
+          <AppButton
             className="" /*tem que passar como prop o className */
             leftIcon="trending-up"
             rightIcon="chevron-forward"

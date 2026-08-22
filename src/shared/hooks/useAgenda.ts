@@ -46,9 +46,9 @@ function getServicePrice(
 
 
 function getUser(
-  users: UserProps
+  users?: UserProps | null
 ): string {
-  return users.avatarUrl ?? "";
+  return users?.avatarUrl ?? "";
 }
 
   function getAppointmentStart(app: AppointmentProps): string {
