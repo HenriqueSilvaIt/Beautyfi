@@ -181,11 +181,15 @@ function Step1({ data, updateData, nextStep, canProceed }: any) {
         disabled={!canProceed}
         onPress={nextStep}
         activeOpacity={0.85}
-        className={`h-14 rounded-2xl items-center justify-center shadow-md ${
-          canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
+        className={`h-16 rounded-2xl items-center justify-center shadow-md ${
+          canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
         }`}
       >
-        <Text className="text-white font-black text-sm uppercase tracking-wide">
+        <Text
+          className={`font-black text-base uppercase tracking-wider ${
+            canProceed ? "text-white" : "text-gray-600"
+          }`}
+        >
           Continuar
         </Text>
       </TouchableOpacity>
@@ -222,7 +226,7 @@ function Step2({
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       showsVerticalScrollIndicator={false}
     >
       <View className="mb-4">
@@ -274,19 +278,23 @@ function Step2({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
           activeOpacity={0.85}
-          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
-            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
+          className={`flex-1 h-16 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
           }`}
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text
+            className={`font-black text-base uppercase tracking-wider ${
+              canProceed ? "text-white" : "text-gray-600"
+            }`}
+          >
             Continuar
           </Text>
         </TouchableOpacity>
@@ -362,19 +370,23 @@ function Step3({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
           activeOpacity={0.85}
-          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
-            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
+          className={`flex-1 h-16 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
           }`}
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text
+            className={`font-black text-base uppercase tracking-wider ${
+              canProceed ? "text-white" : "text-gray-600"
+            }`}
+          >
             Continuar
           </Text>
         </TouchableOpacity>
@@ -396,7 +408,7 @@ function Step4({
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -415,8 +427,8 @@ function Step4({
           <Text className="text-gray-700 font-bold text-xs mb-1.5">
             CEP *
           </Text>
-          <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-3.5 h-12 shadow-sm focus:border-[#092D5D]">
-            <Ionicons name="location-outline" size={18} color="#092D5D" style={{ marginRight: 10 }} />
+          <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 h-14 shadow-sm focus:border-[#092D5D]">
+            <Ionicons name="location-outline" size={20} color="#092D5D" style={{ marginRight: 10 }} />
             <TextInput
               value={data.cep ?? ""}
               onChangeText={searchCep}
@@ -424,7 +436,7 @@ function Step4({
               placeholderTextColor="#9ca3af"
               keyboardType="numeric"
               maxLength={9}
-              className="flex-1 text-gray-900 text-sm font-semibold p-0"
+              className="flex-1 text-gray-900 text-base font-bold p-0"
             />
             {addressLoading && (
               <ActivityIndicator size="small" color="#092D5D" />
@@ -512,19 +524,23 @@ function Step4({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
           activeOpacity={0.85}
-          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
-            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
+          className={`flex-1 h-16 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
           }`}
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text
+            className={`font-black text-base uppercase tracking-wider ${
+              canProceed ? "text-white" : "text-gray-600"
+            }`}
+          >
             Continuar
           </Text>
         </TouchableOpacity>
@@ -727,16 +743,16 @@ function Step5({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={nextStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+          className="flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text className="text-white font-black text-base uppercase tracking-wider">
             {realServicesList.length === 0 ? "Pular / Continuar" : "Continuar"}
           </Text>
         </TouchableOpacity>
@@ -783,7 +799,7 @@ function Step6({
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -801,7 +817,7 @@ function Step6({
         </Text>
       </View>
 
-      {/* Botão de Importação de Clientes em Lote */}
+      {/* Botão de Importação de Clientes em Lote (Temporariamente oculto)
       <TouchableOpacity
         onPress={() => setIsImportModalOpen(true)}
         activeOpacity={0.85}
@@ -833,6 +849,7 @@ function Step6({
           });
         }}
       />
+      */}
 
       {/* Formulário Novo Cliente Manual */}
       <View className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm mb-5 gap-3">
@@ -910,16 +927,16 @@ function Step6({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={nextStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+          className="flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text className="text-white font-black text-base uppercase tracking-wider">
             {clientsList.length === 0 ? "Pular / Continuar" : "Continuar"}
           </Text>
         </TouchableOpacity>
@@ -965,7 +982,7 @@ function Step7({
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -1059,14 +1076,6 @@ function Step7({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
-        >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={nextStep}
-          activeOpacity={0.85}
-          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
           <Text className="text-white font-black text-sm uppercase tracking-wide">
             {employeesList.length === 0 ? "Pular / Continuar" : "Continuar"}
@@ -1152,7 +1161,7 @@ function Step8({ nextStep, prevStep, data, updateData }: any) {
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 140 }}
       showsVerticalScrollIndicator={false}
     >
       <View className="mb-4">
@@ -1181,7 +1190,7 @@ function Step8({ nextStep, prevStep, data, updateData }: any) {
         {spaceImages.length > 0 && (
           <View className="flex-row flex-wrap gap-2 my-1">
             {spaceImages.map((uri, idx) => (
-              <View key={idx} className="w-[31%] h-24 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
+              <View key={idx} className="w-[28%] h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
                 <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
                 <TouchableOpacity
                   onPress={() => removeImage(idx, "space")}
@@ -1216,7 +1225,7 @@ function Step8({ nextStep, prevStep, data, updateData }: any) {
         {portfolioImages.length > 0 && (
           <View className="flex-row flex-wrap gap-2 my-1">
             {portfolioImages.map((uri, idx) => (
-              <View key={idx} className="w-[31%] h-24 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
+              <View key={idx} className="w-[28%] h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
                 <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
                 <TouchableOpacity
                   onPress={() => removeImage(idx, "portfolio")}
@@ -1239,20 +1248,20 @@ function Step8({ nextStep, prevStep, data, updateData }: any) {
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row gap-3">
+      <View className="flex-row gap-3 mt-6 mb-6">
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={nextStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+          className="flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text className="text-white font-black text-base uppercase tracking-wider">
             {spaceImages.length === 0 && portfolioImages.length === 0 ? "Pular / Continuar" : "Continuar"}
           </Text>
         </TouchableOpacity>
@@ -1282,7 +1291,7 @@ function Step9({
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -1400,19 +1409,23 @@ function Step9({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!canProceed}
           onPress={nextStep}
           activeOpacity={0.85}
-          className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-md ${
-            canProceed ? "bg-[#092D5D]" : "bg-gray-200 opacity-60"
+          className={`flex-1 h-16 rounded-2xl items-center justify-center shadow-md ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
           }`}
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text
+            className={`font-black text-base uppercase tracking-wider ${
+              canProceed ? "text-white" : "text-gray-600"
+            }`}
+          >
             Continuar
           </Text>
         </TouchableOpacity>
@@ -1432,7 +1445,7 @@ function Step10({ data, prevStep, submitCompany, isSubmitting }: any) {
   return (
     <ScrollView
       className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       showsVerticalScrollIndicator={false}
     >
       <View className="mb-4">
@@ -1494,22 +1507,22 @@ function Step10({ data, prevStep, submitCompany, isSubmitting }: any) {
           onPress={prevStep}
           disabled={isSubmitting}
           activeOpacity={0.85}
-          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-gray-700 font-extrabold text-sm uppercase">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={submitCompany}
           disabled={isSubmitting}
           activeOpacity={0.85}
-          className={`flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-lg ${
+          className={`flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-lg ${
             isSubmitting ? "opacity-60" : ""
           }`}
         >
           {isSubmitting ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-black text-sm uppercase tracking-wide">
+            <Text className="text-white font-black text-base uppercase tracking-wider">
               Criar Conta e Empresa
             </Text>
           )}

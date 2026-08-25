@@ -360,7 +360,7 @@ export function useOrderDetailsViewModel(orderId?: number) {
 
       notify({ message: "Comanda fechada com sucesso!", type: "SUCCESS" });
       await ordersRefech();
-      router.back();
+      router.replace("/(private)/(tabs)/(admin-tabs)/finance/order");
     } catch (error) {
       handleError(error, "Falha ao fechar comanda");
     } finally {
@@ -439,10 +439,10 @@ export function useOrderDetailsViewModel(orderId?: number) {
       notify({
         message: "Comanda deletada com sucesso!",
         type: "SUCCESS"
-      })
-      router.back();
+      });
+      router.replace("/(private)/(tabs)/(admin-tabs)/finance/order");
     } catch (error) {
-      handleError(error, "Falha ao deletar comanda")
+      handleError(error, "Falha ao deletar comanda");
       console.log(error);
     } finally {
       setIsDeleting(false);

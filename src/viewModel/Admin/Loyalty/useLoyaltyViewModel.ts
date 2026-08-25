@@ -77,11 +77,30 @@ export function useLoyaltyViewModel() {
   const loyaltyActive = watch("loyaltyActive");
   const stampActive = watch("stampActive");
 
+  function parseBool(val: any): boolean {
+    if (val === true || val === "true" || val === 1 || val === "1") return true;
+    return false;
+  }
+
   useEffect(() => {
-    if (!companyDetails && !activeProgram) return;
+    if (companyDetails === undefined && activeProgram === undefined) return;
+
+    const isLoyaltyActive =
+      activeProgram != null && activeProgram.active !== undefined
+        ? parseBool(activeProgram.active)
+        : companyDetails != null && companyDetails.loyaltyActive !== undefined
+          ? parseBool(companyDetails.loyaltyActive)
+          : false;
+
+    const isStampActive =
+      activeProgram != null && activeProgram.stampActive !== undefined
+        ? parseBool(activeProgram.stampActive)
+        : companyDetails != null && (companyDetails as any).stampActive !== undefined
+          ? parseBool((companyDetails as any).stampActive)
+          : false;
 
     reset({
-      loyaltyActive: activeProgram ? Boolean(activeProgram.active) : Boolean(companyDetails?.loyaltyActive),
+      loyaltyActive: isLoyaltyActive,
       loyaltyPointsPerReal:
         activeProgram?.pointsPerReal != null
           ? String(activeProgram.pointsPerReal)
@@ -94,9 +113,10 @@ export function useLoyaltyViewModel() {
           : "1.0",
       loyaltyRuleDescription:
         activeProgram?.ruleDescription ?? companyDetails?.loyaltyRuleDescription ?? "",
-      stampActive: Boolean(activeProgram?.stampActive),
+      stampActive: isStampActive,
       stampServiceId: activeProgram?.stampServiceId ?? undefined,
-      stampRequiredCount: activeProgram?.stampRequiredCount != null ? String(activeProgram.stampRequiredCount) : "4",
+      stampRequiredCount:
+        activeProgram?.stampRequiredCount != null ? String(activeProgram.stampRequiredCount) : "4",
       stampStartDate: activeProgram?.stampStartDate ? activeProgram.stampStartDate.split("T")[0] : "",
       stampEndDate: activeProgram?.stampEndDate ? activeProgram.stampEndDate.split("T")[0] : "",
       stampRewardDescription: activeProgram?.stampRewardDescription ?? "",
@@ -129,7 +149,7 @@ export function useLoyaltyViewModel() {
     try {
       setIsLoading(true);
 
-      // Garante que existe o programa ativo no banco
+      // Garante que existe o programa ativo no banco sem sobrescrever a preferência do usuário
       let programId = activeProgram?.id;
       if (!programId) {
         const savedProg = await saveProgramMutation.mutateAsync({
@@ -137,8 +157,8 @@ export function useLoyaltyViewModel() {
           dataBody: {
             id: activeProgram?.id,
             name: "Programa de Fidelidade VIP",
-            active: true,
-            pointsPerReal: 1.0,
+            active: Boolean(watch("loyaltyActive")),
+            pointsPerReal: parseFloat(watch("loyaltyPointsPerReal") || "1.0") || 1.0,
             minPointsToRedeem: 100,
           },
         });
@@ -213,14 +233,14 @@ export function useLoyaltyViewModel() {
       const payload: any = {
         id: activeProgram?.id,
         name: "Programa de Fidelidade",
-        active: formData.loyaltyActive,
+        active: Boolean(formData.loyaltyActive),
         pointsPerReal: ptsPerReal,
         pointsAmountPerPoint: amtPerPt,
         minPointsToRedeem: 100,
         ruleDescription: (formData.loyaltyRuleDescription || "").trim(),
 
         // Cartão Fidelidade por Serviço (Carimbos)
-        stampActive: formData.stampActive,
+        stampActive: Boolean(formData.stampActive),
         stampServiceId: formData.stampServiceId,
         stampServiceName: srvName,
         stampRequiredCount: reqCount,
@@ -234,13 +254,13 @@ export function useLoyaltyViewModel() {
         dataBody: payload,
       });
 
+      await Promise.all([refetchProgram(), refetch()]);
+
       notify({
         message: "Programa de Fidelidade salvo com sucesso!",
         type: "SUCCESS",
       });
 
-      await refetch();
-      await refetchProgram();
       router.back();
     } catch (error) {
       handleError(error, "Falha ao salvar configurações do Programa de Fidelidade");

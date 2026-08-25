@@ -18,7 +18,7 @@ import { router } from "expo-router";
 
 function PartnerRegistrationCard() {
   const handleOpenPartnerContact = () => {
-    Linking.openURL("https://www.beautyfi.com.br").catch(() => {});
+    router.push("/(public)/company-register");
   };
 
   return (
@@ -46,7 +46,7 @@ function PartnerRegistrationCard() {
         activeOpacity={0.85}
         className="bg-[#CBA35D] py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm"
       >
-        <Ionicons name="globe-outline" size={18} color="#092D5D" />
+        <Ionicons name="storefront-outline" size={18} color="#092D5D" />
         <Text className="text-[#092D5D] font-extrabold text-xs uppercase tracking-wide">
           Cadastrar Meu Estabelecimento
         </Text>
@@ -412,7 +412,7 @@ export function AppCardCompany({
         ListFooterComponent={
           <View>
             {isFetchingNextPage && <ActivityIndicator className="my-4" color="#092D5D" />}
-            {showPartnerCallout && <PartnerRegistrationCard />}
+            {showPartnerCallout && !isLoggedIn && <PartnerRegistrationCard />}
           </View>
         }
         renderItem={renderItem}

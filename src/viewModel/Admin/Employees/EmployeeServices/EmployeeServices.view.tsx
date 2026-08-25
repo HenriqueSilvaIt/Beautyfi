@@ -60,11 +60,11 @@ export function EmployeeServicesView() {
               <Image
                 source={{ uri: item.imgUrl }}
                 resizeMode="cover"
-                className="w-12 h-12 rounded-2xl bg-gray-100 mr-3.5 border border-gray-200"
+                className="w-14 h-14 rounded-2xl bg-gray-100 mr-3.5 border border-gray-200"
               />
             ) : (
-              <View className="w-12 h-12 rounded-2xl bg-[#092D5D]/10 border border-[#092D5D]/20 mr-3.5 items-center justify-center">
-                <Ionicons name="cut" size={22} color="#092D5D" />
+              <View className="w-14 h-14 rounded-2xl bg-[#092D5D]/10 border border-[#092D5D]/20 mr-3.5 items-center justify-center">
+                <Ionicons name="cut" size={26} color="#092D5D" />
               </View>
             )}
             <View className="flex-1 pr-1">
@@ -72,7 +72,7 @@ export function EmployeeServicesView() {
                 {item.name}
               </Text>
               {item.price !== undefined && (
-                <Text className="text-gray-500 text-xs font-semibold mt-0.5">
+                <Text className="text-gray-600 text-xs font-semibold mt-0.5">
                   Preço padrão: R$ {Number(item.price).toFixed(2).replace(".", ",")}
                 </Text>
               )}
@@ -103,7 +103,7 @@ export function EmployeeServicesView() {
               <Ionicons
                 name={checked ? "checkmark-circle" : "ellipse-outline"}
                 size={26}
-                color={checked ? "#092D5D" : "#d1d5db"}
+                color={checked ? "#092D5D" : "#9ca3af"}
               />
             </TouchableOpacity>
           </View>
@@ -144,13 +144,13 @@ export function EmployeeServicesView() {
       </View>
 
       <FlatList
-        contentContainerStyle={{ paddingBottom: 90 }}
+        contentContainerStyle={{ paddingBottom: 110 }}
         data={services}
         initialNumToRender={8}
         maxToRenderPerBatch={10}
         renderItem={renderItem}
         keyExtractor={(item) => item.id!.toString()}
-        ListEmptyComponent={<AppEmptyList message="Nenhum serviço cadastrado" />}
+        ListEmptyComponent={<AppEmptyList title="Nenhum serviço cadastrado" />}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
@@ -163,13 +163,14 @@ export function EmployeeServicesView() {
           isFetchingNextPage ? (
             <ActivityIndicator color="#092D5D" className="py-4" />
           ) : (
-            <View className="justify-center items-center px-5 pt-4">
+            <View className="justify-center items-center px-5 pt-4 pb-6">
               <TouchableOpacity
                 onPress={() => router.back()}
                 activeOpacity={0.85}
-                className="w-full h-14 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md"
+                className="w-full h-16 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md flex-row gap-2"
               >
-                <Text className="text-white font-black text-sm uppercase tracking-wide">
+                <Ionicons name="checkmark-circle-outline" size={22} color="#FFFFFF" />
+                <Text className="text-white font-black text-base uppercase tracking-wider">
                   Concluir Associação
                 </Text>
               </TouchableOpacity>

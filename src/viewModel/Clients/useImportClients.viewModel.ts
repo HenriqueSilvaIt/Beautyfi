@@ -201,8 +201,8 @@ export function useImportClientsViewModel(
   // Filtered contacts by search
   const filteredContacts = contacts.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone.includes(searchQuery)
+      (c.name || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+      (c.phone || "").includes(searchQuery || "")
   );
 
   // Submit batch import
@@ -227,8 +227,9 @@ export function useImportClientsViewModel(
     if (onCustomImport) {
       try {
         const formattedList = toImport.map((contact) => {
-          const nameParts = contact.name.trim().split(" ");
-          const firstName = nameParts[0] || contact.name;
+          const rawName = (contact.name || "Contato").trim();
+          const nameParts = rawName.split(" ");
+          const firstName = nameParts[0] || rawName;
           const lastName = nameParts.slice(1).join(" ") || "";
           const fullName = lastName ? `${firstName} ${lastName}` : firstName;
           return {
@@ -255,8 +256,9 @@ export function useImportClientsViewModel(
 
     for (const contact of toImport) {
       try {
-        const nameParts = contact.name.split(" ");
-        const firstName = nameParts[0] || contact.name;
+        const rawName = (contact.name || "Contato").trim();
+        const nameParts = rawName.split(" ");
+        const firstName = nameParts[0] || rawName;
         const lastName = nameParts.slice(1).join(" ") || undefined;
 
         await postClients({

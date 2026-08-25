@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -15,6 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { useLoyaltyViewModel } from "./useLoyaltyViewModel";
 import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
+import { AppDateTimePicker } from "@/shared/components/AppDateTimePicker";
+import { useFormatDate } from "@/shared/hooks/useFormatDate";
 
 function AddItemBottomSheet({
   itemType,
@@ -218,6 +220,7 @@ export function LoyaltyView(props: ReturnType<typeof useLoyaltyViewModel>) {
   const {
     control,
     watch,
+    setValue,
     onSubmit,
     isLoading,
     loyaltyActive,
@@ -240,6 +243,10 @@ export function LoyaltyView(props: ReturnType<typeof useLoyaltyViewModel>) {
     handleAddItem,
     handleDeleteItem,
   } = props;
+
+  const [openStartPicker, setOpenStartPicker] = useState(false);
+  const [openEndPicker, setOpenEndPicker] = useState(false);
+  const { DateIsoToBR, formatDateToISO } = useFormatDate();
 
   const { openBottomSheet, closeBottomSheet } = useBottomSheetContext();
 
@@ -568,34 +575,48 @@ export function LoyaltyView(props: ReturnType<typeof useLoyaltyViewModel>) {
                 <View className="flex-row gap-3">
                   <View className="flex-1">
                     <Text className="text-gray-700 text-xs font-semibold mb-1.5">
-                      Data de Início (AAAA-MM-DD):
+                      Data de Início da Promoção:
                     </Text>
                     <Controller
                       control={control}
                       name="stampStartDate"
-                      render={({ field: { value, onChange } }) => (
-                        <AppInput
-                          value={value}
-                          onChangeText={onChange}
-                          placeholder="Ex: 2026-09-01"
-                        />
+                      render={({ field: { value } }) => (
+                        <TouchableOpacity
+                          onPress={() => setOpenStartPicker(true)}
+                          activeOpacity={0.8}
+                          className="flex-row items-center gap-2 p-3.5 rounded-xl bg-gray-50 border border-gray-200"
+                        >
+                          <Ionicons name="calendar-outline" size={18} color="#092D5D" />
+                          <View className="flex-1">
+                            <Text className="text-gray-900 font-bold text-xs">
+                              {value ? DateIsoToBR(value) : "Selecione a data"}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
                       )}
                     />
                   </View>
 
                   <View className="flex-1">
                     <Text className="text-gray-700 text-xs font-semibold mb-1.5">
-                      Data de Término (AAAA-MM-DD):
+                      Data de Término da Promoção:
                     </Text>
                     <Controller
                       control={control}
                       name="stampEndDate"
-                      render={({ field: { value, onChange } }) => (
-                        <AppInput
-                          value={value}
-                          onChangeText={onChange}
-                          placeholder="Ex: 2026-12-31"
-                        />
+                      render={({ field: { value } }) => (
+                        <TouchableOpacity
+                          onPress={() => setOpenEndPicker(true)}
+                          activeOpacity={0.8}
+                          className="flex-row items-center gap-2 p-3.5 rounded-xl bg-gray-50 border border-gray-200"
+                        >
+                          <Ionicons name="calendar-outline" size={18} color="#092D5D" />
+                          <View className="flex-1">
+                            <Text className="text-gray-900 font-bold text-xs">
+                              {value ? DateIsoToBR(value) : "Selecione a data"}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
                       )}
                     />
                   </View>
@@ -641,7 +662,30 @@ export function LoyaltyView(props: ReturnType<typeof useLoyaltyViewModel>) {
           </View>
         </ScrollView>
       </View>
+
+      {/* PICKERS DE DATA PARA O CARTÃO FIDELIDADE */}
+      <AppDateTimePicker
+        open={openStartPicker}
+        mode="date"
+        date={watch("stampStartDate") ? new Date(watch("stampStartDate") + "T12:00:00") : new Date()}
+        onConfirm={(date) => {
+          setOpenStartPicker(false);
+          setValue("stampStartDate", formatDateToISO(date));
+        }}
+        onCancel={() => setOpenStartPicker(false)}
+      />
+
+      <AppDateTimePicker
+        open={openEndPicker}
+        mode="date"
+        minimumDate={watch("stampStartDate") ? new Date(watch("stampStartDate") + "T12:00:00") : undefined}
+        date={watch("stampEndDate") ? new Date(watch("stampEndDate") + "T12:00:00") : new Date()}
+        onConfirm={(date) => {
+          setOpenEndPicker(false);
+          setValue("stampEndDate", formatDateToISO(date));
+        }}
+        onCancel={() => setOpenEndPicker(false)}
+      />
     </KeyboardContainer>
   );
 }
-

@@ -14,6 +14,7 @@ try {
 }
 
 const ONESIGNAL_APP_ID = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID;
+let isOneSignalInitialized = false;
 
 export function useOneSignal() {
   const { showInAppNewAppointmentModal } = usePreferencesStore();
@@ -45,7 +46,23 @@ export function useOneSignal() {
   };
 
   useEffect(() => {
-    if (user?.id && OneSignal) {
+    if (!ONESIGNAL_APP_ID || !OneSignal) {
+      return;
+    }
+
+    // 1. GARANTE que a inicialização do OneSignal aconteça ANTES de qualquer chamada de login/logout ou listener
+    if (!isOneSignalInitialized) {
+      try {
+        OneSignal.initialize(ONESIGNAL_APP_ID);
+        isOneSignalInitialized = true;
+      } catch (e) {
+        console.warn("OneSignal init error:", e);
+        return;
+      }
+    }
+
+    // 2. Faz o login do usuário com total segurança APÓS a inicialização ter ocorrido
+    if (user?.id) {
       try {
         if (OneSignal.login) {
           OneSignal.login(String(user.id));
@@ -58,94 +75,54 @@ export function useOneSignal() {
       } catch (e) {
         console.warn("Error setting OneSignal user / reading push subscription id:", e);
       }
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!ONESIGNAL_APP_ID || !OneSignal) {
-      return;
-    }
-
-    try {
-      OneSignal.initialize(ONESIGNAL_APP_ID);
-
-      const onSubscriptionChange = (event: any) => {
-        try {
-          const subId = event?.current?.id;
-          if (subId) {
-            syncPushToken(subId);
-          }
-        } catch (e) {}
-      };
-
-      if (OneSignal?.User?.pushSubscription?.addEventListener) {
-        OneSignal.User.pushSubscription.addEventListener("change", onSubscriptionChange);
-      }
-
-      // Solicitar permissão de notificação (Android 13+ e iOS)
-      if (OneSignal?.Notifications?.requestPermission) {
-        OneSignal.Notifications.requestPermission(true).then((granted: boolean) => {
-          if (granted) {
-            setTimeout(() => {
-              const subId = OneSignal?.User?.pushSubscription?.id;
-              if (subId) syncPushToken(subId);
-            }, 1000);
-          }
-        }).catch(() => {});
-      }
-
-      const handleForegroundWillDisplay = (event: any) => {
-        try {
-          const notification = event.getNotification();
-          const data = notification?.getAdditionalData() as any;
-
-          addNotification({
-            id: notification?.getNotificationId() || String(Date.now()),
-            title: notification?.getTitle() || "Notificação",
-            body: notification?.getBody() || "",
-          });
-
-          if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
-            if (showInAppNewAppointmentModal) {
-              event.preventDefault();
-              Alert.alert(
-                "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
-                notification.getBody() || "",
-                [
-                  {
-                    text: "Ver Agendamento",
-                    onPress: () => {
-                      if (data?.id) {
-                        try {
-                          router.push(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${data.id}`);
-                        } catch (e) {
-                          router.push("/(private)/(tabs)/(admin-tabs)/agenda");
-                        }
-                      } else {
-                        router.push("/(private)/(tabs)/(admin-tabs)/agenda");
-                      }
-                    },
-                  },
-                  {
-                    text: "OK",
-                    style: "cancel",
-                  },
-                ],
-                { cancelable: false }
-              );
-            }
-          }
-        } catch (e) {
-          console.warn("Error in foregroundWillDisplay listener:", e);
+    } else {
+      try {
+        if (OneSignal.logout) {
+          OneSignal.logout();
         }
-      };
+      } catch (e) {}
+    }
 
-      const handleClick = (event: any) => {
-        try {
-          const notification = event?.notification;
-          const data = notification?.getAdditionalData() as any;
+    // 3. Registra os listeners de eventos e inscrições de push
+    const onSubscriptionChange = (event: any) => {
+      try {
+        const subId = event?.current?.id;
+        if (subId) {
+          syncPushToken(subId);
+        }
+      } catch (e) {}
+    };
 
-          if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
+    if (OneSignal?.User?.pushSubscription?.addEventListener) {
+      OneSignal.User.pushSubscription.addEventListener("change", onSubscriptionChange);
+    }
+
+    // Solicitar permissão de notificação (Android 13+ e iOS)
+    if (OneSignal?.Notifications?.requestPermission) {
+      OneSignal.Notifications.requestPermission(true).then((granted: boolean) => {
+        if (granted) {
+          setTimeout(() => {
+            const subId = OneSignal?.User?.pushSubscription?.id;
+            if (subId) syncPushToken(subId);
+          }, 1000);
+        }
+      }).catch(() => {});
+    }
+
+    const handleForegroundWillDisplay = (event: any) => {
+      try {
+        const notification = event.getNotification();
+        const data = notification?.getAdditionalData() as any;
+
+        addNotification({
+          id: notification?.getNotificationId() || String(Date.now()),
+          title: notification?.getTitle() || "Notificação",
+          body: notification?.getBody() || "",
+        });
+
+        if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
+          if (showInAppNewAppointmentModal) {
+            event.preventDefault();
             Alert.alert(
               "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
               notification.getBody() || "",
@@ -172,30 +149,65 @@ export function useOneSignal() {
               { cancelable: false }
             );
           }
-        } catch (e) {
-          console.warn("Error in click listener:", e);
         }
-      };
-
-      if (OneSignal?.Notifications?.addEventListener) {
-        OneSignal.Notifications.addEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
-        OneSignal.Notifications.addEventListener("click", handleClick);
+      } catch (e) {
+        console.warn("Error in foregroundWillDisplay listener:", e);
       }
+    };
 
-      return () => {
-        try {
-          if (OneSignal?.User?.pushSubscription?.removeEventListener) {
-            OneSignal.User.pushSubscription.removeEventListener("change", onSubscriptionChange);
-          }
-          if (OneSignal?.Notifications?.removeEventListener) {
-            OneSignal.Notifications.removeEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
-            OneSignal.Notifications.removeEventListener("click", handleClick);
-          }
-        } catch (e) {}
-      };
-    } catch (e) {
-      console.warn("OneSignal init error:", e);
+    const handleClick = (event: any) => {
+      try {
+        const notification = event?.notification;
+        const data = notification?.getAdditionalData() as any;
+
+        if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
+          Alert.alert(
+            "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
+            notification.getBody() || "",
+            [
+              {
+                text: "Ver Agendamento",
+                onPress: () => {
+                  if (data?.id) {
+                    try {
+                      router.push(`/(private)/(tabs)/(admin-tabs)/agenda/booking-details/${data.id}`);
+                    } catch (e) {
+                      router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                    }
+                  } else {
+                    router.push("/(private)/(tabs)/(admin-tabs)/agenda");
+                  }
+                },
+              },
+              {
+                text: "OK",
+                style: "cancel",
+              },
+            ],
+            { cancelable: false }
+          );
+        }
+      } catch (e) {
+        console.warn("Error in click listener:", e);
+      }
+    };
+
+    if (OneSignal?.Notifications?.addEventListener) {
+      OneSignal.Notifications.addEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
+      OneSignal.Notifications.addEventListener("click", handleClick);
     }
+
+    return () => {
+      try {
+        if (OneSignal?.User?.pushSubscription?.removeEventListener) {
+          OneSignal.User.pushSubscription.removeEventListener("change", onSubscriptionChange);
+        }
+        if (OneSignal?.Notifications?.removeEventListener) {
+          OneSignal.Notifications.removeEventListener("foregroundWillDisplay", handleForegroundWillDisplay);
+          OneSignal.Notifications.removeEventListener("click", handleClick);
+        }
+      } catch (e) {}
+    };
   }, [user?.id, showInAppNewAppointmentModal]);
 
   return {};

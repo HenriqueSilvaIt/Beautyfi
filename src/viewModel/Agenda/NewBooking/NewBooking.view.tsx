@@ -37,13 +37,11 @@ export function NewBookingView() {
   const client = useAgendaStore((s) => s.client);
   const service = useAgendaStore((s) => s.service);
 
-  const themeGold = colors["app-theme-secundary"] || "#CBA35D";
-
   return (
     <KeyboardContainer>
-      <ScrollView className="bg-background-primary flex-1" keyboardShouldPersistTaps="handled">
+      <View className="bg-slate-50 flex-1">
         <AppAdminHeader
-          title="Novo agendamento"
+          title="Novo Agendamento"
           iconRightName={undefined}
           iconRight={{
             icon: true,
@@ -51,241 +49,291 @@ export function NewBookingView() {
           }}
         />
 
-        <View className="px-4 py-3 gap-4 pb-12">
-          {/* Data e Hora */}
-          <View className="bg-background-quartenary rounded-2xl p-4 border border-white/5 shadow-md gap-3">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="calendar-outline" size={18} color={themeGold} />
-              <Text className="text-font-primary text-base font-bold">
-                Data e Horário
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Summary / Header Info Card */}
+          <View className="mb-4 p-5 rounded-2xl bg-white border border-gray-200/80 shadow-sm flex-row items-center gap-3.5">
+            <View className="w-12 h-12 rounded-2xl bg-[#092D5D]/10 border border-[#092D5D]/20 items-center justify-center">
+              <Ionicons name="calendar-number" size={24} color="#092D5D" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-900 font-black text-sm">
+                Agendamento de Serviço
+              </Text>
+              <Text className="text-gray-600 text-xs font-semibold mt-0.5">
+                Preencha os detalhes abaixo para agendar o atendimento.
               </Text>
             </View>
+          </View>
 
-            <View className="flex-row gap-3 items-center justify-center bg-background-tertiary p-3 rounded-xl">
+          {/* Data e Horário */}
+          <View className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm mb-4 gap-4">
+            <View className="flex-row items-center justify-between border-b border-gray-100 pb-3.5">
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="time-outline" size={20} color="#092D5D" />
+                <Text className="text-gray-900 text-sm font-black">
+                  Data e Horário
+                </Text>
+              </View>
+              <View className="px-2.5 py-1 rounded-full bg-[#092D5D]/10">
+                <Text className="text-[#092D5D] text-[10px] font-black uppercase">
+                  Obrigatório
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
                 activeOpacity={0.8}
-                className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-background-primary/50"
+                className="flex-1 flex-row items-center gap-2.5 p-4 rounded-2xl bg-slate-50 border border-gray-200"
               >
-                <Ionicons name="calendar" size={18} color={themeGold} />
-                <Text className="text-font-primary font-bold text-sm">
-                  {selectedDay ? formatDateToBR(selectedDay) : "Data"}
-                </Text>
+                <Ionicons name="calendar" size={20} color="#092D5D" />
+                <View className="flex-1">
+                  <Text className="text-gray-600 text-[10px] font-extrabold uppercase">Data</Text>
+                  <Text className="text-gray-900 font-bold text-xs">
+                    {selectedDay ? formatDateToBR(selectedDay) : "Selecione a data"}
+                  </Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setShowTimePicker(true)}
                 activeOpacity={0.8}
-                className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-background-primary/50"
+                className="flex-1 flex-row items-center gap-2.5 p-4 rounded-2xl bg-slate-50 border border-gray-200"
               >
-                <Ionicons name="time" size={18} color={themeGold} />
-                <Text className="text-font-primary font-bold text-sm">
-                  {time ?? "Horário"}
-                </Text>
+                <Ionicons name="time" size={20} color="#092D5D" />
+                <View className="flex-1">
+                  <Text className="text-gray-600 text-[10px] font-extrabold uppercase">Horário</Text>
+                  <Text className="text-gray-900 font-bold text-xs">
+                    {time ?? "Selecione a hora"}
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
 
             {/* Toggle Encaixe */}
-            <View className="bg-background-tertiary p-3 rounded-xl">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1 pr-2">
-                  <Text className="text-font-primary text-sm font-semibold">
-                    Encaixe
+            <View className="bg-slate-50 p-4 rounded-2xl border border-gray-200 flex-row items-center justify-between">
+              <View className="flex-1 pr-2">
+                <View className="flex-row items-center gap-1.5 mb-0.5">
+                  <Text className="text-gray-900 text-xs font-black">
+                    Modo Encaixe
                   </Text>
-                  <Text className="text-font-secondary text-[11px] mt-0.5">
-                    Permite agendar ignorando conflitos na agenda
-                  </Text>
+                  {fitIn && (
+                    <View className="px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-200">
+                      <Text className="text-emerald-700 text-[9px] font-extrabold uppercase">Ativo</Text>
+                    </View>
+                  )}
                 </View>
-                <TouchableOpacity
-                  onPress={() => setFitIn(!fitIn)}
-                  activeOpacity={0.8}
-                >
-                  <MaterialCommunityIcons
-                    name={
-                      fitIn ? "toggle-switch" : "toggle-switch-off-outline"
-                    }
-                    size={38}
-                    color={fitIn ? "#10B981" : "#6B7280"}
-                  />
-                </TouchableOpacity>
+                <Text className="text-gray-600 text-xs font-medium leading-4">
+                  Permite agendar mesmo em horários com conflitos na agenda.
+                </Text>
               </View>
+              <TouchableOpacity
+                onPress={() => setFitIn(!fitIn)}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons
+                  name={fitIn ? "toggle-switch" : "toggle-switch-off-outline"}
+                  size={42}
+                  color={fitIn ? "#10B981" : "#9CA3AF"}
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
           {/* Profissional */}
           {employee && (
-            <View className="bg-background-quartenary rounded-2xl p-4 border border-white/5 shadow-md gap-3">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="cut-outline" size={18} color={themeGold} />
-                <Text className="text-font-primary text-base font-bold">
-                  Profissional
+            <View className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm mb-4 gap-3.5">
+              <View className="flex-row items-center gap-2 border-b border-gray-100 pb-3.5">
+                <Ionicons name="cut-outline" size={20} color="#092D5D" />
+                <Text className="text-gray-900 text-sm font-black">
+                  Profissional Atendente
                 </Text>
               </View>
 
-              <View className="flex-row items-center gap-3 bg-background-tertiary p-3.5 rounded-xl">
+              <View className="flex-row items-center gap-3.5 bg-slate-50 p-4 rounded-2xl border border-gray-200">
                 {employee.avatarUrl ? (
                   <Image
                     source={{ uri: employee.avatarUrl }}
                     resizeMode="cover"
-                    className="h-[40px] w-[40px] rounded-full border-2 border-white/10"
+                    className="h-14 w-14 rounded-full border-2 border-[#092D5D]/20"
                   />
                 ) : (
-                  <View className="w-[40px] h-[40px] rounded-full bg-background-primary items-center justify-center border border-white/10">
-                    <Ionicons name="person" size={28} color="#9CA3AF" />
+                  <View className="w-14 h-14 rounded-full bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
+                    <Ionicons name="person" size={26} color="#092D5D" />
                   </View>
                 )}
-                <Text className="text-font-primary font-bold text-base">
-                  {employee.name}
-                </Text>
+                <View className="flex-1">
+                  <Text className="text-gray-900 font-extrabold text-sm">
+                    {employee.name}
+                  </Text>
+                  <Text className="text-gray-600 text-xs font-semibold mt-0.5">
+                    Profissional selecionado
+                  </Text>
+                </View>
               </View>
             </View>
           )}
 
           {/* Cliente */}
-          <View className="bg-background-quartenary rounded-2xl p-4 border border-white/5 shadow-md gap-3">
-            <View className="flex-row items-center justify-between">
+          <View className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm mb-4 gap-3.5">
+            <View className="flex-row items-center justify-between border-b border-gray-100 pb-3.5">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="person-outline" size={18} color={themeGold} />
-                <Text className="text-font-primary text-base font-bold">
+                <Ionicons name="person-outline" size={20} color="#092D5D" />
+                <Text className="text-gray-900 text-sm font-black">
                   Cliente
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => handleOpenClientList()}>
-                <Text className="text-accent-gold text-xs font-semibold">
-                  {client ? "Alterar" : "Selecionar"}
+              <TouchableOpacity
+                onPress={() => handleOpenClientList()}
+                className="px-3.5 py-1.5 rounded-full bg-[#CBA35D]/15 border border-[#CBA35D]/40"
+              >
+                <Text className="text-[#CBA35D] text-xs font-black">
+                  {client ? "Alterar" : "+ Selecionar"}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={() => handleOpenClientList()}
-              className="flex-row items-center gap-3 bg-background-tertiary p-3.5 rounded-xl"
+              className="flex-row items-center gap-3.5 bg-slate-50 p-4 rounded-2xl border border-gray-200"
             >
               {client?.profileUrl ? (
                 <Image
                   source={{ uri: client.profileUrl }}
                   resizeMode="cover"
-                  className="h-[40px] w-[40px] rounded-full border-2 border-accent-gold"
+                  className="h-14 w-14 rounded-full border-2 border-[#CBA35D]"
                 />
               ) : (
-                <View className="w-[40px] h-[40px] rounded-full bg-accent-gold/20 items-center justify-center border border-accent-gold/40">
-                  <Ionicons name="person" size={28} color={themeGold} />
+                <View className="w-14 h-14 rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                  <Ionicons name="person" size={26} color="#CBA35D" />
                 </View>
               )}
               <View className="flex-1">
-                <Text className="text-font-primary font-bold text-base">
-                  {client ? client.name : "Selecione um cliente"}
+                <Text className="text-gray-900 font-extrabold text-sm">
+                  {client ? client.name : "Selecione o cliente"}
                 </Text>
-                {client?.phone && (
-                  <Text className="text-font-secondary text-xs mt-1">
-                    {client.phone}
-                  </Text>
-                )}
+                <Text className="text-gray-600 text-xs font-semibold mt-0.5">
+                  {client?.phone ? client.phone : "Clique para pesquisar na lista de clientes"}
+                </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
           {/* Serviço */}
-          <View className="bg-background-quartenary rounded-2xl p-4 border border-white/5 shadow-md gap-3">
-            <View className="flex-row items-center justify-between">
+          <View className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm mb-4 gap-3.5">
+            <View className="flex-row items-center justify-between border-b border-gray-100 pb-3.5">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="sparkles-outline" size={18} color={themeGold} />
-                <Text className="text-font-primary text-base font-bold">
-                  Serviço
+                <Ionicons name="sparkles-outline" size={20} color="#092D5D" />
+                <Text className="text-gray-900 text-sm font-black">
+                  Serviço Desejado
                 </Text>
               </View>
-              <TouchableOpacity onPress={handleOpenServiceList}>
-                <Text className="text-accent-gold text-xs font-semibold">
-                  {service ? "Alterar" : "Selecionar"}
+              <TouchableOpacity
+                onPress={handleOpenServiceList}
+                className="px-3.5 py-1.5 rounded-full bg-[#CBA35D]/15 border border-[#CBA35D]/40"
+              >
+                <Text className="text-[#CBA35D] text-xs font-black">
+                  {service ? "Alterar" : "+ Selecionar"}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleOpenServiceList}
-              className="flex-row items-center gap-3 bg-background-tertiary p-3.5 rounded-xl"
+              className="flex-row items-center gap-3.5 bg-slate-50 p-4 rounded-2xl border border-gray-200"
             >
               {service?.imgUrl ? (
                 <Image
                   source={{ uri: service.imgUrl }}
                   resizeMode="cover"
-                  className="h-[40px] w-[40px] rounded-2xl border border-white/10"
+                  className="h-14 w-14 rounded-2xl border border-gray-200"
                 />
               ) : (
-                <View className="w-[40px] h-[40px] rounded-2xl bg-accent-gold/20 items-center justify-center border border-accent-gold/40">
-                  <Ionicons name="cut" size={28} color={themeGold} />
+                <View className="w-14 h-14 rounded-2xl bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
+                  <Ionicons name="cut" size={26} color="#092D5D" />
                 </View>
               )}
               <View className="flex-1">
-                <Text className="text-font-primary font-bold text-base">
-                  {service ? service.name : "Selecione um serviço"}
+                <Text className="text-gray-900 font-extrabold text-sm">
+                  {service ? service.name : "Selecione o serviço"}
                 </Text>
-                {service && (
-                  <Text className="text-accent-gold font-bold text-sm mt-1">
+                {service ? (
+                  <Text className="text-[#092D5D] font-extrabold text-xs mt-0.5">
                     R$ {moneyMapper(service.price)}
+                  </Text>
+                ) : (
+                  <Text className="text-gray-600 text-xs font-semibold mt-0.5">
+                    Clique para escolher o serviço a ser realizado
                   </Text>
                 )}
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
-          {/* Informações adicionais */}
-          <View className="bg-background-quartenary rounded-2xl p-4 border border-white/5 shadow-md">
+          {/* Informações Adicionais */}
+          <View className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm mb-4">
             <AppInputController
               leftIcon="information-circle-outline"
-              label="Informações adicionais"
+              label="Informações Adicionais"
               control={control}
               name="additionalInfo"
-              placeholder="Adicionar observações..."
+              placeholder="Adicione observações ou preferências do cliente..."
               className="w-full"
-              placeholderTextColor={colors.gray[600]}
+              placeholderTextColor="#9CA3AF"
               multiline={true}
               numberOfLines={3}
             />
           </View>
+        </ScrollView>
+
+        {/* Botão de Confirmação Fixo no Rodapé com Altura Aumentada (h-16 / 64px) */}
+        <View className="p-4.5 bg-white border-t border-gray-200/80 shadow-xl">
+          <TouchableOpacity
+            onPress={createBooking}
+            activeOpacity={0.85}
+            className="w-full h-16 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md flex-row gap-2.5"
+          >
+            <Ionicons name="checkmark-circle-outline" size={22} color="#FFFFFF" />
+            <Text className="text-white font-extrabold text-base uppercase tracking-wider">
+              Confirmar Agendamento
+            </Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      {/* Botão de confirmação */}
-      <View className="p-4 bg-background-quartenary border-t border-white/5">
-        <TouchableOpacity
-          onPress={createBooking}
-          activeOpacity={0.8}
-          className="w-full py-4 rounded-xl bg-app-theme-primary items-center shadow-lg"
-        >
-          <Text className="text-font-secundary font-bold text-base">
-            Confirmar Agendamento
-          </Text>
-        </TouchableOpacity>
+        {showDatePicker && (
+          <AppDate
+            open={showDatePicker}
+            date={selectedDay || new Date()}
+            onConfirm={(date) => {
+              setDate(date);
+              setShowDatePicker(false);
+            }}
+            onCancel={() => setShowDatePicker(false)}
+          />
+        )}
+
+        {showTimePicker && (
+          <AppTime
+            open={showTimePicker}
+            date={timeStringToDate(time)}
+            onConfirm={(date) => {
+              setTime(dateToTimeString(date));
+              setShowTimePicker(false);
+            }}
+            onCancel={() => setShowTimePicker(false)}
+          />
+        )}
       </View>
-
-      {showDatePicker && (
-        <AppDate
-          open={showDatePicker}
-          date={selectedDay || new Date()}
-          onConfirm={(date) => {
-            setDate(date);
-            setShowDatePicker(false);
-          }}
-          onCancel={() => setShowDatePicker(false)}
-        />
-      )}
-
-      {showTimePicker && (
-        <AppTime
-          open={showTimePicker}
-          date={timeStringToDate(time)}
-          onConfirm={(date) => {
-            setTime(dateToTimeString(date));
-            setShowTimePicker(false);
-          }}
-          onCancel={() => setShowTimePicker(false)}
-        />
-      )}
     </KeyboardContainer>
   );
 }

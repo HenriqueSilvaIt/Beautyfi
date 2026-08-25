@@ -382,7 +382,7 @@ export function MenuView({
 
         {/* App Version */}
         <Text className="text-font-secondary text-[10px] text-center mt-6 mb-2">
-          Beautyfi v1.1.0
+          Beautyfi v1.1.2
         </Text>
       </ScrollView>
     </KeyboardContainer>

@@ -98,9 +98,10 @@ export function useLoyaltyMutation() {
       );
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["loyalty-program-active", variables.companyId] });
-      queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loyalty-program-active"] });
+      queryClient.invalidateQueries({ queryKey: ["company-details"] });
+      queryClient.invalidateQueries({ queryKey: ["company"] });
     },
   });
 

@@ -91,30 +91,30 @@ export function AgendaView({
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-agenda">
+    <SafeAreaView className="flex-1 bg-slate-50">
       <StatusBar
         barStyle="dark-content"
-        backgroundColor={colors["background-primary"]}
+        backgroundColor="#FFFFFF"
       />
       
       <AppHeader user={user} token={access_token} />
 
       {/* View Mode Selector: Dia / Semana / Mês */}
-      <View className="flex-row items-center justify-between px-4 py-2 bg-background-primary border-b border-gray-700/50">
-        <Text className="text-font-primary text-xs font-bold uppercase tracking-wider">
+      <View className="flex-row items-center justify-between px-4 py-2.5 bg-white border-b border-slate-200 shadow-xs">
+        <Text className="text-slate-900 text-xs font-black uppercase tracking-wider">
           Visualização
         </Text>
-        <View className="flex-row bg-background-tertiary rounded-xl p-1 gap-1">
+        <View className="flex-row bg-slate-100 rounded-xl p-1 gap-1 border border-slate-200/80">
           <TouchableOpacity
             onPress={() => setViewMode("day")}
             activeOpacity={0.8}
-            className={`px-3 py-1 rounded-lg ${
-              viewMode === "day" ? "bg-accent-gold" : ""
+            className={`px-3.5 py-1.5 rounded-lg ${
+              viewMode === "day" ? "bg-[#092D5D] shadow-xs" : ""
             }`}
           >
             <Text
               className={`text-xs font-bold ${
-                viewMode === "day" ? "text-black" : "text-font-primary"
+                viewMode === "day" ? "text-white" : "text-slate-600"
               }`}
             >
               Dia
@@ -124,13 +124,13 @@ export function AgendaView({
           <TouchableOpacity
             onPress={() => setViewMode("week")}
             activeOpacity={0.8}
-            className={`px-3 py-1 rounded-lg ${
-              viewMode === "week" ? "bg-accent-gold" : ""
+            className={`px-3.5 py-1.5 rounded-lg ${
+              viewMode === "week" ? "bg-[#092D5D] shadow-xs" : ""
             }`}
           >
             <Text
               className={`text-xs font-bold ${
-                viewMode === "week" ? "text-black" : "text-font-primary"
+                viewMode === "week" ? "text-white" : "text-slate-600"
               }`}
             >
               Semana
@@ -140,13 +140,13 @@ export function AgendaView({
           <TouchableOpacity
             onPress={() => setViewMode("month")}
             activeOpacity={0.8}
-            className={`px-3 py-1 rounded-lg ${
-              viewMode === "month" ? "bg-accent-gold" : ""
+            className={`px-3.5 py-1.5 rounded-lg ${
+              viewMode === "month" ? "bg-[#092D5D] shadow-xs" : ""
             }`}
           >
             <Text
               className={`text-xs font-bold ${
-                viewMode === "month" ? "text-black" : "text-font-primary"
+                viewMode === "month" ? "text-white" : "text-slate-600"
               }`}
             >
               Mês

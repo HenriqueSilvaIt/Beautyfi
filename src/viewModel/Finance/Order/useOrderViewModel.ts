@@ -4,9 +4,10 @@ import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { OrderInterface } from "@/shared/interfaces/http/order";
 import { useOrderMutation } from "@/shared/queries/finance/use-order-mutation";
 import { useDebounce } from "@/shared/hooks/useDebounce";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
+import { useFocusEffect } from "expo-router";
 
 export function useOrderViewModel() {
   const { safePush } = useSafeNavigation();
@@ -35,6 +36,12 @@ export function useOrderViewModel() {
     fetchNextPage: orderFetchNextPage,
     isFetchingNextPage: orderIsFetchingNextPage,
   } = useGetOrdersMutation(companyId);
+
+  useFocusEffect(
+    useCallback(() => {
+      orderRefetch();
+    }, [orderRefetch])
+  );
 
   // Map all orders (both open and closed)
   const allOrders = orderData?.pages.flatMap((page) => page.content ?? []) ?? [];
