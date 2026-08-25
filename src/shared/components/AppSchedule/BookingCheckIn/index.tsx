@@ -26,6 +26,7 @@ import {
   PaymentIntentParam,
   UserSubscriptionDTO,
 } from "@/shared/interfaces/http/stripe";
+import { useUserStore } from "@/shared/store/user-store";
 import React, { useState } from "react";
 
 interface BookingCheckingProps {
@@ -113,8 +114,20 @@ export function BookingCheckIn({
   const totalServicePrice = servicesList.reduce((acc, s) => acc + (s.price || 0), 0);
   const totalServiceDuration = servicesList.reduce((acc, s) => acc + (s.duration || 0), 0);
 
+  const user = useUserStore((state) => state.user);
+
   const totalDepositAmount = servicesList.reduce((acc, s) => {
-    if (Boolean(s.requiresDeposit) && (s.depositAmount || 0) > 0) {
+    let requiresDepositForClient = Boolean(s.requiresDeposit);
+    if (requiresDepositForClient && s.noShowApplyToAll === false) {
+      const clientId = user?.id;
+      const isClientSelected =
+        Boolean(clientId) && (s.noShowClientIds || []).includes(Number(clientId));
+      if (!isClientSelected) {
+        requiresDepositForClient = false;
+      }
+    }
+
+    if (requiresDepositForClient && (s.depositAmount || 0) > 0) {
       const dep =
         s.depositType === "PERCENTAGE"
           ? ((s.price || 0) * (s.depositAmount || 0)) / 100

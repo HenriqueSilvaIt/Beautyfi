@@ -135,20 +135,6 @@ export function CrudView() {
           >
             Fidelidade
           </AppButton>
-
-          <AppButton
-            className="" /*tem que passar como prop o className */
-            leftIcon="trending-up"
-            rightIcon="chevron-forward"
-            variant="admin"
-            activeOpacity={0.8}
-            size={true}
-            description="Cadastre e atualize imagens para divulgação no app"
-            onPress={() => safePush("/(private)/(crud)/advertisements")}
-          >
-            Divulgação
-          </AppButton>
-
         </View>
       </View>
     </KeyboardContainer>

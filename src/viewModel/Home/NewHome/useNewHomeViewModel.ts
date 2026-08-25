@@ -116,6 +116,7 @@ export function useNewHomeViewModel() {
     error: nearbyError,
     isLoading: nearbyIsLoading,
     refetch: nearbyRefetch,
+    isRefetching: nearbyIsRefetching,
   } = useGetNearbyCompaniesQuery(userLat, userLng, radius, isBuscar);
 
   // Load categories
@@ -125,10 +126,12 @@ export function useNewHomeViewModel() {
   const { data: favoritedIds } = useGetFavoritedIdsQuery(!!access_token);
 
   useEffect(() => {
-    if (favoritedIds) {
+    if (access_token && favoritedIds) {
       setFavoritedCompanyIds(favoritedIds);
+    } else if (!access_token) {
+      setFavoritedCompanyIds([]);
     }
-  }, [favoritedIds]);
+  }, [favoritedIds, access_token]);
 
   const { data: favoriteCompanies } = useQuery({
     queryKey: ["favorited-companies-details", favoritedCompanyIds],
@@ -283,7 +286,7 @@ export function useNewHomeViewModel() {
     companiesIsFetchingNextPage: isExplorar ? companiesIsFetchingNextPage : false,
     companiesHasNextPage: isExplorar ? companiesHasNextPage : false,
     companiesFetchNextPage: isExplorar ? companiesFetchNextPage : undefined,
-    companiesIsRefetching: isExplorar ? companiesIsRefetching : false,
+    companiesIsRefetching: isExplorar ? companiesIsRefetching : Boolean(nearbyIsRefetching),
     searchText,
     setSearchText,
     categoriesData: categoriesData ?? [],

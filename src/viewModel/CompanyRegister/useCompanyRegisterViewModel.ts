@@ -235,6 +235,15 @@ export function useCompanyRegisterViewModel() {
       }
 
 
+      // Prepara lista de serviços reais a serem salvos no banco
+      const servicesPayload = (data.realServices && data.realServices.length > 0)
+        ? data.realServices
+        : (data.defaultServices || []).map((name) => ({
+            name,
+            price: 50.0,
+            duration: 30,
+          }));
+
       const signupPayload = {
         firstName: data.firstName,
         lastName: data.lastName || "Admin",
@@ -246,6 +255,11 @@ export function useCompanyRegisterViewModel() {
         latitude: exactLat,
         longitude: exactLon,
         categoryNames: data.categories || [],
+        services: servicesPayload,
+        clients: data.clients || [],
+        employees: data.employees || [],
+        imagesUrl: data.imagesUrl || [],
+        portfolioImagesUrl: data.portfolioImagesUrl || [],
         workDays: data.workDays || [],
         scheduleStart: data.scheduleStart || "09:00",
         scheduleLunchStart: data.scheduleLunchStart || "12:00",

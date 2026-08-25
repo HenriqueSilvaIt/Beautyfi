@@ -70,7 +70,19 @@ setAuthReady: (value: boolean) => set({ authReady: value }),
           authReady: false,
           hasHydrated: true,
         });
-        AsyncStorage.removeItem("style-auth").catch(() => {});
+        import("./company-store").then(({ useCompanyStore }) => {
+          useCompanyStore.getState().resetCompanyStore();
+          useCompanyStore.persist?.clearStorage?.();
+        }).catch(() => {});
+        import("./address-store").then(({ useAddressStore }) => {
+          useAddressStore.getState().clearAddress();
+          useAddressStore.persist?.clearStorage?.();
+        }).catch(() => {});
+        AsyncStorage.multiRemove([
+          "style-auth",
+          "style-company",
+          "beautyfi-address-store",
+        ]).catch(() => {});
       },
       hasHydrated: false,
       setHasHydated: (value) => set({ hasHydrated: value }),

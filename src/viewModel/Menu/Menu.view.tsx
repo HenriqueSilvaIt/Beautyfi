@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Image, Linking, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import {
+  Image,
+  Linking,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+} from "react-native";
 import { useMenuViewModel } from "./useMenu.viewModel";
 import { KeyboardContainer } from "../../shared/components/KeyboardContainer";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
@@ -9,6 +16,7 @@ import { sizeClasses } from "@/shared/components/AppAvatar";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { OnboardingChecklistCard } from "@/viewModel/Onboarding/OnboardingChecklistCard";
+import { useOnboardingChecklistViewModel } from "@/viewModel/Onboarding/useOnboardingChecklist.viewModel";
 
 function MenuItem({
   title,
@@ -41,8 +49,12 @@ function MenuItem({
           <Ionicons name={iconName} size={18} color={iconColor} />
         </View>
         <View className="flex-1">
-          <Text className="text-font-primary text-sm font-semibold">{title}</Text>
-          <Text className="text-font-secondary text-[11px] mt-0.5">{description}</Text>
+          <Text className="text-font-primary text-sm font-semibold">
+            {title}
+          </Text>
+          <Text className="text-font-secondary text-[11px] mt-0.5">
+            {description}
+          </Text>
         </View>
         <Ionicons name="chevron-forward" size={16} color="#6B7280" />
       </TouchableOpacity>
@@ -58,6 +70,7 @@ export function MenuView({
 }: ReturnType<typeof useMenuViewModel>) {
   const { safePush } = useSafeNavigation();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { completedCount, totalCount } = useOnboardingChecklistViewModel();
 
   const isAdmin =
     user?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
@@ -66,7 +79,7 @@ export function MenuView({
     user?.roles?.some((role) => role.authority === "ROLE_MODERATOR") ?? false;
 
   const term = "https://www.beautyfi.com.br/politica-de-privacidade";
-  
+
   const showSecurity = !user?.googleUser && !user?.appleId;
 
   return (
@@ -132,7 +145,9 @@ export function MenuView({
                 iconName="heart"
                 iconBgColor="rgba(59, 130, 246, 0.15)"
                 iconColor="#3B82F6"
-                onPress={() => safePush("/(private)/(tabs)/(client-tabs)/(menu)/favorites")}
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(client-tabs)/(menu)/favorites")
+                }
                 isLast={false}
               />
             )}
@@ -144,8 +159,10 @@ export function MenuView({
                 iconName="location"
                 iconBgColor="rgba(59, 130, 246, 0.15)"
                 iconColor="#3B82F6"
-                onPress={() => safePush("/(private)/(tabs)/(client-tabs)/(menu)/address")}
-                isLast={!showSecurity && isAdmin} 
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(client-tabs)/(menu)/address")
+                }
+                isLast={!showSecurity && isAdmin}
               />
             )}
 
@@ -157,7 +174,7 @@ export function MenuView({
                 iconBgColor="rgba(59, 130, 246, 0.15)"
                 iconColor="#3B82F6"
                 onPress={() => safePush("/(private)/(tabs)/(menu)/password")}
-                isLast={isAdmin} 
+                isLast={isAdmin}
               />
             )}
 
@@ -165,10 +182,12 @@ export function MenuView({
               <MenuItem
                 title="Fidelidade & Pontos"
                 description="Veja seus pontos acumulados e prêmios nos salões"
-                iconName="trophy-outline"
-                iconBgColor="rgba(203, 163, 93, 0.15)"
-                iconColor="#CBA35D"
-                onPress={() => safePush("/(private)/(tabs)/(client-tabs)/(menu)/loyalty")}
+                iconName="gift-outline"
+                iconBgColor="rgba(59, 130, 246, 0.15)"
+                iconColor="#3B82F6"
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(client-tabs)/(menu)/loyalty")
+                }
                 isLast={false}
               />
             )}
@@ -193,7 +212,7 @@ export function MenuView({
             <Text className="text-font-secondary text-[11px] font-bold uppercase tracking-wider mb-2 px-1">
               CONFIGURAÇÃO
             </Text>
-            
+
             <View className="bg-background-quartenary rounded-t-2xl border-b border-white/5">
               <TouchableOpacity
                 onPress={() => setShowOnboarding(!showOnboarding)}
@@ -201,10 +220,35 @@ export function MenuView({
                 className="flex-row items-center px-4 py-3.5"
               >
                 <View className="w-8 h-8 rounded-lg items-center justify-center mr-3 bg-accent-gold/20">
-                  <Ionicons name="trophy-outline" size={18} color={colors["app-theme-secundary"] || colors["app-theme-primary"]} />
+                  <Ionicons
+                    name="trophy-outline"
+                    size={18}
+                    color="#CBA35D"
+                  />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-font-primary text-sm font-semibold">Primeiros Passos</Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-font-primary text-sm font-semibold">
+                      Primeiros Passos
+                    </Text>
+                    <View
+                      className={`px-2 py-0.5 rounded-full border ${
+                        completedCount === totalCount
+                          ? "bg-emerald-500/20 border-emerald-500/40"
+                          : "bg-[#CBA35D]/20 border-[#CBA35D]/40"
+                      }`}
+                    >
+                      <Text
+                        className={`text-[10px] font-black ${
+                          completedCount === totalCount
+                            ? "text-emerald-400"
+                            : "text-[#CBA35D]"
+                        }`}
+                      >
+                        {completedCount}/{totalCount}
+                      </Text>
+                    </View>
+                  </View>
                   <Text className="text-font-secondary text-[11px] mt-0.5">
                     Configure seu salão para receber agendamentos
                   </Text>
@@ -212,10 +256,12 @@ export function MenuView({
                 <Ionicons
                   name={showOnboarding ? "chevron-up" : "chevron-down"}
                   size={16}
-                  color={colors["app-theme-secundary"] || colors["app-theme-primary"]}
+                  color={
+                    colors["app-theme-secundary"] || colors["app-theme-primary"] || "#CBA35D"
+                  }
                 />
               </TouchableOpacity>
-              
+
               {showOnboarding && (
                 <View className="px-4 pb-4">
                   <OnboardingChecklistCard />
@@ -238,7 +284,9 @@ export function MenuView({
                 iconName="information-circle-outline"
                 iconBgColor="rgba(203, 163, 93, 0.15)"
                 iconColor={colors["app-theme-primary"]}
-                onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences")}
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences")
+                }
               />
               <MenuItem
                 title="Empresa"
@@ -246,7 +294,11 @@ export function MenuView({
                 iconName="storefront-outline"
                 iconBgColor="rgba(203, 163, 93, 0.15)"
                 iconColor={colors["app-theme-primary"]}
-                onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/company-edit")}
+                onPress={() =>
+                  safePush(
+                    "/(private)/(tabs)/(admin-tabs)/(menu)/preferences/company-edit",
+                  )
+                }
                 isLast
               />
             </View>
@@ -266,7 +318,9 @@ export function MenuView({
                 iconName="gift-outline"
                 iconBgColor="rgba(168, 85, 247, 0.15)"
                 iconColor="#A855F7"
-                onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/birthdays")}
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(admin-tabs)/birthdays")
+                }
               />
               <MenuItem
                 title="Lista de Espera"
@@ -274,7 +328,9 @@ export function MenuView({
                 iconName="time-outline"
                 iconBgColor="rgba(168, 85, 247, 0.15)"
                 iconColor="#A855F7"
-                onPress={() => safePush("/(private)/(tabs)/(admin-tabs)/(menu)/waitlist")}
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(admin-tabs)/(menu)/waitlist")
+                }
               />
               <MenuItem
                 title="Histórico"
@@ -309,21 +365,24 @@ export function MenuView({
 
         {/* Logout Button */}
         <View className="mx-4 mt-8">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={logoutUser}
             activeOpacity={0.8}
             className="flex-row items-center justify-center p-4 rounded-2xl bg-accent-red/10 border border-accent-red/20"
           >
-            <Ionicons name="log-out-outline" size={20} color="#EF4444" className="mr-2" />
-            <Text className="text-accent-red font-semibold ml-2">
-              Sair
-            </Text>
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color="#EF4444"
+              className="mr-2"
+            />
+            <Text className="text-accent-red font-semibold ml-2">Sair</Text>
           </TouchableOpacity>
         </View>
 
         {/* App Version */}
         <Text className="text-font-secondary text-[10px] text-center mt-6 mb-2">
-          Beautyfi v1.0.5
+          Beautyfi v1.1.0
         </Text>
       </ScrollView>
     </KeyboardContainer>

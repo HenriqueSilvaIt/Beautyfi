@@ -3,9 +3,10 @@ import { useErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 import { useCompanyServicesMutation } from "@/shared/queries/company/use-company-services.mutation";
 import { useProductMutation } from "@/shared/queries/company/use-product.mutation";
-import { useLoyaltyMutation, LoyaltyRewardItem } from "@/shared/queries/company/use-loyalty.mutation";
+import { useLoyaltyMutation } from "@/shared/queries/company/use-loyalty.mutation";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
+import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,17 +14,21 @@ import { useForm } from "react-hook-form";
 export interface LoyaltyFormData {
   loyaltyActive: boolean;
   loyaltyPointsPerReal: string;
-  loyaltyMinPoints: string;
-  loyaltyRewardValue: string;
-  loyaltyRewardDescription: string;
+  loyaltyAmountPerPoint: string;
   loyaltyRuleDescription: string;
+  // Cartão Fidelidade por Serviço (Carimbos)
+  stampActive: boolean;
+  stampServiceId?: number;
+  stampRequiredCount: string;
+  stampStartDate: string;
+  stampEndDate: string;
+  stampRewardDescription: string;
 }
 
 export function useLoyaltyViewModel() {
   const [isLoading, setIsLoading] = useState(false);
-  const [showItemModal, setShowItemModal] = useState(false);
 
-  // Form states for new item
+  // Form states for new reward item
   const [itemType, setItemType] = useState<"SERVICE" | "PRODUCT" | "CUSTOM">("SERVICE");
   const [selectedServiceId, setSelectedServiceId] = useState<number | undefined>();
   const [selectedProductId, setSelectedProductId] = useState<number | undefined>();
@@ -33,12 +38,13 @@ export function useLoyaltyViewModel() {
 
   const { notify } = useSnackbarContext();
   const { handleError } = useErrorHandler();
+  const { closeBottomSheet } = useBottomSheetContext();
 
   const selectedCompanyId = useCompanyStore((state) => state.selectedCompanyId);
   const user = useUserStore((state) => state.user);
   const companyId = selectedCompanyId ?? user?.companyId;
 
-  const { useGetCompanyDetailsQuery, companyUpdateMutation } = useCompanyDetailsMutation();
+  const { useGetCompanyDetailsQuery } = useCompanyDetailsMutation();
   const { data: companyDetails, isLoading: isCompanyLoading, refetch } =
     useGetCompanyDetailsQuery(companyId ? Number(companyId) : undefined);
 
@@ -56,28 +62,46 @@ export function useLoyaltyViewModel() {
   const { control, handleSubmit, reset, watch, setValue } = useForm<LoyaltyFormData>({
     defaultValues: {
       loyaltyActive: false,
-      loyaltyPointsPerReal: "",
-      loyaltyMinPoints: "",
-      loyaltyRewardValue: "",
-      loyaltyRewardDescription: "",
+      loyaltyPointsPerReal: "1.0",
+      loyaltyAmountPerPoint: "1.0",
       loyaltyRuleDescription: "",
+      stampActive: false,
+      stampServiceId: undefined,
+      stampRequiredCount: "4",
+      stampStartDate: "",
+      stampEndDate: "",
+      stampRewardDescription: "",
     },
   });
 
   const loyaltyActive = watch("loyaltyActive");
+  const stampActive = watch("stampActive");
 
   useEffect(() => {
-    if (!companyDetails) return;
+    if (!companyDetails && !activeProgram) return;
 
     reset({
-      loyaltyActive: Boolean(companyDetails.loyaltyActive),
-      loyaltyPointsPerReal: companyDetails.loyaltyPointsPerReal != null ? String(companyDetails.loyaltyPointsPerReal) : "",
-      loyaltyMinPoints: companyDetails.loyaltyMinPoints != null ? String(companyDetails.loyaltyMinPoints) : "",
-      loyaltyRewardValue: companyDetails.loyaltyRewardValue != null ? String(companyDetails.loyaltyRewardValue) : "",
-      loyaltyRewardDescription: companyDetails.loyaltyRewardDescription ?? "",
-      loyaltyRuleDescription: companyDetails.loyaltyRuleDescription ?? "",
+      loyaltyActive: activeProgram ? Boolean(activeProgram.active) : Boolean(companyDetails?.loyaltyActive),
+      loyaltyPointsPerReal:
+        activeProgram?.pointsPerReal != null
+          ? String(activeProgram.pointsPerReal)
+          : companyDetails?.loyaltyPointsPerReal != null
+            ? String(companyDetails.loyaltyPointsPerReal)
+            : "1.0",
+      loyaltyAmountPerPoint:
+        activeProgram?.pointsAmountPerPoint != null
+          ? String(activeProgram.pointsAmountPerPoint)
+          : "1.0",
+      loyaltyRuleDescription:
+        activeProgram?.ruleDescription ?? companyDetails?.loyaltyRuleDescription ?? "",
+      stampActive: Boolean(activeProgram?.stampActive),
+      stampServiceId: activeProgram?.stampServiceId ?? undefined,
+      stampRequiredCount: activeProgram?.stampRequiredCount != null ? String(activeProgram.stampRequiredCount) : "4",
+      stampStartDate: activeProgram?.stampStartDate ? activeProgram.stampStartDate.split("T")[0] : "",
+      stampEndDate: activeProgram?.stampEndDate ? activeProgram.stampEndDate.split("T")[0] : "",
+      stampRewardDescription: activeProgram?.stampRewardDescription ?? "",
     });
-  }, [companyDetails]);
+  }, [companyDetails, activeProgram]);
 
   const handleAddItem = async () => {
     if (!companyId) return;
@@ -98,20 +122,21 @@ export function useLoyaltyViewModel() {
 
     const pointsNum = parseInt(itemPoints, 10);
     if (isNaN(pointsNum) || pointsNum <= 0) {
-      notify({ message: "Informe uma pontuação válida.", type: "ERROR" });
+      notify({ message: "Informe uma pontuação válida maior que zero.", type: "ERROR" });
       return;
     }
 
     try {
       setIsLoading(true);
 
-      // Garante que existe o programa
+      // Garante que existe o programa ativo no banco
       let programId = activeProgram?.id;
       if (!programId) {
         const savedProg = await saveProgramMutation.mutateAsync({
           companyId: Number(companyId),
           dataBody: {
-            name: "Programa de Fidelidade",
+            id: activeProgram?.id,
+            name: "Programa de Fidelidade VIP",
             active: true,
             pointsPerReal: 1.0,
             minPointsToRedeem: 100,
@@ -133,14 +158,15 @@ export function useLoyaltyViewModel() {
           },
         });
 
-        notify({ message: "Item de recompensa adicionado!", type: "SUCCESS" });
-        setShowItemModal(false);
+        notify({ message: "Item de recompensa adicionado com sucesso!", type: "SUCCESS" });
+        closeBottomSheet();
         setItemTitle("");
         setItemPoints("100");
         setItemDescription("");
         setSelectedServiceId(undefined);
         setSelectedProductId(undefined);
         await refetchProgram();
+        await refetch();
       }
     } catch (error) {
       handleError(error, "Erro ao adicionar item de recompensa");
@@ -155,6 +181,7 @@ export function useLoyaltyViewModel() {
       await deleteItemMutation.mutateAsync(itemId);
       notify({ message: "Item removido com sucesso!", type: "SUCCESS" });
       await refetchProgram();
+      await refetch();
     } catch (error) {
       handleError(error, "Erro ao remover item");
     } finally {
@@ -171,14 +198,35 @@ export function useLoyaltyViewModel() {
     try {
       setIsLoading(true);
 
+      const ptsPerRealStr = String(formData.loyaltyPointsPerReal || "1.0").replace(",", ".");
+      const ptsPerReal = parseFloat(ptsPerRealStr) || 1.0;
+
+      const amtPerPtStr = String(formData.loyaltyAmountPerPoint || "1.0").replace(",", ".");
+      const amtPerPt = parseFloat(amtPerPtStr) || 1.0;
+
+      const reqCount = parseInt(formData.stampRequiredCount || "4", 10) || 4;
+
+      const srvName = formData.stampServiceId
+        ? servicesList.find((s) => s.id === formData.stampServiceId)?.name
+        : undefined;
+
       const payload: any = {
+        id: activeProgram?.id,
         name: "Programa de Fidelidade",
         active: formData.loyaltyActive,
-        pointsPerReal: parseFloat(formData.loyaltyPointsPerReal.replace(",", ".")) || 1.0,
-        minPointsToRedeem: parseInt(formData.loyaltyMinPoints, 10) || 100,
-        rewardValue: parseFloat(formData.loyaltyRewardValue.replace(",", ".")) || 15.0,
-        rewardDescription: formData.loyaltyRewardDescription.trim(),
-        ruleDescription: formData.loyaltyRuleDescription.trim(),
+        pointsPerReal: ptsPerReal,
+        pointsAmountPerPoint: amtPerPt,
+        minPointsToRedeem: 100,
+        ruleDescription: (formData.loyaltyRuleDescription || "").trim(),
+
+        // Cartão Fidelidade por Serviço (Carimbos)
+        stampActive: formData.stampActive,
+        stampServiceId: formData.stampServiceId,
+        stampServiceName: srvName,
+        stampRequiredCount: reqCount,
+        stampStartDate: formData.stampStartDate ? formData.stampStartDate.trim() : undefined,
+        stampEndDate: formData.stampEndDate ? formData.stampEndDate.trim() : undefined,
+        stampRewardDescription: (formData.stampRewardDescription || "").trim(),
       };
 
       await saveProgramMutation.mutateAsync({
@@ -186,20 +234,8 @@ export function useLoyaltyViewModel() {
         dataBody: payload,
       });
 
-      await companyUpdateMutation.mutateAsync({
-        id: Number(companyId),
-        dataBody: {
-          loyaltyActive: formData.loyaltyActive,
-          loyaltyPointsPerReal: payload.pointsPerReal,
-          loyaltyMinPoints: payload.minPointsToRedeem,
-          loyaltyRewardValue: payload.rewardValue,
-          loyaltyRewardDescription: payload.rewardDescription,
-          loyaltyRuleDescription: payload.ruleDescription,
-        },
-      });
-
       notify({
-        message: "Programa de Fidelidade atualizado com sucesso!",
+        message: "Programa de Fidelidade salvo com sucesso!",
         type: "SUCCESS",
       });
 
@@ -215,15 +251,15 @@ export function useLoyaltyViewModel() {
 
   return {
     control,
+    watch,
     onSubmit,
     isLoading: isLoading || isCompanyLoading,
     loyaltyActive,
+    stampActive,
     setValue,
     companyDetails,
     activeProgram,
     itemsList: activeProgram?.items ?? [],
-    showItemModal,
-    setShowItemModal,
     itemType,
     setItemType,
     selectedServiceId,

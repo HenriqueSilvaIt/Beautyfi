@@ -24,7 +24,18 @@ export function useOneSignal() {
     if (user?.id && subId) {
       try {
         console.log("Syncing push token to backend user profile:", subId);
+        // Tenta sincronizar via me/preferences primeiro (sem validações de DTO obrigatório)
+        try {
+          await styleAppApiClient.patch("/users/me/preferences", {
+            notificationToken: subId,
+          });
+        } catch (prefErr) {
+          console.warn("Patch preferences error:", prefErr);
+        }
+
+        // Tenta sincronizar enviando também o firstName para passar na validação @NotBlank do UserDTO
         await styleAppApiClient.put(`/users/${user.id}`, {
+          firstName: user.firstName || "Usuário",
           notificationToken: subId,
         });
       } catch (err) {
@@ -34,14 +45,18 @@ export function useOneSignal() {
   };
 
   useEffect(() => {
-    if (user?.id && OneSignal?.User?.pushSubscription) {
+    if (user?.id && OneSignal) {
       try {
-        const subId = OneSignal.User.pushSubscription?.id;
+        if (OneSignal.login) {
+          OneSignal.login(String(user.id));
+        }
+
+        const subId = OneSignal.User?.pushSubscription?.id;
         if (subId) {
           syncPushToken(subId);
         }
       } catch (e) {
-        console.warn("Error reading push subscription id:", e);
+        console.warn("Error setting OneSignal user / reading push subscription id:", e);
       }
     }
   }, [user?.id]);
@@ -67,18 +82,16 @@ export function useOneSignal() {
         OneSignal.User.pushSubscription.addEventListener("change", onSubscriptionChange);
       }
 
-      const checkSubscriptionId = () => {
-        try {
-          const subId = OneSignal?.User?.pushSubscription?.id;
-          if (subId) {
-            syncPushToken(subId);
-          }
-        } catch (e) {}
-      };
-
       // Solicitar permissão de notificação (Android 13+ e iOS)
       if (OneSignal?.Notifications?.requestPermission) {
-        OneSignal.Notifications.requestPermission(true);
+        OneSignal.Notifications.requestPermission(true).then((granted: boolean) => {
+          if (granted) {
+            setTimeout(() => {
+              const subId = OneSignal?.User?.pushSubscription?.id;
+              if (subId) syncPushToken(subId);
+            }, 1000);
+          }
+        }).catch(() => {});
       }
 
       const handleForegroundWillDisplay = (event: any) => {
@@ -92,11 +105,11 @@ export function useOneSignal() {
             body: notification?.getBody() || "",
           });
 
-          if (data && data.type === "NEW_APPOINTMENT") {
+          if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
             if (showInAppNewAppointmentModal) {
               event.preventDefault();
               Alert.alert(
-                "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
+                "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
                 notification.getBody() || "",
                 [
                   {
@@ -132,9 +145,9 @@ export function useOneSignal() {
           const notification = event?.notification;
           const data = notification?.getAdditionalData() as any;
 
-          if (data && data.type === "NEW_APPOINTMENT") {
+          if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
             Alert.alert(
-              "🔔 " + (notification.getTitle() || "Novo Agendamento!"),
+              "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
               notification.getBody() || "",
               [
                 {

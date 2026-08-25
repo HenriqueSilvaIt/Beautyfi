@@ -453,18 +453,50 @@ export function useOrderDetailsViewModel(orderId?: number) {
       setOrder(normalizeOrder(orderContent));
     }
   }, [orderContent]);
+
+  // ✅ Seleciona por padrão o cliente associado à comanda (se não tiver sido trocado manualmente)
+  useEffect(() => {
+    const rawOrder = orderContent || order;
+    if (!rawOrder) return;
+
+    const rawUser = (rawOrder as any)?.user || (rawOrder as any)?.client;
+    const orderClientId = (rawOrder as any)?.clientId || rawUser?.id;
+    const orderClientName = rawUser?.name;
+
+    if (!orderClientName && !orderClientId) return;
+
+    // Respeita se o usuário trocou manualmente por outro cliente
+    if (client && client.id && orderClientId && Number(client.id) !== Number(orderClientId)) {
+      return;
+    }
+
+    // Procura o cliente na lista de clientes cadastrados
+    const matchedClient = clientDataPagged.find(
+      (c) =>
+        (orderClientId && Number(c.id) === Number(orderClientId)) ||
+        (orderClientName && c.name?.toLowerCase() === orderClientName.toLowerCase())
+    );
+
+    if (matchedClient) {
+      setClient(matchedClient);
+    } else if (!client && (orderClientName || orderClientId)) {
+      setClient({
+        id: orderClientId ? Number(orderClientId) : undefined,
+        name: orderClientName || "Cliente",
+        phone: rawUser?.phone || rawUser?.email || "",
+        profileUrl: rawUser?.profileUrl || rawUser?.avatarUrl || undefined,
+      });
+    }
+  }, [orderContent, order, clientDataPagged]);
+
   useEffect(() => {
     orderByIdRefetch();
   }, [service, client, product]);
+
   useEffect(() => {
     if (!orderId) return;
     orderByIdRefetch();
   }, [orderId]);
-  useEffect(() => {
-    if (orderContent) {
-      setOrder(normalizeOrder(orderContent));
-    }
-  }, [orderContent]);
   const displayTotal = useMemo(() => {
     const itemsSum = calculateOrderTotal(order?.items ?? []);
     if (itemsSum > 0) {

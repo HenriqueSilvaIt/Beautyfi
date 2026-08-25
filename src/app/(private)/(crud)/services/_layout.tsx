@@ -18,6 +18,7 @@ export default function ServicesLayout() {
     <FormProvider {...methods}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="service-noshow-clients/index" />
       </Stack>
     </FormProvider>
   );

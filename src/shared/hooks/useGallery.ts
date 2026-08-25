@@ -94,5 +94,48 @@ export function useGallery(
     }
   }, []);
 
-  return {openGallery, isLoading}
+  const openGalleryMultiple = useCallback(
+    async (customOptions?: ImagePickerOptions): Promise<string[]> => {
+      setIsLoading(true);
+
+      try {
+        const hasPermission = await requestGaleryPermission();
+
+        if (!hasPermission) return [];
+
+        const opts: ImagePickerOptions = {
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsMultipleSelection: true,
+          quality: 0.8,
+          ...pickerOptions,
+          ...customOptions,
+        };
+
+        const result = await ImagePicker.launchImageLibraryAsync(opts);
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          notify({
+            message: `${result.assets.length} foto(s) selecionada(s)!`,
+            type: "SUCCESS",
+          });
+
+          return result.assets.map((a) => a.uri);
+        }
+
+        return [];
+      } catch (error) {
+        notify({
+          message: "Erro ao selecionar as fotos",
+          type: "ERROR",
+        });
+
+        return [];
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [pickerOptions, requestGaleryPermission, notify]
+  );
+
+  return { openGallery, openGalleryMultiple, isLoading };
 }

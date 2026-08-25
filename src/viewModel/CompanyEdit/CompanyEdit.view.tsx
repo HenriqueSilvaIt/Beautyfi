@@ -176,8 +176,8 @@ export function CompanyEditView() {
               />
               <Text className="text-[#092D5D] text-xs font-extrabold uppercase tracking-wide">
                 {type === "portfolio"
-                  ? "Adicionar Foto ao Portfólio"
-                  : "Adicionar Foto do Espaço"}
+                  ? "Adicionar Fotos ao Portfólio"
+                  : "Adicionar Fotos do Espaço"}
               </Text>
             </>
           )}

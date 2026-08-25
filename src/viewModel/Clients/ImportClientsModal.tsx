@@ -17,9 +17,10 @@ import { getCsvTemplateString } from "@/shared/utils/csvTemplate";
 
 interface ImportClientsContentProps {
   onClose: () => void;
+  onCustomImport?: (importedClients: { name: string; phone: string; email?: string }[]) => Promise<void> | void;
 }
 
-export function ImportClientsContent({ onClose }: ImportClientsContentProps) {
+export function ImportClientsContent({ onClose, onCustomImport }: ImportClientsContentProps) {
   const themeGold = colors["app-theme-secundary"] || "#CBA35D";
 
   const {
@@ -46,7 +47,7 @@ export function ImportClientsContent({ onClose }: ImportClientsContentProps) {
     totalToImport,
     executeBatchImport,
     resetModal,
-  } = useImportClientsViewModel(() => onClose());
+  } = useImportClientsViewModel(() => onClose(), onCustomImport);
 
   const handleClose = () => {
     resetModal();
@@ -377,13 +378,14 @@ export function ImportClientsContent({ onClose }: ImportClientsContentProps) {
 interface ImportClientsModalProps {
   visible: boolean;
   onClose: () => void;
+  onCustomImport?: (importedClients: { name: string; phone: string; email?: string }[]) => Promise<void> | void;
 }
 
-export function ImportClientsModal({ visible, onClose }: ImportClientsModalProps) {
+export function ImportClientsModal({ visible, onClose, onCustomImport }: ImportClientsModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View className="flex-1 bg-black/80 justify-end">
-        <ImportClientsContent onClose={onClose} />
+        <ImportClientsContent onClose={onClose} onCustomImport={onCustomImport} />
       </View>
     </Modal>
   );

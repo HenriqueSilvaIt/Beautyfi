@@ -10,7 +10,7 @@ import {
 import { useCallback } from "react";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { router } from "expo-router";
-import {  MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppEmptyList } from "@/shared/components/AppEmptyList";
@@ -39,33 +39,46 @@ export function ServiceEmployeesView() {
 
       return (
         <TouchableOpacity
-          activeOpacity={0.7}
+          activeOpacity={0.8}
           onPress={() => toggleEmployee(Number(item.id))}
+          className={`mx-5 my-1.5 p-4 rounded-2xl border shadow-sm flex-row items-center justify-between ${
+            checked
+              ? "bg-[#092D5D]/5 border-[#092D5D]"
+              : "bg-white border-gray-100"
+          }`}
         >
-          <View className="flex-row  justify-between py-2  px-2 items-center bg-background-quartenary gap-3">
-            <View className="flex-row p-2   items-center">
+          <View className="flex-row items-center flex-1 mr-3">
+            {item.avatarUrl ? (
               <Image
                 source={{ uri: item.avatarUrl }}
                 resizeMode="cover"
-                className="w-[60px] h-[60px] mr-2"
+                className="w-12 h-12 rounded-full border border-gray-200 mr-3.5 bg-gray-100"
               />
+            ) : (
+              <View className="w-12 h-12 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20 items-center justify-center mr-3.5">
+                <Ionicons name="person" size={22} color="#092D5D" />
+              </View>
+            )}
+
+            <View className="flex-1">
               <Text
-                className="text-font-primary text-base max-w-[200px]"
-                ellipsizeMode="tail"
+                className="text-gray-900 text-sm font-extrabold"
                 numberOfLines={1}
               >
                 {item.name}
               </Text>
-            </View>
-            <View className="max-h-[60-px]">
-              <Text
-                className={`p-3 rounded-xl text-center ${
-                  checked ? " text-font-primary" : "bg-gray-800 text-gray-200"
-                }`}
-              >
-                {checked ? "✅ " : "⬜ "} {item.id}
+              <Text className="text-gray-400 text-xs font-medium mt-0.5" numberOfLines={1}>
+                {item.phone || item.email || "Profissional do salão"}
               </Text>
             </View>
+          </View>
+
+          <View className="items-center justify-center">
+            <Ionicons
+              name={checked ? "checkmark-circle" : "ellipse-outline"}
+              size={26}
+              color={checked ? "#092D5D" : "#d1d5db"}
+            />
           </View>
         </TouchableOpacity>
       );
@@ -74,34 +87,40 @@ export function ServiceEmployeesView() {
   );
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <AppAdminHeader
-        title="Associar funcionário"
+        title="Associar Profissionais"
         iconRightName={undefined}
         iconRight={{ icon: true, path: "" }}
       />
 
-      <View className=" items-center *:mb-3 ml-2">
+      {/* Bar de Selecionar Todos */}
+      <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-y border-gray-100 mb-2">
+        <Text className="text-gray-700 text-xs font-extrabold uppercase tracking-wider">
+          Profissionais da Equipe ({employees.length})
+        </Text>
+
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={toggleSelectAll}
-          className="flex-row gap-2 items-center"
+          className="flex-row items-center gap-1.5"
         >
-          <Text className="text-base font-bold text-end text-font-primary">
+          <Text className="text-xs font-bold text-[#092D5D]">
             {isAllSelected ? "Desmarcar todos" : "Selecionar todos"}
           </Text>
           <MaterialCommunityIcons
-            size={40}
+            size={28}
             name={isAllSelected ? "toggle-switch" : "toggle-switch-off"}
-            color={isAllSelected ? colors["accent-blue"] : colors.white}
+            color={isAllSelected ? "#092D5D" : "#9ca3af"}
           />
         </TouchableOpacity>
       </View>
+
       <FlatList
-        contentContainerStyle={{ paddingBottom: 80, gap: 5 }}
+        contentContainerStyle={{ paddingBottom: 90 }}
         data={employees}
-        initialNumToRender={5} // ajuda na performance
-        maxToRenderPerBatch={10} // controla quantos elementos renderizar por vez
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
         renderItem={renderItem}
         keyExtractor={(item) => item.id!.toString()}
         ListEmptyComponent={<AppEmptyList />}
@@ -113,20 +132,22 @@ export function ServiceEmployeesView() {
             fetchNextPage();
           }
         }}
-        
         ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator />  :
-          <View className="justify-center items-center px-6 ">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              activeOpacity={0.8}
-              className="px-6 py-2 rounded-md bg-app-theme-primary items-center justify-center"
-            >
-              <Text className="text-font-secundary text-center text-base font-bold">
-                Voltar
-              </Text>
-            </TouchableOpacity>
-          </View>
+          isFetchingNextPage ? (
+            <ActivityIndicator color="#092D5D" className="py-4" />
+          ) : (
+            <View className="justify-center items-center px-5 pt-4">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                activeOpacity={0.85}
+                className="w-full h-14 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md"
+              >
+                <Text className="text-white font-black text-sm uppercase tracking-wide">
+                  Concluir Associação
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )
         }
       />
     </SafeAreaView>

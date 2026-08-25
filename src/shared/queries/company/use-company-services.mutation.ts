@@ -7,6 +7,7 @@ import {
   getServicesByEmployeeId,
   postServices,
   updateServices,
+  updateServiceNoShowConfig,
 } from "../../services/companyservice.service";
 import {
   CompanyServicesInterface,
@@ -114,6 +115,20 @@ export function useCompanyServicesMutation() {
     },
   });
 
+  const serviceUpdateNoShowConfigMutation = useMutation({
+    mutationFn: ({ serviceId, dto }: { serviceId: number; dto: { noShowApplyToAll: boolean; clientIds: number[] } }) =>
+      updateServiceNoShowConfig(serviceId, dto),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({
+        queryKey: serviceKeys.detail(Number(response.id)),
+      });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   return {
     servicePostMutation,
     useGetCompanyServiceById,
@@ -122,5 +137,6 @@ export function useCompanyServicesMutation() {
     useGetServiceAvailableInAppMutation,
     serviceDeleteByIdMutation,
     serviceUpdateMutation,
+    serviceUpdateNoShowConfigMutation,
   };
 }

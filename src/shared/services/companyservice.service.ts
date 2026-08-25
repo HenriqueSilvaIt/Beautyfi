@@ -88,3 +88,8 @@ export async function deleteServiceById (serviceId: number) {
 
 }
 
+export async function updateServiceNoShowConfig(serviceId: number, dto: { noShowApplyToAll: boolean; clientIds: number[] }) {
+  const { data } = await styleAppApiClient.put<CompanyServicesInterface>(`/services/${serviceId}/noshow-config`, dto);
+  return data;
+}
+

@@ -17,7 +17,7 @@ import { useUserStore } from "@/shared/store/user-store";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { moneyMapper } from "@/utils/moneyMapper";
 import { Ionicons } from "@expo/vector-icons";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths, startOfDay, endOfDay } from "date-fns";
 import { AppDate } from "@/shared/components/AppDate";
 import { router } from "expo-router";
 import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
@@ -96,7 +96,7 @@ export function TotalMonthlyView({
   const [highlightValue, setHighlightValue] = useState(0);
 
   // ─── Filtros ─────────────────────────────────────────────
-  const [dateStart, setDateStart] = useState<Date>(startOfMonth(new Date()));
+  const [dateStart, setDateStart] = useState<Date>(startOfMonth(subMonths(new Date(), 5)));
   const [dateEnd, setDateEnd] = useState<Date>(endOfMonth(new Date()));
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -194,10 +194,13 @@ export function TotalMonthlyView({
   // 1. Todas as comandas filtradas por período e profissional
   const periodFilteredOrders = useMemo(() => {
     let filtered = allOrders;
+    const sDate = startOfDay(dateStart);
+    const eDate = endOfDay(dateEnd);
+
     filtered = filtered.filter((order) => {
       if (!order.moment) return false;
       const d = new Date(order.moment);
-      return d >= dateStart && d <= dateEnd;
+      return d >= sDate && d <= eDate;
     });
 
     if (selectedEmployeeId !== null) {
@@ -227,11 +230,10 @@ export function TotalMonthlyView({
       grouped[monthStr] = (grouped[monthStr] || 0) + calculateOrderValue(order);
     });
 
-    // Se totalMonthly veio da API, usa a lista de meses, se não usa a partir dos meses agrupados
-    const monthsKeys =
-      totalMonthly && totalMonthly.length > 0
-        ? totalMonthly.map((t) => t.monthYear)
-        : Object.keys(grouped).sort();
+    // Combina os meses vindos da API com os meses das comandas para garantir que Agosto sempre apareça
+    const apiMonths = totalMonthly?.map((t) => t.monthYear) ?? [];
+    const orderMonths = Object.keys(grouped);
+    const monthsKeys = Array.from(new Set([...apiMonths, ...orderMonths])).sort();
 
     return monthsKeys.map((monthYear) => ({
       value: grouped[monthYear] || 0,

@@ -96,6 +96,10 @@ interface AppDetailsProps<T extends FieldValues> {
   handleToggleRequiresDeposit?: () => void;
   depositType?: "PERCENTAGE" | "FIXED";
   setDepositType?: Dispatch<SetStateAction<"PERCENTAGE" | "FIXED">>;
+
+  onManageNoShowClients?: () => void;
+  noShowApplyToAll?: boolean;
+  noShowClientCount?: number;
 }
 
 export default function AppDetails<T extends FieldValues>({
@@ -131,6 +135,9 @@ export default function AppDetails<T extends FieldValues>({
   handleToggleRequiresDeposit,
   depositType,
   setDepositType,
+  onManageNoShowClients,
+  noShowApplyToAll,
+  noShowClientCount,
 }: AppDetailsProps<T>) {
   const [modalVisible, setModalVisible] = useState(false);
   const setPlanId = usePlanStore((state) => state.setPlanId);
@@ -478,6 +485,31 @@ export default function AppDetails<T extends FieldValues>({
                     💡 <Text className="font-bold">Prevenção de No-Show:</Text> O sinal será cobrado via PIX no checkout da reserva. Em caso de falta (não comparecimento), o valor do sinal cobrado cobre os custos do profissional.
                   </Text>
                 </View>
+
+                {isEditMode && id && onManageNoShowClients && (
+                  <TouchableOpacity
+                    onPress={onManageNoShowClients}
+                    activeOpacity={0.85}
+                    className="bg-background-tertiary border border-gray-600 rounded-lg p-3.5 flex-row items-center justify-between mt-3"
+                  >
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                      <View className="w-9 h-9 rounded-full bg-app-theme-primary/10 justify-center items-center">
+                        <Ionicons name="people-outline" size={20} color={colors.white} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-font-primary font-bold text-xs">
+                          Clientes para Sinal / No-Show
+                        </Text>
+                        <Text className="text-font-secondary text-[11px] mt-0.5" numberOfLines={1}>
+                          {noShowApplyToAll !== false
+                            ? "Aplica para TODOS os clientes (Padrão)"
+                            : `Aplica apenas para ${noShowClientCount || 0} cliente(s) selecionado(s)`}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={colors.gray[400]} />
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>

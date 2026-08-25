@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -21,6 +21,7 @@ import { colors } from "@/styles/colors";
 import { Image as ExpoImage } from "expo-image";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { OnboardingChecklistCard } from "@/viewModel/Onboarding/OnboardingChecklistCard";
+import { useFocusEffect } from "expo-router";
 
 const BLURHASH =
   "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayj[ayfjj[j[ayjuayj[";
@@ -68,6 +69,12 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
   const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
   const isAdmin = user?.roles?.some((r) => r.authority === "ROLE_ADMIN" || r.authority === "ROLE_MODERATOR");
+
+  useFocusEffect(
+    useCallback(() => {
+      companiesRefetch();
+    }, [companiesRefetch])
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
@@ -382,6 +389,7 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
           isFetchingNextPage={companiesIsFetchingNextPage}
           favoritedCompanyIds={favoritedCompanyIds}
           onToggleFavorite={handleToggleFavorite}
+          showPartnerCallout={true}
           onViewMap={(company) => {
             setSelectedCompany(company);
             setIsMapOpen(true);

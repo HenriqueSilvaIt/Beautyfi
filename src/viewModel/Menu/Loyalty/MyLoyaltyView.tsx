@@ -8,21 +8,31 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AppHeader } from "@/shared/components/AppHeader";
-import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { Ionicons } from "@expo/vector-icons";
 import { useMyLoyaltyViewModel } from "./useMyLoyaltyViewModel";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
+import { useUserStore } from "@/shared/store/user-store";
+import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 
 export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
   const { pointsList, isLoading, isRefetching, refetch } = props;
   const { safePush } = useSafeNavigation();
+  const { user, access_token } = useUserStore();
 
   return (
-    <KeyboardContainer>
+    <SafeAreaView className="flex-1 bg-background-primary">
       <View className="flex-1 bg-background-primary">
-        <AppHeader title="Minha Fidelidade & Pontos" />
-
+        <AppAdminHeader
+          title="Pontos de Fidelidade"
+          iconRightName={undefined}
+          iconRight={{
+            icon: true,
+            path: "",
+          }}
+        />
+        
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#CBA35D" />
@@ -30,10 +40,16 @@ export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
         ) : (
           <FlatList
             data={pointsList}
-            keyExtractor={(item, index) => item.id ? String(item.id) : `points-${index}`}
+            keyExtractor={(item, index) =>
+              item.id ? String(item.id) : `points-${index}`
+            }
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
             refreshControl={
-              <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#CBA35D" />
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                tintColor="#CBA35D"
+              />
             }
             ListHeaderComponent={
               <View className="p-5 rounded-2xl bg-gradient-to-r from-[#092D5D] to-[#1E40AF] border border-[#CBA35D]/30 mb-6">
@@ -46,7 +62,8 @@ export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
                       Seu Clube de Fidelidade
                     </Text>
                     <Text className="text-gray-300 text-xs mt-0.5">
-                      Acumule pontos em seus estabelecimentos favoritos e troque por prêmios!
+                      Acumule pontos em seus estabelecimentos favoritos e troque
+                      por prêmios!
                     </Text>
                   </View>
                 </View>
@@ -54,19 +71,28 @@ export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
             }
             ListEmptyComponent={
               <View className="p-8 rounded-2xl bg-background-quartenary border border-white/5 items-center my-6">
-                <Ionicons name="gift-outline" size={40} color="#6B7280" className="mb-2" />
+                <Ionicons
+                  name="gift-outline"
+                  size={40}
+                  color="#6B7280"
+                  className="mb-2"
+                />
                 <Text className="text-font-primary font-bold text-sm text-center">
                   Você ainda não possui pontos acumulados.
                 </Text>
                 <Text className="text-font-secondary text-xs text-center mt-1">
-                  Agende serviços nos seus estabelecimentos favoritos para começar a pontuar!
+                  Agende serviços nos seus estabelecimentos favoritos para
+                  começar a pontuar!
                 </Text>
               </View>
             }
             renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => item.companyId && safePush(`/(private)/(tabs)/(client-tabs)/home/company-details/${item.companyId}`)}
+                onPress={() =>
+                  item.companyId &&
+                  safePush(`/(private)/companies-details/${item.companyId}`)
+                }
                 className="p-4 rounded-2xl bg-background-quartenary border border-white/10 mb-4 flex-row items-center justify-between shadow-sm"
               >
                 <View className="flex-row items-center gap-3 flex-1 pr-2">
@@ -83,7 +109,10 @@ export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
                   )}
 
                   <View className="flex-1">
-                    <Text className="text-font-primary font-bold text-sm" numberOfLines={1}>
+                    <Text
+                      className="text-font-primary font-bold text-sm"
+                      numberOfLines={1}
+                    >
                       {item.companyName || "Estabelecimento Parceiro"}
                     </Text>
                     <Text className="text-font-secondary text-xs mt-0.5">
@@ -105,6 +134,6 @@ export function MyLoyaltyView(props: ReturnType<typeof useMyLoyaltyViewModel>) {
           />
         )}
       </View>
-    </KeyboardContainer>
+    </SafeAreaView>
   );
 }

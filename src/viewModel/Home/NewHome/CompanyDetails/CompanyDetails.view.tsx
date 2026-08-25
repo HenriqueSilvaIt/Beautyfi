@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  FlatList,
   Image,
   Modal,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -11,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
 import {
   CompanyDetailTab,
   useCompanyDetailsViewModel,
@@ -20,7 +23,6 @@ import { colors } from "@/styles/colors";
 import { CompanyDetails } from "@/shared/components/CompanyTabs/CompanyDetails";
 import { CompanyServices } from "@/shared/components/BusinessTabs/CompanyServices";
 import { CompanyProduct } from "@/shared/components/BusinessTabs/CompanyProduct";
-import { FlatList } from "react-native-gesture-handler";
 import { AppSearchBar } from "@/shared/components/AppSearchBar";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -30,6 +32,36 @@ const defaultCarouselImages = [
   "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80",
   "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
 ];
+
+// Helper seguro para tratar URLs de imagens (seja String, Array ou JSON String) sem crashar
+const parseImageUrls = (raw: any): string[] => {
+  if (!raw) return [];
+  let list: string[] = [];
+  if (Array.isArray(raw)) {
+    list = raw.map((item) => String(item || ""));
+  } else if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        list = parsed.map((item) => String(item || ""));
+      } else {
+        list = raw.split(",");
+      }
+    } catch {
+      list = raw.split(",");
+    }
+  }
+  return list
+    .map((url) => url.replace(/[\[\]"']/g, "").trim())
+    .filter(
+      (url) =>
+        url.length > 5 &&
+        (url.startsWith("http://") ||
+          url.startsWith("https://") ||
+          url.startsWith("file://") ||
+          url.startsWith("data:")),
+    );
+};
 
 export function CompanyDetailsView(
   props: ReturnType<typeof useCompanyDetailsViewModel>,
@@ -53,12 +85,52 @@ export function CompanyDetailsView(
     handleBookPackage,
     handleGoToSubscriptionTab,
   } = props;
+
+  // ─── HOOKS (DEVE SER DECLARADO NO TOPO DO COMPONENTE ANTES DE QUALQUER RETURN CONDICIONAL) ───
   const insets = useSafeAreaInsets();
-
-  // State for Full Screen Image Viewer Modal with horizontal swipe
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const fullscreenFlatListRef = React.useRef<FlatList>(null);
+  const tabFlatListRef = React.useRef<any>(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      props.companyDetailsRefetch?.();
+    }, [props.companyDetailsRefetch])
+  );
+
+  // Calcula quais abas possuem conteúdo ativo para exibição (com verificações seguras de nulo)
+  const hasProducts = (productsList ?? []).length > 0;
+  const hasPackages = (packagesList ?? []).length > 0;
+  const isLoyaltyActive = Boolean(companyDetailsData?.loyaltyActive);
+  const isStampActive = Boolean(props.loyaltyProgramData?.stampActive);
+
+  const isLoyaltyConfigured = Boolean(
+    (isLoyaltyActive &&
+      (
+        (props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0) ||
+        companyDetailsData?.loyaltyRewardDescription?.trim() ||
+        (companyDetailsData?.loyaltyMinPoints != null && companyDetailsData.loyaltyMinPoints > 0) ||
+        (companyDetailsData?.loyaltyRewardValue != null && companyDetailsData.loyaltyRewardValue > 0)
+      )) || isStampActive
+  );
+  const hasSubscriptions = (subscriptionPlans ?? []).length > 0;
+
+  const tabs: CompanyDetailTab[] = [
+    "Serviços",
+    ...(hasProducts ? ["Produtos" as CompanyDetailTab] : []),
+    ...(hasPackages ? ["Pacotes" as CompanyDetailTab] : []),
+    ...(isLoyaltyConfigured ? ["Fidelidade" as CompanyDetailTab] : []),
+    "Detalhes",
+    "Avaliações",
+    ...(hasSubscriptions ? ["Assinaturas" as CompanyDetailTab] : []),
+  ];
+
+  React.useEffect(() => {
+    if (!tabs.includes(activeTab)) {
+      setActiveTab("Serviços");
+    }
+  }, [tabs.length, activeTab]);
+
+  // ─── RETORNOS CONDICIONAIS (APÓS TODOS OS HOOKS) ───
   if (companyDetailsLoading && !companyDetailsData) {
     return (
       <SafeAreaView className="flex-1 bg-background-primary justify-center items-center">
@@ -84,37 +156,11 @@ export function CompanyDetailsView(
   }
 
   // Parse space images or fallback to default
-  const dbSpaceImages = companyDetailsData?.imagesUrl
-    ? companyDetailsData.imagesUrl
-        .replace(/[\[\]"']/g, "")
-        .split(",")
-        .map((x: string) => x.trim())
-        .filter(
-          (x: string) =>
-            x.length > 5 &&
-            (x.startsWith("http://") ||
-              x.startsWith("https://") ||
-              x.startsWith("file://") ||
-              x.startsWith("data:")),
-        )
-    : [];
+  const dbSpaceImages = parseImageUrls(companyDetailsData?.imagesUrl);
   const images = dbSpaceImages.length > 0 ? dbSpaceImages : defaultCarouselImages;
 
   // Parse portfolio images
-  const portfolioImages = companyDetailsData?.portfolioImagesUrl
-    ? companyDetailsData.portfolioImagesUrl
-        .replace(/[\[\]"']/g, "")
-        .split(",")
-        .map((x: string) => x.trim())
-        .filter(
-          (x: string) =>
-            x.length > 5 &&
-            (x.startsWith("http://") ||
-              x.startsWith("https://") ||
-              x.startsWith("file://") ||
-              x.startsWith("data:")),
-        )
-    : [];
+  const portfolioImages = parseImageUrls(companyDetailsData?.portfolioImagesUrl);
 
   const allGalleryImages = Array.from(new Set([...images, ...portfolioImages]));
 
@@ -123,18 +169,6 @@ export function CompanyDetailsView(
     const idx = allGalleryImages.findIndex((url) => url === imgUrl);
     setViewerIndex(idx >= 0 && idx < allGalleryImages.length ? idx : 0);
   };
-
-  const tabs: CompanyDetailTab[] = [
-    "Serviços",
-    "Produtos",
-    "Pacotes",
-    "Fidelidade",
-    "Detalhes",
-    "Avaliações",
-    "Assinaturas",
-  ];
-
-  const tabFlatListRef = React.useRef<any>(null);
 
   const handleTabSelect = (tab: CompanyDetailTab, index: number) => {
     setActiveTab(tab);
@@ -167,17 +201,19 @@ export function CompanyDetailsView(
         const targetMinPts = minPts || 100;
         const progressPercent = Math.min(100, Math.round((userPts / targetMinPts) * 100));
 
-        if (!isLoyaltyActive || !hasConfiguredReward) {
+        const isStampActive = Boolean(props.loyaltyProgramData?.stampActive);
+
+        if ((!isLoyaltyActive || !hasConfiguredReward) && !isStampActive) {
           return (
             <View className="px-4 py-12 items-center justify-center bg-white rounded-2xl border border-gray-100 my-4 shadow-sm">
               <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3">
                 <Ionicons name="gift-outline" size={32} color="#9CA3AF" />
               </View>
               <Text className="text-gray-900 font-bold text-base text-center">
-                Sem Itens no Programa de Fidelidade
+                Sem Programa de Fidelidade Ativo
               </Text>
               <Text className="text-gray-500 text-xs text-center mt-1.5 px-6 leading-5">
-                Este estabelecimento ainda não possui recompensas ou prêmios ativos no programa de fidelidade.
+                Este estabelecimento ainda não possui recompensas ou cartões de fidelidade ativos.
               </Text>
             </View>
           );
@@ -185,64 +221,118 @@ export function CompanyDetailsView(
 
         return (
           <View className="px-4 py-3 gap-4">
-            {/* Banner com gradiente e status */}
-            <View className="p-5 rounded-3xl bg-gradient-to-r from-[#092D5D] to-[#1E3A8A] shadow-md border border-[#CBA35D]/30">
-              <View className="flex-row justify-between items-start mb-3">
-                <View className="flex-row items-center gap-3">
-                  <View className="w-12 h-12 rounded-2xl bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
-                    <Ionicons name="trophy" size={24} color="#CBA35D" />
+            {/* Card Principal do Clube de Fidelidade em Fundo Branco (White Theme UI/UX) */}
+            {isLoyaltyActive && hasConfiguredReward && (
+              <View className="p-5 rounded-3xl bg-white border border-slate-100 shadow-sm gap-4">
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center gap-3">
+                    <View className="w-12 h-12 rounded-2xl bg-[#CBA35D]/15 items-center justify-center border border-[#CBA35D]/30">
+                      <Ionicons name="trophy" size={24} color="#CBA35D" />
+                    </View>
+                    <View>
+                      <Text className="text-slate-900 font-extrabold text-base">
+                        Clube de Fidelidade
+                      </Text>
+                      <Text className="text-slate-500 text-xs font-medium mt-0.5">
+                        {companyDetailsData.name}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text className="text-white font-bold text-base">
-                      Clube de Fidelidade
-                    </Text>
-                    <Text className="text-gray-300 text-xs mt-0.5">
-                      {companyDetailsData.name}
+                  <View className="px-3 py-1 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20">
+                    <Text className="text-[#092D5D] font-extrabold text-[10px] uppercase tracking-wider">
+                      VIP
                     </Text>
                   </View>
                 </View>
-                <View className="px-3 py-1 rounded-full bg-[#CBA35D]/20 border border-[#CBA35D]/40">
-                  <Text className="text-[#CBA35D] font-bold text-[10px] uppercase">
-                    VIP
-                  </Text>
-                </View>
+
+                {/* Card de Pontuação do Usuário se Logado */}
+                {props.user ? (
+                  <View className="pt-3 border-t border-slate-100">
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text className="text-slate-600 text-xs font-semibold">
+                        Seus Pontos Acumulados:
+                      </Text>
+                      <View className="flex-row items-baseline gap-1">
+                        <Text className="text-[#092D5D] font-black text-xl">
+                          {userPts}
+                        </Text>
+                        <Text className="text-[#CBA35D] font-extrabold text-xs">
+                          pts
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Barra de Progresso em Fundo Claro */}
+                    <View className="h-3.5 w-full bg-slate-100 rounded-full overflow-hidden mb-1.5 border border-slate-200/60">
+                      <View
+                        className="h-full bg-gradient-to-r from-[#092D5D] to-[#CBA35D] rounded-full"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </View>
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-slate-400 text-[11px] font-medium">0 pts</Text>
+                      <Text className="text-[#092D5D] text-[11px] font-extrabold">
+                        {progressPercent}% da recompensa
+                      </Text>
+                      <Text className="text-slate-400 text-[11px] font-medium">{targetMinPts} pts</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View className="pt-3 border-t border-slate-100 flex-row items-center gap-2">
+                    <Ionicons name="lock-closed-outline" size={16} color="#092D5D" />
+                    <Text className="text-slate-600 text-xs flex-1">
+                      Faça login para acompanhar seus pontos e resgatar prêmios exclusivos!
+                    </Text>
+                  </View>
+                )}
               </View>
+            )}
 
-              {/* Card de Pontuação do Usuário se Logado */}
-              {props.user ? (
-                <View className="mt-2 pt-3 border-t border-white/10">
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-gray-200 text-xs font-semibold">
-                      Seus Pontos Acumulados:
-                    </Text>
-                    <Text className="text-[#CBA35D] font-black text-lg">
-                      {userPts} pts
-                    </Text>
-                  </View>
-
-                  {/* Barra de Progresso */}
-                  <View className="h-3 w-full bg-black/30 rounded-full overflow-hidden mb-1 border border-white/10">
-                    <View
-                      className="h-full bg-gradient-to-r from-[#CBA35D] to-[#F59E0B] rounded-full"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </View>
-                  <View className="flex-row justify-between items-center mt-1">
-                    <Text className="text-gray-300 text-[10px]">0 pts</Text>
-                    <Text className="text-[#CBA35D] text-[10px] font-bold">
-                      {progressPercent}% da recompensa
-                    </Text>
-                    <Text className="text-gray-300 text-[10px]">{minPts} pts</Text>
+            {/* Cartão Fidelidade por Serviço (Carimbos) */}
+            {props.loyaltyProgramData?.stampActive ? (
+              <View className="p-5 rounded-2xl bg-white border border-[#CBA35D]/40 shadow-sm">
+                <View className="flex-row items-center justify-between border-b border-gray-100 pb-3 mb-3">
+                  <View className="flex-row items-center gap-2 flex-1">
+                    <View className="w-9 h-9 rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                      <Ionicons name="ribbon" size={18} color="#092D5D" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-gray-900 font-extrabold text-sm">
+                        Cartão Fidelidade: {props.loyaltyProgramData.stampServiceName || "Serviço Especial"}
+                      </Text>
+                      {props.loyaltyProgramData.stampStartDate || props.loyaltyProgramData.stampEndDate ? (
+                        <Text className="text-gray-500 text-[11px] font-medium mt-0.5">
+                          📅 Validade: {props.loyaltyProgramData.stampStartDate ? props.loyaltyProgramData.stampStartDate.split("T")[0] : "Início"} até {props.loyaltyProgramData.stampEndDate ? props.loyaltyProgramData.stampEndDate.split("T")[0] : "Término"}
+                        </Text>
+                      ) : null}
+                    </View>
                   </View>
                 </View>
-              ) : (
-                <View className="mt-2 pt-3 border-t border-white/10">
-                  <Text className="text-gray-200 text-xs">
-                    Faça login para acompanhar seus pontos e resgatar cupons exclusivos!
-                  </Text>
+
+                {/* Visual dos Carimbos */}
+                <View className="flex-row items-center justify-around py-3 bg-slate-50 rounded-xl border border-slate-200/60 my-1 px-2">
+                  {Array.from({ length: props.loyaltyProgramData.stampRequiredCount || 4 }).map((_, index) => (
+                    <View key={index} className="items-center gap-1">
+                      <View className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-300 items-center justify-center shadow-xs">
+                        <Ionicons name="checkmark-circle" size={22} color="#059669" />
+                      </View>
+                      <Text className="text-[10px] font-bold text-slate-600">{index + 1}º</Text>
+                    </View>
+                  ))}
+                  <View className="items-center gap-1">
+                    <View className="w-11 h-11 rounded-full bg-[#092D5D] border-2 border-[#CBA35D] items-center justify-center shadow-md">
+                      <Ionicons name="gift" size={20} color="#CBA35D" />
+                    </View>
+                    <Text className="text-[10px] font-black text-[#092D5D]">GRÁTIS!</Text>
+                  </View>
                 </View>
-              )}
-            </View>
+
+                {/* Recompensa */}
+                <Text className="text-[#092D5D] text-xs font-extrabold text-center mt-2.5">
+                  🎁 {props.loyaltyProgramData.stampRewardDescription || `Complete ${props.loyaltyProgramData.stampRequiredCount || 4} realizações e ganhe a próxima grátis!`}
+                </Text>
+              </View>
+            ) : null}
 
             {/* Recompensa Disponível */}
             <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
@@ -648,7 +738,7 @@ export function CompanyDetailsView(
                 Nenhum pacote disponível.
               </Text>
             ) : (
-              packagesList.map((pkg) => (
+              packagesList.map((pkg: any) => (
                 <View
                   key={pkg.id}
                   className="bg-white p-5 rounded-2xl border border-gray-100 mb-4 shadow-sm"
@@ -671,7 +761,7 @@ export function CompanyDetailsView(
                   {pkg.items && pkg.items.length > 0 && (
                     <View className="mb-3">
                       <Text className="text-gray-500 text-xs font-semibold mb-1">Inclui:</Text>
-                      {pkg.items.map((item) => (
+                      {pkg.items.map((item: any) => (
                         <Text key={item.serviceId} className="text-gray-600 text-xs">
                           • {item.serviceName ?? `Serviço #${item.serviceId}`}{item.quantity > 1 ? ` × ${item.quantity}` : ""}
                         </Text>
@@ -689,7 +779,7 @@ export function CompanyDetailsView(
                     </View>
                     <TouchableOpacity
                       onPress={() =>
-                        handleBookPackage(pkg.items?.map((i) => i.serviceId) ?? [])
+                        handleBookPackage(pkg.items?.map((i: any) => i.serviceId) ?? [])
                       }
                       className="bg-[#092D5D] px-4 py-2 rounded-xl"
                     >
@@ -712,6 +802,14 @@ export function CompanyDetailsView(
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={Boolean(props.isRefreshing)}
+            onRefresh={props.handleRefreshAll}
+            tintColor="#092D5D"
+            colors={["#092D5D", "#CBA35D"]}
+          />
+        }
       >
         {/* Cover Carousel (Fotos do Espaço) */}
         <View style={{ height: 260, width: "100%", position: "relative" }}>
@@ -870,15 +968,15 @@ export function CompanyDetailsView(
       <View
         style={{
           position: "absolute",
-          bottom: Math.max(12, (insets?.bottom ?? 0) + 8),
+          bottom: 0,
           left: 0,
           right: 0,
           backgroundColor: "rgba(255, 255, 255, 0.95)",
           borderTopWidth: 1,
           borderTopColor: "#f3f4f6",
           paddingHorizontal: 20,
-          paddingVertical: 15,
-          paddingBottom: Math.max(30, (insets?.bottom ?? 0) + 20),
+          paddingTop: 10,
+          paddingBottom: Math.max(14, (insets?.bottom ?? 0) + 10),
           zIndex: 999,
         }}
       >
@@ -929,42 +1027,36 @@ export function CompanyDetailsView(
           </View>
 
           {/* Carrossel de Fotos em Tela Cheia com Swipe Horizontal */}
-          <FlatList
-            ref={fullscreenFlatListRef}
-            data={allGalleryImages}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(img, index) => `fullscreen-img-${index}`}
-            initialScrollIndex={
-              viewerIndex !== null && viewerIndex >= 0 && viewerIndex < allGalleryImages.length
-                ? viewerIndex
-                : 0
-            }
-            getItemLayout={(_, index) => ({
-              length: screenWidth,
-              offset: screenWidth * index,
-              index,
-            })}
-            onScrollToIndexFailed={(info) => {
-              setTimeout(() => {
-                fullscreenFlatListRef.current?.scrollToIndex({ index: info.index, animated: false });
-              }, 100);
-            }}
-            onMomentumScrollEnd={(e) => {
-              const newIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-              setViewerIndex(newIndex);
-            }}
-            renderItem={({ item: imgUrl }) => (
-              <View style={{ width: screenWidth, height: "100%", justifyContent: "center", alignItems: "center" }}>
-                <Image
-                  source={{ uri: imgUrl }}
-                  style={{ width: screenWidth, height: "80%" }}
-                  resizeMode="contain"
-                />
-              </View>
-            )}
-          />
+          {allGalleryImages.length > 0 && (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              contentOffset={{
+                x: (viewerIndex ?? 0) * screenWidth,
+                y: 0,
+              }}
+              onMomentumScrollEnd={(e) => {
+                const newIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+                if (newIndex >= 0 && newIndex < allGalleryImages.length) {
+                  setViewerIndex(newIndex);
+                }
+              }}
+            >
+              {allGalleryImages.map((imgUrl, index) => (
+                <View
+                  key={`fullscreen-${index}`}
+                  style={{ width: screenWidth, height: "100%", justifyContent: "center", alignItems: "center" }}
+                >
+                  <Image
+                    source={{ uri: imgUrl }}
+                    style={{ width: screenWidth, height: "80%" }}
+                    resizeMode="contain"
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

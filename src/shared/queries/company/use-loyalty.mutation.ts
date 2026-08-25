@@ -22,11 +22,21 @@ export interface LoyaltyProgram {
   description?: string;
   active: boolean;
   pointsPerReal: number;
+  pointsAmountPerPoint?: number;
   minPointsToRedeem: number;
   rewardValue?: number;
   rewardDescription?: string;
   ruleDescription?: string;
   items: LoyaltyRewardItem[];
+
+  // Cartão Fidelidade por Serviço (Carimbos)
+  stampActive?: boolean;
+  stampServiceId?: number;
+  stampServiceName?: string;
+  stampRequiredCount?: number;
+  stampStartDate?: string;
+  stampEndDate?: string;
+  stampRewardDescription?: string;
 }
 
 export interface ClientLoyaltyPoints {

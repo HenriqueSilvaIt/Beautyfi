@@ -26,18 +26,17 @@ export async function getEmployees(
   companyId?: number,
 ) {
   const resolvedCompanyId = companyId || getCompanyId();
-  const url = resolvedCompanyId && resolvedCompanyId > 0
-    ? `/employees?companyId=${resolvedCompanyId}&sort=name,asc`
-    : `/employees?sort=name,asc`;
 
   const { data } = await styleAppApiClient.get<EmployeeHttpRepsonse>(
-    url,
+    "/employees",
     {
       params: {
         page,
         size,
         employeeId,
         name,
+        companyId: resolvedCompanyId,
+        sort: "name,asc",
       },
     },
   );

@@ -11,6 +11,8 @@ export interface CompanyServicesProps {
   depositType?: "PERCENTAGE" | "FIXED";
   depositAmount?: number;
   noShowFee?: number;
+  noShowApplyToAll?: boolean;
+  noShowClientIds?: number[];
   imgUrl?: string;
   duration: number;
   companyId?: number;
@@ -29,6 +31,8 @@ export interface CompanyServicesInterface {
   depositType?: "PERCENTAGE" | "FIXED";
   depositAmount?: number;
   noShowFee?: number;
+  noShowApplyToAll?: boolean;
+  noShowClientIds?: number[];
   priceDescription?: string;
   employees?: ServiceEmployeeParam[];
 }

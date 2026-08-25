@@ -9,6 +9,7 @@ interface CompanyStore {
   setFavoritedCompanyIds: (ids: number[]) => void;
   addFavoriteId: (id: number) => void;
   removeFavoriteId: (id: number) => void;
+  resetCompanyStore: () => void;
 }
 
 export const useCompanyStore = create<CompanyStore>()(
@@ -28,6 +29,8 @@ export const useCompanyStore = create<CompanyStore>()(
         set((state) => ({
           favoritedCompanyIds: state.favoritedCompanyIds.filter((x) => x !== id),
         })),
+      resetCompanyStore: () =>
+        set({ selectedCompanyId: null, favoritedCompanyIds: [] }),
     }),
     {
       name: "style-company",

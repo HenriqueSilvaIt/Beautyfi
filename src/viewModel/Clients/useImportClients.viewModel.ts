@@ -18,7 +18,10 @@ export interface ContactItem {
   validationError?: string;
 }
 
-export function useImportClientsViewModel(onSuccessClose?: () => void) {
+export function useImportClientsViewModel(
+  onSuccessClose?: () => void,
+  onCustomImport?: (importedClients: { name: string; phone: string; email?: string }[]) => Promise<void> | void
+) {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedSource, setSelectedSource] = useState<ImportSource>(null);
@@ -220,6 +223,32 @@ export function useImportClientsViewModel(onSuccessClose?: () => void) {
     setImportedCount(0);
     setFailedCount(0);
     setCurrentStep(4);
+
+    if (onCustomImport) {
+      try {
+        const formattedList = toImport.map((contact) => {
+          const nameParts = contact.name.trim().split(" ");
+          const firstName = nameParts[0] || contact.name;
+          const lastName = nameParts.slice(1).join(" ") || "";
+          const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+          return {
+            name: fullName,
+            phone: contact.phone || "",
+            email: contact.email || undefined,
+          };
+        });
+
+        await onCustomImport(formattedList);
+        setImportedCount(formattedList.length);
+        setFailedCount(0);
+      } catch (err) {
+        console.error("Failed custom import:", err);
+        setFailedCount(toImport.length);
+      } finally {
+        setIsImporting(false);
+      }
+      return;
+    }
 
     let success = 0;
     let failed = 0;

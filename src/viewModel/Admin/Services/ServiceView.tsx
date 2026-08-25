@@ -5,6 +5,8 @@ import AppDetails from "@/shared/components/AppDetails";
 import { ServiceFormData } from "./service.scheme";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useRouter } from "expo-router";
+
 export function ServiceView({
   control,
   onSubmit,
@@ -28,6 +30,8 @@ export function ServiceView({
   isStripeModalVisible,
   setIsStripeModalVisible,
 }: ReturnType<typeof useServiceViewModel>) {
+  const router = useRouter();
+
   return (
     <>
       <KeyboardContainer>
@@ -51,6 +55,16 @@ export function ServiceView({
             handleToggleRequiresDeposit={handleToggleRequiresDeposit}
             depositType={depositType}
             setDepositType={setDepositType}
+            noShowApplyToAll={serviceContent?.noShowApplyToAll}
+            noShowClientCount={serviceContent?.noShowClientIds?.length}
+            onManageNoShowClients={() => {
+              if (serviceId) {
+                router.push({
+                  pathname: "/(private)/(crud)/services/service-noshow-clients" as any,
+                  params: { serviceId: String(serviceId) },
+                });
+              }
+            }}
             fields={[
               {
                 name: "name",

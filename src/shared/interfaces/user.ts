@@ -1,5 +1,6 @@
 export interface UserProps {
   id: number;
+  clientId?: number;
   firstName: string;
   lastName?: string;
   avatarUrl: string;

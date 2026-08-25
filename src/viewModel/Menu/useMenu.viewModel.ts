@@ -26,11 +26,11 @@ export function useMenuViewModel() {
     try {
       logout();
       useUserStore.getState().logout();
-      useCompanyStore.getState().setSelectedCompanyId(null);
+      useCompanyStore.getState().resetCompanyStore();
+      useCompanyStore.persist?.clearStorage?.();
       useSubscriberStore.getState().setSubscriberId(undefined);
-      useUserStore.persist.clearStorage();
+      useUserStore.persist?.clearStorage?.();
 
-      queryClient.removeQueries({ queryKey: ["user-logged"] });
       queryClient.removeQueries();
       queryClient.clear();
 

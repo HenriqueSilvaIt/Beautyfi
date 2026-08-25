@@ -1,5 +1,23 @@
 import { create } from "zustand";
 
+export interface InitialServiceItem {
+  name: string;
+  price: number;
+  duration: number;
+}
+
+export interface InitialClientItem {
+  name: string;
+  phone: string;
+  email: string;
+}
+
+export interface InitialEmployeeItem {
+  name: string;
+  phone: string;
+  email: string;
+}
+
 export interface CompanyRegisterData {
   // Página 1: Dados do Admin e Empresa
   firstName: string;
@@ -24,17 +42,22 @@ export interface CompanyRegisterData {
   address: string;
   latitude?: number;
   longitude?: number;
-  // Página 5
+  // Página 5: Serviços Reais
   defaultServices: string[];
-  defaultProducts: string[];
-  // Página 6: Horários de Trabalho
+  realServices: InitialServiceItem[];
+  // Página 6: Clientes Iniciais (Opcional)
+  clients: InitialClientItem[];
+  // Página 7: Equipe / Profissionais (Opcional)
+  employees: InitialEmployeeItem[];
+  // Página 8: Horários de Trabalho
   workDays: string[];
   scheduleStart: string;
   scheduleLunchStart: string;
   scheduleLunchEnd: string;
   scheduleEnd: string;
-  // Página 7
+  // Página 9: Imagens do Espaço e Portfólio (Opcional)
   imagesUrl: string[];
+  portfolioImagesUrl?: string[];
   logoUrl?: string;
 }
 
@@ -60,13 +83,16 @@ export const useCompanyRegisterStore = create<CompanyRegisterState>((set) => ({
     subdomain: "",
     categories: [],
     defaultServices: [],
-    defaultProducts: [],
+    realServices: [],
+    clients: [],
+    employees: [],
     workDays: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"],
     scheduleStart: "09:00",
     scheduleLunchStart: "12:00",
     scheduleLunchEnd: "13:00",
     scheduleEnd: "18:00",
     imagesUrl: [],
+    portfolioImagesUrl: [],
     cep: "",
     street: "",
     number: "",
@@ -77,7 +103,7 @@ export const useCompanyRegisterStore = create<CompanyRegisterState>((set) => ({
     address: "",
   },
   setStep: (step) => set({ step }),
-  nextStep: () => set((s) => ({ step: Math.min(s.step + 1, 7) })),
+  nextStep: () => set((s) => ({ step: Math.min(s.step + 1, 10) })),
   prevStep: () => set((s) => ({ step: Math.max(s.step - 1, 1) })),
   updateData: (fields) => set((s) => ({ data: { ...s.data, ...fields } })),
   reset: () =>
@@ -93,13 +119,16 @@ export const useCompanyRegisterStore = create<CompanyRegisterState>((set) => ({
         subdomain: "",
         categories: [],
         defaultServices: [],
-        defaultProducts: [],
+        realServices: [],
+        clients: [],
+        employees: [],
         workDays: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"],
         scheduleStart: "09:00",
         scheduleLunchStart: "12:00",
         scheduleLunchEnd: "13:00",
         scheduleEnd: "18:00",
         imagesUrl: [],
+        portfolioImagesUrl: [],
         cep: "",
         street: "",
         number: "",

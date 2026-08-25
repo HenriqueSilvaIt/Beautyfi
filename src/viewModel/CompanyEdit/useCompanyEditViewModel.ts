@@ -28,9 +28,9 @@ export function useCompanyEditViewModel() {
     allowsEditing: true,
     quality: 0.8,
   });
-  const { openGallery, isLoading: isGalleryLoading } = useGallery({
+  const { openGallery, openGalleryMultiple, isLoading: isGalleryLoading } = useGallery({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
+    allowsEditing: false,
     quality: 0.8,
   });
 
@@ -417,39 +417,48 @@ export function useCompanyEditViewModel() {
     }
   };
 
-  const uploadSelectedImage = async (uri: string, type: "space" | "portfolio" = "space") => {
+  const uploadSelectedImages = async (uris: string[], type: "space" | "portfolio" = "space") => {
+    if (!uris || uris.length === 0) return;
+
     if (type === "portfolio") setUploadingPortfolio(true);
     else setUploadingSpace(true);
 
+    let lastData: any = null;
+    let successCount = 0;
+
     try {
-      const formData = new FormData();
-      const filename = uri.split("/").pop() || "upload.jpg";
-      const match = /\.(\w+)$/.exec(filename);
-      const fileType = match ? `image/${match[1]}` : `image/jpeg`;
-      const formattedUri = Platform.OS === "android" && !uri.startsWith("file://") ? `file://${uri}` : uri;
+      for (const uri of uris) {
+        const formData = new FormData();
+        const filename = uri.split("/").pop() || "upload.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const fileType = match ? `image/${match[1]}` : `image/jpeg`;
+        const formattedUri = Platform.OS === "android" && !uri.startsWith("file://") ? `file://${uri}` : uri;
 
-      formData.append("file", {
-        uri: formattedUri,
-        name: filename,
-        type: fileType,
-      } as any);
+        formData.append("file", {
+          uri: formattedUri,
+          name: filename,
+          type: fileType,
+        } as any);
 
-      const res = await styleAppApiClient.put(`/companies/${companyId}/images?type=${type}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        transformRequest: (data) => data,
-      });
+        const res = await styleAppApiClient.put(`/companies/${companyId}/images?type=${type}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          transformRequest: (data) => data,
+        });
 
-      if (res.data) {
-        let updatedPort = "";
-        let updatedSpace = "";
+        if (res.data) {
+          lastData = res.data;
+          successCount++;
+        }
+      }
 
+      if (lastData) {
         if (type === "portfolio") {
-          updatedPort = cleanImageUrlsString(res.data.portfolioImagesUrl || "");
+          const updatedPort = cleanImageUrlsString(lastData.portfolioImagesUrl || "");
           setPortfolioImagesUrl(updatedPort);
         } else {
-          updatedSpace = cleanImageUrlsString(res.data.imagesUrl || "");
+          const updatedSpace = cleanImageUrlsString(lastData.imagesUrl || "");
           setImagesUrl(updatedSpace);
         }
 
@@ -460,13 +469,13 @@ export function useCompanyEditViewModel() {
 
         Alert.alert(
           "Sucesso",
-          `Foto de ${type === "portfolio" ? "Portfólio" : "Espaço"} enviada e adicionada com sucesso!`
+          `${successCount} foto(s) de ${type === "portfolio" ? "Portfólio" : "Espaço"} enviada(s) e adicionada(s) com sucesso!`
         );
       }
     } catch (err: any) {
       console.error(err);
       const serverMsg = err.response?.data?.message || err.response?.data || err.message;
-      Alert.alert("Erro", `Não foi possível enviar a imagem. Detalhe: ${serverMsg}`);
+      Alert.alert("Erro", `Não foi possível enviar a(s) imagem(ns). Detalhe: ${serverMsg}`);
     } finally {
       if (type === "portfolio") setUploadingPortfolio(false);
       else setUploadingSpace(false);
@@ -474,20 +483,23 @@ export function useCompanyEditViewModel() {
   };
 
   const handlePickAndUploadImage = async (type: "space" | "portfolio" = "space") => {
-    const titleText = type === "portfolio" ? "Foto de Portfólio" : "Foto do Espaço";
+    const titleText = type === "portfolio" ? "Fotos de Portfólio" : "Fotos do Espaço";
     modals.showSelection({
       title: `Selecionar ${titleText}`,
-      message: `Escolha uma opção para a imagem do ${type === "portfolio" ? "portfólio de trabalhos" : "estabelecimento"}:`,
+      message: `Escolha uma opção para as imagens do ${type === "portfolio" ? "portfólio de trabalhos" : "estabelecimento"}:`,
       options: [
         {
-          text: "Galeria",
+          text: "Galeria (Várias Fotos)",
           icon: "images",
           variant: "primary",
           onPress: async () => {
             close();
-            const imageUri = await openGallery();
-            if (imageUri) {
-              await uploadSelectedImage(imageUri, type);
+            const imageUris = await openGalleryMultiple({
+              allowsMultipleSelection: true,
+              quality: 0.8,
+            });
+            if (imageUris && imageUris.length > 0) {
+              await uploadSelectedImages(imageUris, type);
             }
           },
         },
@@ -499,7 +511,7 @@ export function useCompanyEditViewModel() {
             close();
             const imageUri = await openCamera();
             if (imageUri) {
-              await uploadSelectedImage(imageUri, type);
+              await uploadSelectedImages([imageUri], type);
             }
           },
         },

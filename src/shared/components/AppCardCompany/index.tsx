@@ -69,6 +69,7 @@ interface AppCardCompanyProps {
   favoritedCompanyIds: number[];
   onToggleFavorite: (companyId: number) => void;
   onViewMap?: (company: CompanyDTO) => void;
+  showPartnerCallout?: boolean;
 }
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -201,6 +202,7 @@ export function AppCardCompany({
   favoritedCompanyIds,
   onToggleFavorite,
   onViewMap,
+  showPartnerCallout = false,
 }: AppCardCompanyProps) {
   const setSelectedCompanyId = useCompanyStore(
     (state) => state.setSelectedCompanyId,
@@ -410,7 +412,7 @@ export function AppCardCompany({
         ListFooterComponent={
           <View>
             {isFetchingNextPage && <ActivityIndicator className="my-4" color="#092D5D" />}
-            <PartnerRegistrationCard />
+            {showPartnerCallout && <PartnerRegistrationCard />}
           </View>
         }
         renderItem={renderItem}

@@ -305,13 +305,21 @@ export function OrderDetailsView({
           />
           <View className="flex-1">
             <Text className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">
-              Cliente
+              Cliente da Comanda
             </Text>
             <Text className="text-slate-900 font-black text-base" numberOfLines={1}>
               {client?.name || "Selecionar Cliente"}
             </Text>
+            {client?.phone ? (
+              <Text className="text-slate-500 text-xs font-medium" numberOfLines={1}>
+                {client.phone}
+              </Text>
+            ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#64748b" />
+          <View className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 flex-row items-center gap-1">
+            <Text className="text-xs text-[#092D5D] font-bold">Trocar</Text>
+            <Ionicons name="swap-horizontal" size={14} color="#092D5D" />
+          </View>
         </TouchableOpacity>
       </View>
 

@@ -7,7 +7,8 @@ import { useLoyaltyMutation } from "@/shared/queries/company/use-loyalty.mutatio
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useUserStore } from "@/shared/store/user-store";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
+import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
@@ -15,6 +16,8 @@ export type CompanyDetailTab = "Serviços" | "Produtos" | "Detalhes" | "Avaliaç
 
 
 export function useCompanyDetailsViewModel(companyId?: number) {
+  const router = useRouter();
+  const { safePush, safeReplace } = useSafeNavigation();
   const [activeTab, setActiveTab] = useState<CompanyDetailTab>("Serviços");
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [searchValue, setSearchValue] = useState("");
@@ -117,10 +120,12 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   const reviewsList = reviewsData?.content ?? [];
 
   useEffect(() => {
-    if (favoritedIds) {
+    if (isLoggedIn && favoritedIds) {
       setFavoritedCompanyIds(favoritedIds);
+    } else if (!isLoggedIn) {
+      setFavoritedCompanyIds([]);
     }
-  }, [favoritedIds]);
+  }, [favoritedIds, isLoggedIn]);
 
   const isFavorite = companyId ? favoritedCompanyIds.includes(companyId) : false;
 
@@ -128,7 +133,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     if (!companyId) return;
 
     if (!isLoggedIn) {
-      router.push("/(public)/login");
+      safePush("/(public)/login");
       return;
     }
 
@@ -152,51 +157,63 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   const handleSelectCompany = () => {
     if (!companyId) return;
     setSelectedCompanyId(companyId);
-    router.replace("/(private)/(tabs)/(client-tabs)/home");
+    safeReplace("/(private)/(tabs)/(client-tabs)/home");
   };
 
   const handleBookSelectedServices = () => {
     if (selectedServices.length === 0) return;
     if (!isLoggedIn) {
-      router.push("/(public)/login");
+      safePush("/(public)/login");
     } else {
-      router.push({
-        pathname: "/(private)/schedule",
-        params: {
-          serviceIds: selectedServices.join(","),
-          companyId: companyId ? String(companyId) : undefined,
-        },
-      });
+      try {
+        router.push({
+          pathname: "/(private)/schedule",
+          params: {
+            serviceIds: selectedServices.join(","),
+            companyId: companyId ? String(companyId) : undefined,
+          },
+        });
+      } catch (e) {
+        console.error("Erro ao navegar para o agendamento:", e);
+      }
     }
   };
 
   const handleBookPackage = (packageServices: number[]) => {
     if (!isLoggedIn) {
-      router.push("/(public)/login");
+      safePush("/(public)/login");
     } else {
-      router.push({
-        pathname: "/(private)/schedule",
-        params: {
-          serviceIds: packageServices.join(","),
-          companyId: companyId ? String(companyId) : undefined,
-        },
-      });
+      try {
+        router.push({
+          pathname: "/(private)/schedule",
+          params: {
+            serviceIds: packageServices.join(","),
+            companyId: companyId ? String(companyId) : undefined,
+          },
+        });
+      } catch (e) {
+        console.error("Erro ao navegar para o agendamento do pacote:", e);
+      }
     }
   };
 
   const handleGoToSubscriptionTab = () => {
     if (!isLoggedIn) {
-      router.push("/(public)/login");
+      safePush("/(public)/login");
     } else {
-      router.push("/(private)/(tabs)/(client-tabs)/subscription");
+      safePush("/(private)/(tabs)/(client-tabs)/subscription");
     }
   };
 
   const handleGoBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/(public)/home");
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        safeReplace("/(public)/home");
+      }
+    } catch {
+      safeReplace("/(public)/home");
     }
   };
 
@@ -293,12 +310,31 @@ export function useCompanyDetailsViewModel(companyId?: number) {
 
   const packagesList = packageData?.pages.flatMap((page) => page.content ?? []) ?? [];
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        companyDetailsRefetch(),
+        serviceRefetch(),
+        refetchProduct(),
+        packageRefetch(),
+      ]);
+    } catch (e) {
+      console.error("Error refreshing company details:", e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return {
     companyDetailsData,
     companyDetailsLoading: companyDetailsLoading || serviceIsLoading || productIsLoading || packageIsLoading || isPlansLoading,
     companyDetailsError,
     companyDetailsRefetch,
+    isRefreshing,
+    handleRefreshAll,
     isFavorite,
     handleToggleFavorite,
     handleSelectCompany,

@@ -241,12 +241,12 @@ export function useWhatsAppViewModel() {
 
   async function handleBuyMessages() {
     try {
-      const url = "https://www.painel.beautyfi.com.br";
+      const url = "https://painel.beautyfi.com.br";
       const canOpen = await Linking.canOpenURL(url);
       if (canOpen) {
         await Linking.openURL(url);
       } else {
-        await Linking.openURL("https://www.painel.beautyfi.com.br");
+        await Linking.openURL("https://painel.beautyfi.com.br");
       }
     } catch (error) {
       handleError(error, "Erro ao abrir o painel web www.painel.beautify.com.br");
