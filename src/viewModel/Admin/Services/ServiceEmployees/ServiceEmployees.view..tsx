@@ -52,10 +52,10 @@ export function ServiceEmployeesView() {
               <Image
                 source={{ uri: item.avatarUrl }}
                 resizeMode="cover"
-                className="w-14 h-14 rounded-full border border-gray-200 mr-3.5 bg-gray-100"
+                className="w-[40px] h-[40px] rounded-full border border-gray-200 mr-3.5 bg-gray-100"
               />
             ) : (
-              <View className="w-14 h-14 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20 items-center justify-center mr-3.5">
+              <View className="w-[40px] h-[40px] rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20 items-center justify-center mr-3.5">
                 <Ionicons name="person" size={26} color="#092D5D" />
               </View>
             )}

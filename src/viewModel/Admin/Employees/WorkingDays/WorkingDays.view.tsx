@@ -235,26 +235,26 @@ export function WorkingDaysView() {
       />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 60 }}
-        className="px-5 pt-4 bg-white"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 80 }}
+        className="bg-white flex-1"
         showsVerticalScrollIndicator={false}
       >
-        <View className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm mb-4">
+        <View className="rounded-3xl border border-gray-200/80 bg-white p-5 shadow-sm mb-5">
           <Text className="text-gray-900 font-black text-xl mb-1">
             Dias e Turnos de Trabalho
           </Text>
-          <Text className="text-gray-500 text-xs font-medium mb-4">
+          <Text className="text-gray-500 text-xs font-medium mb-4 leading-4">
             Selecione os dias em que o profissional atende e toque nos horários para ajustar.
           </Text>
 
-          <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-gray-100">
+          <View className="flex-row items-center justify-between mb-4 pb-3.5 border-b border-gray-100">
             <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
               Dias de Atendimento
             </Text>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={toggleSelectAllDays}
-              className="flex-row items-center gap-1.5 rounded-full border border-[#092D5D]/20 bg-[#092D5D]/10 px-3.5 py-1.5"
+              className="flex-row items-center gap-1.5 rounded-full border border-[#092D5D]/20 bg-[#092D5D]/10 px-4 py-2"
             >
               <Text className="text-xs font-extrabold text-[#092D5D]">
                 {isAllSelected ? "Desmarcar todos" : "Selecionar todos"}
@@ -267,7 +267,7 @@ export function WorkingDaysView() {
             </TouchableOpacity>
           </View>
 
-          <View className="gap-2.5">
+          <View className="gap-3">
             {DAYS_WEEK.map((day) => {
               const checked = safeSchedule.some((d) => d.day === day);
               const daySchedule = safeSchedule.find((d) => d.day === day);
@@ -276,16 +276,16 @@ export function WorkingDaysView() {
               return (
                 <View
                   key={day}
-                  className={`rounded-2xl border p-4 shadow-sm ${
+                  className={`rounded-2xl border p-4.5 shadow-sm ${
                     checked
                       ? "border-[#092D5D] bg-[#092D5D]/5"
-                      : "border-gray-100 bg-white"
+                      : "border-gray-200/80 bg-white"
                   }`}
                 >
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => toggleDay(day)}
-                    className="flex-row items-center justify-between"
+                    className="flex-row items-center justify-between py-1"
                   >
                     <Text className={`text-sm font-black ${checked ? "text-[#092D5D]" : "text-gray-700"}`}>
                       {day}
@@ -298,17 +298,17 @@ export function WorkingDaysView() {
                   </TouchableOpacity>
 
                   {checked && (
-                    <View className="mt-3 pt-3 border-t border-gray-200/50">
+                    <View className="mt-3 pt-3.5 border-t border-gray-200/60">
                       {times.length === 0 ? (
-                        <Text className="text-gray-400 text-xs font-medium">
+                        <Text className="text-gray-400 text-xs font-medium py-1">
                           Nenhum horário definido ainda.
                         </Text>
                       ) : (
-                        <View className="gap-2">
+                        <View className="gap-3">
                           {times.map((p, index) => (
                             <View
                               key={`${day}-${p.start}-${p.end}-${index}`}
-                              className="flex-row flex-wrap items-center justify-between gap-2 rounded-xl bg-white border border-gray-200 p-2.5 shadow-sm"
+                              className="flex-row flex-wrap items-center justify-between gap-3 rounded-2xl bg-white border border-gray-200/90 p-3.5 shadow-sm"
                             >
                               <View className="flex-row items-center gap-2">
                                 <TouchableOpacity
@@ -322,15 +322,15 @@ export function WorkingDaysView() {
                                     });
                                     setShowTimePicker(true);
                                   }}
-                                  className="rounded-xl bg-[#092D5D] px-3.5 py-2 shadow-sm flex-row items-center gap-1"
+                                  className="rounded-xl bg-[#092D5D] px-3.5 py-2.5 shadow-sm flex-row items-center gap-1.5"
                                 >
-                                  <MaterialCommunityIcons name="clock-outline" size={14} color="white" />
+                                  <MaterialCommunityIcons name="clock-outline" size={15} color="white" />
                                   <Text className="text-white text-xs font-black">
                                     {formatHour(p.start)}
                                   </Text>
                                 </TouchableOpacity>
 
-                                <Text className="text-gray-400 text-xs font-bold">até</Text>
+                                <Text className="text-gray-400 text-xs font-bold px-0.5">até</Text>
 
                                 <TouchableOpacity
                                   activeOpacity={0.8}
@@ -343,9 +343,9 @@ export function WorkingDaysView() {
                                     });
                                     setShowTimePicker(true);
                                   }}
-                                  className="rounded-xl bg-[#092D5D] px-3.5 py-2 shadow-sm flex-row items-center gap-1"
+                                  className="rounded-xl bg-[#092D5D] px-3.5 py-2.5 shadow-sm flex-row items-center gap-1.5"
                                 >
-                                  <MaterialCommunityIcons name="clock-outline" size={14} color="white" />
+                                  <MaterialCommunityIcons name="clock-outline" size={15} color="white" />
                                   <Text className="text-white text-xs font-black">
                                     {formatHour(p.end)}
                                   </Text>
@@ -356,9 +356,9 @@ export function WorkingDaysView() {
                                 <TouchableOpacity
                                   activeOpacity={0.8}
                                   onPress={() => removeSecondPeriod(day)}
-                                  className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 flex-row items-center gap-1"
+                                  className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 flex-row items-center gap-1"
                                 >
-                                  <MaterialCommunityIcons name="delete-outline" size={14} color="#EF4444" />
+                                  <MaterialCommunityIcons name="delete-outline" size={15} color="#EF4444" />
                                   <Text className="text-red-600 text-xs font-bold">
                                     Remover
                                   </Text>
@@ -371,7 +371,7 @@ export function WorkingDaysView() {
                             <TouchableOpacity
                               activeOpacity={0.85}
                               onPress={() => addSecondPeriod(day)}
-                              className="self-start rounded-xl border border-[#092D5D] bg-white px-3.5 py-2 mt-1 flex-row items-center gap-1"
+                              className="self-start rounded-xl border border-[#092D5D] bg-white px-4 py-2.5 mt-1 flex-row items-center gap-1.5"
                             >
                               <MaterialCommunityIcons name="plus-circle-outline" size={16} color="#092D5D" />
                               <Text className="text-[#092D5D] text-xs font-extrabold">
@@ -390,7 +390,7 @@ export function WorkingDaysView() {
         </View>
 
         {/* Card Dica / Resumo */}
-        <View className="rounded-2xl bg-amber-50 border border-amber-200/80 p-4 mb-6 flex-row items-start gap-3">
+        <View className="rounded-2xl bg-amber-50 border border-amber-200/80 p-4.5 mb-6 flex-row items-start gap-3">
           <MaterialCommunityIcons name="lightbulb-on-outline" size={22} color="#B45309" />
           <View className="flex-1">
             <Text className="text-amber-900 font-extrabold text-xs uppercase mb-0.5">Dica de Atendimento</Text>
@@ -403,7 +403,7 @@ export function WorkingDaysView() {
         <TouchableOpacity
           onPress={() => router.back()}
           activeOpacity={0.85}
-          className="h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+          className="h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md mb-6"
         >
           <Text className="text-white font-black text-sm uppercase tracking-wide">
             Salvar e Voltar

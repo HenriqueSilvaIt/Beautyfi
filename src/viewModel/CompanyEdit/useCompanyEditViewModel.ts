@@ -131,7 +131,35 @@ export function useCompanyEditViewModel() {
       }
 
       if (company.openingHourDTOS) {
-        setHoursList(company.openingHourDTOS);
+        const ALL_DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+        const existingDTOS = company.openingHourDTOS || [];
+        const fullList = ALL_DAYS.map((dayName) => {
+          const found = existingDTOS.find(
+            (dto: any) => dto.dayWeek && dto.dayWeek.toLowerCase() === dayName.toLowerCase()
+          );
+          if (found) {
+            return {
+              id: found.id,
+              dayWeek: dayName,
+              active: true,
+              firstHour: found.firstHour || "2026-01-01T09:00:00",
+              secondHour: found.secondHour || "2026-01-01T12:00:00",
+              thirdHour: found.thirdHour || "2026-01-01T13:00:00",
+              lastHour: found.lastHour || "2026-01-01T18:00:00",
+            };
+          } else {
+            return {
+              id: null,
+              dayWeek: dayName,
+              active: false,
+              firstHour: "2026-01-01T09:00:00",
+              secondHour: "2026-01-01T12:00:00",
+              thirdHour: "2026-01-01T13:00:00",
+              lastHour: "2026-01-01T18:00:00",
+            };
+          }
+        });
+        setHoursList(fullList);
       }
 
       if (company.socialMediaDTOS) {
@@ -256,10 +284,21 @@ export function useCompanyEditViewModel() {
     });
   };
 
-  const handleHourChange = (id: number, field: string, value: string) => {
+  const toggleDayActive = (dayWeek: string) => {
     setHoursList((prev) =>
       prev.map((h) => {
-        if (h.id === id) {
+        if (h.dayWeek.toLowerCase() === dayWeek.toLowerCase()) {
+          return { ...h, active: !h.active };
+        }
+        return h;
+      })
+    );
+  };
+
+  const handleHourChange = (dayWeek: string, field: string, value: string) => {
+    setHoursList((prev) =>
+      prev.map((h) => {
+        if (h.dayWeek.toLowerCase() === dayWeek.toLowerCase()) {
           const datePart =
             (h[field] ? String(h[field]).split("T")[0] : "2026-01-01") ||
             "2026-01-01";
@@ -267,7 +306,7 @@ export function useCompanyEditViewModel() {
           return { ...h, [field]: newIso };
         }
         return h;
-      }),
+      })
     );
   };
 
@@ -339,10 +378,21 @@ export function useCompanyEditViewModel() {
         companyCategories: selectedCategories,
       });
 
-      // 2. Update opening hours
+      // 2. Update opening hours (only active days)
+      const activeHoursToSend = hoursList
+        .filter((h) => h.active)
+        .map((h) => ({
+          id: h.id || null,
+          dayWeek: h.dayWeek,
+          firstHour: h.firstHour,
+          secondHour: h.secondHour,
+          thirdHour: h.thirdHour,
+          lastHour: h.lastHour,
+        }));
+
       await updateOpeningHoursMutation.mutateAsync({
         companyId,
-        openingHours: hoursList,
+        openingHours: activeHoursToSend,
       });
 
       // 3. Update social medias
@@ -373,6 +423,10 @@ export function useCompanyEditViewModel() {
         socialMedias: updatedSocials,
       });
 
+      queryClient.invalidateQueries({ queryKey: ["company-details", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-company"] });
+
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
       router.back();
 
@@ -391,9 +445,9 @@ export function useCompanyEditViewModel() {
     return parts[1].substring(0, 5); // HH:MM
   };
 
-  const [activeHourEdit, setActiveHourEdit] = useState<{ id: number; field: string; dateValue: Date } | null>(null);
+  const [activeHourEdit, setActiveHourEdit] = useState<{ dayWeek: string; field: string; dateValue: Date } | null>(null);
 
-  const openTimePicker = (id: number, field: string, isoString: string) => {
+  const openTimePicker = (dayWeek: string, field: string, isoString: string) => {
     let dateVal = new Date();
     if (isoString) {
       try {
@@ -405,14 +459,14 @@ export function useCompanyEditViewModel() {
         dateVal = new Date();
       }
     }
-    setActiveHourEdit({ id, field, dateValue: dateVal });
+    setActiveHourEdit({ dayWeek, field, dateValue: dateVal });
   };
 
   const handleConfirmTime = (selectedDate: Date) => {
     if (activeHourEdit) {
       const hours = String(selectedDate.getHours()).padStart(2, "0");
       const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
-      handleHourChange(activeHourEdit.id, activeHourEdit.field, `${hours}:${minutes}`);
+      handleHourChange(activeHourEdit.dayWeek, activeHourEdit.field, `${hours}:${minutes}`);
       setActiveHourEdit(null);
     }
   };
@@ -549,6 +603,7 @@ export function useCompanyEditViewModel() {
     saving,
     uploadingSpace,
     uploadingPortfolio,
+    toggleDayActive,
     handleHourChange,
     handleSave,
     getFormatTime,

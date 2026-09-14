@@ -26,14 +26,15 @@ export function AppWeeklyAgenda({
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const daysOfWeek = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
-  // Métricas Semanais
+  // Métricas Semanais (Apenas agendamentos reais com serviços, excluindo bloqueios de horário)
   const weekAppointments = appointments.filter((app) => {
-    if (!app.dateScheduled) return false;
+    if (!app.dateScheduled || app.blocked) return false;
     const appDate = new Date(app.dateScheduled);
     return daysOfWeek.some((d) => isSameDay(d, appDate));
   });
 
   const weekTotalRevenue = weekAppointments.reduce((acc, app) => {
+    if (app.blocked) return acc;
     const price = app.services?.[0]?.priceAtMoment || 0;
     return acc + Number(price);
   }, 0);
@@ -78,12 +79,13 @@ export function AppWeeklyAgenda({
         {daysOfWeek.map((day) => {
           const isToday = isSameDay(day, new Date());
           const dayAppointments = appointments.filter((app) => {
-            if (!app.dateScheduled) return false;
+            if (!app.dateScheduled || app.blocked) return false;
             const appDate = new Date(app.dateScheduled);
             return isSameDay(appDate, day);
           });
 
           const dayRevenue = dayAppointments.reduce((acc, app) => {
+            if (app.blocked) return acc;
             const price = app.services?.[0]?.priceAtMoment || 0;
             return acc + Number(price);
           }, 0);

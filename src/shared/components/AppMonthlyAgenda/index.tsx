@@ -57,15 +57,16 @@ export function AppMonthlyAgenda({
     setSelectedDay(today);
   };
 
-  // Agendamentos do mês ativo
+  // Agendamentos do mês ativo (Apenas agendamentos reais com serviços, excluindo bloqueios de horário)
   const monthAppointments = appointments.filter((app) => {
-    if (!app.dateScheduled) return false;
+    if (!app.dateScheduled || app.blocked) return false;
     const appDate = new Date(app.dateScheduled);
     return isSameMonth(appDate, activeMonth);
   });
 
   // Métricas do Mês
   const monthTotalRevenue = monthAppointments.reduce((acc, app) => {
+    if (app.blocked) return acc;
     const price = app.services?.[0]?.priceAtMoment || 0;
     return acc + Number(price);
   }, 0);
@@ -73,18 +74,19 @@ export function AppMonthlyAgenda({
   const occupiedDaysCount = days.filter((d) => {
     if (!isSameMonth(d, activeMonth)) return false;
     return appointments.some(
-      (app) => app.dateScheduled && isSameDay(new Date(app.dateScheduled), d)
+      (app) => app.dateScheduled && !app.blocked && isSameDay(new Date(app.dateScheduled), d)
     );
   }).length;
 
   // Agendamentos do dia selecionado
   const selectedDayAppointments = appointments.filter((app) => {
-    if (!app.dateScheduled) return false;
+    if (!app.dateScheduled || app.blocked) return false;
     const appDate = new Date(app.dateScheduled);
     return isSameDay(appDate, selectedDay);
   });
 
   const selectedDayRevenue = selectedDayAppointments.reduce((acc, app) => {
+    if (app.blocked) return acc;
     const price = app.services?.[0]?.priceAtMoment || 0;
     return acc + Number(price);
   }, 0);
@@ -177,7 +179,7 @@ export function AppMonthlyAgenda({
             const isToday = isSameDay(d, new Date());
 
             const dayCount = appointments.filter((app) => {
-              if (!app.dateScheduled) return false;
+              if (!app.dateScheduled || app.blocked) return false;
               return isSameDay(new Date(app.dateScheduled), d);
             }).length;
 

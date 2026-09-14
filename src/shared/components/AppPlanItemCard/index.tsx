@@ -31,9 +31,9 @@ interface AppPlanItemCardProps {
   handleRemoveItemFromPlan?: (itemId: number) => Promise<void>;
   selectedItemId?: number;
   setSelectedItemId?: (id: number) => void;
-  removeModalVisible: boolean;
+  removeModalVisible?: boolean;
   handleHideModal?: () => void;
-  isRemovingItem: boolean;
+  isRemovingItem?: boolean;
 }
 
 export function AppPlanItemCard({

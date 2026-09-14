@@ -42,11 +42,13 @@ export function useCompanyDetailsViewModel(companyId?: number) {
   const { useGetServiceAvailableInAppMutation } = useCompanyServicesMutation();
   const { useGetProductsMutation } = useProductMutation();
   const { useGetPackagesMutation } = usePackageMutation();
-  const { useGetActiveProgramQuery } = useLoyaltyMutation();
+  const { useGetActiveProgramQuery, useGetClientPointsQuery } = useLoyaltyMutation();
   const { data: loyaltyProgramData } = useGetActiveProgramQuery(companyId);
 
   const access_token = useUserStore((state) => state.access_token);
   const user = useUserStore((state) => state.user);
+  const clientId = user?.clientId || user?.id;
+  const { data: clientPointsData } = useGetClientPointsQuery(clientId, companyId);
   const isLoggedIn = !!access_token;
   const isAdmin = user?.roles?.some((role) => role.authority === "ROLE_ADMIN") ?? false;
 
@@ -348,6 +350,7 @@ export function useCompanyDetailsViewModel(companyId?: number) {
     productsList,
     packagesList,
     loyaltyProgramData,
+    clientPointsData,
     subscriptionPlans: subscriptionPlans ?? [],
     handleBookSelectedServices,
     handleBookPackage,

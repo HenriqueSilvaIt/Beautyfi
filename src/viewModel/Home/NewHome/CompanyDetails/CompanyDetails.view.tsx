@@ -100,18 +100,14 @@ export function CompanyDetailsView(
   // Calcula quais abas possuem conteúdo ativo para exibição (com verificações seguras de nulo)
   const hasProducts = (productsList ?? []).length > 0;
   const hasPackages = (packagesList ?? []).length > 0;
-  const isLoyaltyActive = Boolean(companyDetailsData?.loyaltyActive);
+  const isLoyaltyActive = Boolean(
+    props.loyaltyProgramData?.active !== undefined
+      ? props.loyaltyProgramData.active
+      : companyDetailsData?.loyaltyActive
+  );
   const isStampActive = Boolean(props.loyaltyProgramData?.stampActive);
 
-  const isLoyaltyConfigured = Boolean(
-    (isLoyaltyActive &&
-      (
-        (props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0) ||
-        companyDetailsData?.loyaltyRewardDescription?.trim() ||
-        (companyDetailsData?.loyaltyMinPoints != null && companyDetailsData.loyaltyMinPoints > 0) ||
-        (companyDetailsData?.loyaltyRewardValue != null && companyDetailsData.loyaltyRewardValue > 0)
-      )) || isStampActive
-  );
+  const isLoyaltyConfigured = Boolean(isLoyaltyActive || isStampActive);
   const hasSubscriptions = (subscriptionPlans ?? []).length > 0;
 
   const tabs: CompanyDetailTab[] = [
@@ -186,24 +182,28 @@ export function CompanyDetailsView(
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case "Fidelidade": {
-        const isLoyaltyActive = Boolean(companyDetailsData.loyaltyActive);
-        const ptsPerReal = companyDetailsData.loyaltyPointsPerReal;
-        const minPts = companyDetailsData.loyaltyMinPoints;
-        const rewardVal = companyDetailsData.loyaltyRewardValue;
-        const rewardDesc = companyDetailsData.loyaltyRewardDescription;
-        const ruleDesc = companyDetailsData.loyaltyRuleDescription;
+        const isLoyaltyActive = Boolean(
+          props.loyaltyProgramData?.active !== undefined
+            ? props.loyaltyProgramData.active
+            : companyDetailsData.loyaltyActive
+        );
+        const isStampActive = Boolean(props.loyaltyProgramData?.stampActive);
+
+        const ptsPerReal = props.loyaltyProgramData?.pointsPerReal ?? companyDetailsData.loyaltyPointsPerReal ?? 1.0;
+        const minPts = props.loyaltyProgramData?.minPointsToRedeem ?? companyDetailsData.loyaltyMinPoints;
+        const rewardVal = props.loyaltyProgramData?.rewardValue ?? companyDetailsData.loyaltyRewardValue;
+        const rewardDesc = props.loyaltyProgramData?.rewardDescription ?? companyDetailsData.loyaltyRewardDescription;
+        const ruleDesc = props.loyaltyProgramData?.ruleDescription ?? companyDetailsData.loyaltyRuleDescription ?? "Acumule pontos em todos os seus agendamentos concluídos e troque por descontos e serviços exclusivos!";
 
         const hasConfiguredReward = Boolean(
-          rewardDesc?.trim() || (rewardVal != null && rewardVal > 0) || (minPts != null && minPts > 0)
+          rewardDesc?.trim() || (rewardVal != null && rewardVal > 0) || (minPts != null && minPts > 0) || (props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0)
         );
 
         const userPts = (props.user as any)?.loyaltyPoints ?? 0;
         const targetMinPts = minPts || 100;
         const progressPercent = Math.min(100, Math.round((userPts / targetMinPts) * 100));
 
-        const isStampActive = Boolean(props.loyaltyProgramData?.stampActive);
-
-        if ((!isLoyaltyActive || !hasConfiguredReward) && !isStampActive) {
+        if (!isLoyaltyActive && !isStampActive) {
           return (
             <View className="px-4 py-12 items-center justify-center bg-white rounded-2xl border border-gray-100 my-4 shadow-sm">
               <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3">
@@ -221,75 +221,8 @@ export function CompanyDetailsView(
 
         return (
           <View className="px-4 py-3 gap-4">
-            {/* Card Principal do Clube de Fidelidade em Fundo Branco (White Theme UI/UX) */}
-            {isLoyaltyActive && hasConfiguredReward && (
-              <View className="p-5 rounded-3xl bg-white border border-slate-100 shadow-sm gap-4">
-                <View className="flex-row justify-between items-center">
-                  <View className="flex-row items-center gap-3">
-                    <View className="w-12 h-12 rounded-2xl bg-[#CBA35D]/15 items-center justify-center border border-[#CBA35D]/30">
-                      <Ionicons name="trophy" size={24} color="#CBA35D" />
-                    </View>
-                    <View>
-                      <Text className="text-slate-900 font-extrabold text-base">
-                        Clube de Fidelidade
-                      </Text>
-                      <Text className="text-slate-500 text-xs font-medium mt-0.5">
-                        {companyDetailsData.name}
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="px-3 py-1 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20">
-                    <Text className="text-[#092D5D] font-extrabold text-[10px] uppercase tracking-wider">
-                      VIP
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Card de Pontuação do Usuário se Logado */}
-                {props.user ? (
-                  <View className="pt-3 border-t border-slate-100">
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="text-slate-600 text-xs font-semibold">
-                        Seus Pontos Acumulados:
-                      </Text>
-                      <View className="flex-row items-baseline gap-1">
-                        <Text className="text-[#092D5D] font-black text-xl">
-                          {userPts}
-                        </Text>
-                        <Text className="text-[#CBA35D] font-extrabold text-xs">
-                          pts
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Barra de Progresso em Fundo Claro */}
-                    <View className="h-3.5 w-full bg-slate-100 rounded-full overflow-hidden mb-1.5 border border-slate-200/60">
-                      <View
-                        className="h-full bg-gradient-to-r from-[#092D5D] to-[#CBA35D] rounded-full"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </View>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-slate-400 text-[11px] font-medium">0 pts</Text>
-                      <Text className="text-[#092D5D] text-[11px] font-extrabold">
-                        {progressPercent}% da recompensa
-                      </Text>
-                      <Text className="text-slate-400 text-[11px] font-medium">{targetMinPts} pts</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View className="pt-3 border-t border-slate-100 flex-row items-center gap-2">
-                    <Ionicons name="lock-closed-outline" size={16} color="#092D5D" />
-                    <Text className="text-slate-600 text-xs flex-1">
-                      Faça login para acompanhar seus pontos e resgatar prêmios exclusivos!
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Cartão Fidelidade por Serviço (Carimbos) */}
-            {props.loyaltyProgramData?.stampActive ? (
+            {/* 1. SEÇÃO DO CARTÃO FIDELIDADE (CARIMBOS) - EXIBIDA APENAS SE ESTIVER ATIVADO */}
+            {isStampActive && (
               <View className="p-5 rounded-2xl bg-white border border-[#CBA35D]/40 shadow-sm">
                 <View className="flex-row items-center justify-between border-b border-gray-100 pb-3 mb-3">
                   <View className="flex-row items-center gap-2 flex-1">
@@ -298,11 +231,11 @@ export function CompanyDetailsView(
                     </View>
                     <View className="flex-1">
                       <Text className="text-gray-900 font-extrabold text-sm">
-                        Cartão Fidelidade: {props.loyaltyProgramData.stampServiceName || "Serviço Especial"}
+                        Cartão Fidelidade: {props.loyaltyProgramData?.stampServiceName || "Serviço Especial"}
                       </Text>
-                      {props.loyaltyProgramData.stampStartDate || props.loyaltyProgramData.stampEndDate ? (
+                      {props.loyaltyProgramData?.stampStartDate || props.loyaltyProgramData?.stampEndDate ? (
                         <Text className="text-gray-500 text-[11px] font-medium mt-0.5">
-                          📅 Validade: {props.loyaltyProgramData.stampStartDate ? props.loyaltyProgramData.stampStartDate.split("T")[0] : "Início"} até {props.loyaltyProgramData.stampEndDate ? props.loyaltyProgramData.stampEndDate.split("T")[0] : "Término"}
+                          📅 Validade: {props.loyaltyProgramData?.stampStartDate ? props.loyaltyProgramData.stampStartDate.split("T")[0] : "Início"} até {props.loyaltyProgramData?.stampEndDate ? props.loyaltyProgramData.stampEndDate.split("T")[0] : "Término"}
                         </Text>
                       ) : null}
                     </View>
@@ -311,14 +244,33 @@ export function CompanyDetailsView(
 
                 {/* Visual dos Carimbos */}
                 <View className="flex-row items-center justify-around py-3 bg-slate-50 rounded-xl border border-slate-200/60 my-1 px-2">
-                  {Array.from({ length: props.loyaltyProgramData.stampRequiredCount || 4 }).map((_, index) => (
-                    <View key={index} className="items-center gap-1">
-                      <View className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-300 items-center justify-center shadow-xs">
-                        <Ionicons name="checkmark-circle" size={22} color="#059669" />
+                  {Array.from({ length: props.loyaltyProgramData?.stampRequiredCount || 4 }).map((_, index) => {
+                    const isEarned = index < (props.clientPointsData?.stampsBalance || 0);
+                    return (
+                      <View key={index} className="items-center gap-1">
+                        <View
+                          className={`w-10 h-10 rounded-full items-center justify-center shadow-xs border ${
+                            isEarned
+                              ? "bg-emerald-50 border-emerald-300"
+                              : "bg-slate-100 border-slate-200/80"
+                          }`}
+                        >
+                          <Ionicons
+                            name={isEarned ? "checkmark-circle" : "ellipse-outline"}
+                            size={22}
+                            color={isEarned ? "#059669" : "#9CA3AF"}
+                          />
+                        </View>
+                        <Text
+                          className={`text-[10px] font-bold ${
+                            isEarned ? "text-emerald-700 font-extrabold" : "text-slate-400"
+                          }`}
+                        >
+                          {index + 1}º
+                        </Text>
                       </View>
-                      <Text className="text-[10px] font-bold text-slate-600">{index + 1}º</Text>
-                    </View>
-                  ))}
+                    );
+                  })}
                   <View className="items-center gap-1">
                     <View className="w-11 h-11 rounded-full bg-[#092D5D] border-2 border-[#CBA35D] items-center justify-center shadow-md">
                       <Ionicons name="gift" size={20} color="#CBA35D" />
@@ -329,117 +281,189 @@ export function CompanyDetailsView(
 
                 {/* Recompensa */}
                 <Text className="text-[#092D5D] text-xs font-extrabold text-center mt-2.5">
-                  🎁 {props.loyaltyProgramData.stampRewardDescription || `Complete ${props.loyaltyProgramData.stampRequiredCount || 4} realizações e ganhe a próxima grátis!`}
+                  🎁 {props.loyaltyProgramData?.stampRewardDescription || `Complete ${props.loyaltyProgramData?.stampRequiredCount || 4} realizações e ganhe a próxima grátis!`}
                 </Text>
               </View>
-            ) : null}
+            )}
 
-            {/* Recompensa Disponível */}
-            <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
-              <View className="flex-row items-center gap-2 mb-2">
-                <Ionicons name="gift" size={20} color="#092D5D" />
-                <Text className="text-gray-900 font-bold text-sm">
-                  Benefício / Prêmio em Destaque
-                </Text>
-              </View>
-
-              <View className="p-4 rounded-xl bg-[#F8FAFC] border border-gray-200/60 flex-row items-center justify-between">
-                <View className="flex-1 pr-3">
-                  <Text className="text-[#092D5D] font-black text-base">
-                    {rewardDesc || `Benefício de R$ ${rewardVal != null ? rewardVal.toFixed(2).replace(".", ",") : "0,00"}`}
-                  </Text>
-                  {minPts != null && minPts > 0 ? (
-                    <Text className="text-gray-500 text-xs mt-1">
-                      Meta: {minPts} pontos acumulados
-                    </Text>
-                  ) : null}
-                </View>
-
-                {rewardVal != null && rewardVal > 0 ? (
-                  <View className="bg-[#092D5D] px-3 py-2 rounded-xl">
-                    <Text className="text-white font-bold text-xs">
-                      R$ {rewardVal.toFixed(2).replace(".", ",")} OFF
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            </View>
-
-            {/* Como Funciona / Regras */}
-            <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
-              <View className="flex-row items-center gap-2 mb-3">
-                <Ionicons name="information-circle-outline" size={20} color="#092D5D" />
-                <Text className="text-gray-900 font-bold text-sm">
-                  Como Funciona o Programa
-                </Text>
-              </View>
-              <Text className="text-gray-600 text-xs leading-5">
-                {ruleDesc}
-              </Text>
-
-              <View className="mt-4 pt-3 border-t border-gray-100 flex-row items-center gap-3">
-                <View className="w-8 h-8 rounded-full bg-[#092D5D]/10 items-center justify-center">
-                  <Ionicons name="sparkles" size={16} color="#092D5D" />
-                </View>
-                <Text className="text-gray-700 text-xs font-semibold flex-1">
-                  Ganhe {ptsPerReal} ponto(s) automático a cada R$ 1,00 gasto ao concluir um agendamento!
-                </Text>
-              </View>
-            </View>
-
-            {/* Lista de Itens de Recompensa (Serviços e Produtos) */}
-            <View className="mt-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
-              <Text className="text-gray-900 font-bold text-sm mb-3">
-                Itens e Prêmios Resgatáveis (Serviços & Produtos)
-              </Text>
-              {props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0 ? (
-                <View className="gap-2.5">
-                  {props.loyaltyProgramData.items.map((item: any) => (
-                    <View
-                      key={item.id}
-                      className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 flex-row items-center justify-between"
-                    >
-                      <View className="flex-1 mr-2">
-                        <View className="flex-row items-center gap-1.5 mb-1">
-                          <View className="px-2 py-0.5 rounded-md bg-[#092D5D]/10">
-                            <Text className="text-[#092D5D] font-bold text-[10px] uppercase">
-                              {item.itemType === "SERVICE" ? "Serviço" : item.itemType === "PRODUCT" ? "Produto" : "Prêmio"}
-                            </Text>
-                          </View>
-                          {item.servicePrice ? (
-                            <Text className="text-gray-500 text-xs font-semibold">
-                              R$ {Number(item.servicePrice).toFixed(2).replace(".", ",")}
-                            </Text>
-                          ) : item.productPrice ? (
-                            <Text className="text-gray-500 text-xs font-semibold">
-                              R$ {Number(item.productPrice).toFixed(2).replace(".", ",")}
-                            </Text>
-                          ) : null}
-                        </View>
-                        <Text className="text-gray-900 font-bold text-xs">
-                          {item.title}
+            {/* 2. SEÇÕES DO PROGRAMA DE PONTOS POR R$ - EXIBIDAS APENAS SE ESTIVER ATIVADO */}
+            {isLoyaltyActive && (
+              <>
+                {/* Card Principal do Clube de Fidelidade em Fundo Branco */}
+                <View className="p-5 rounded-3xl bg-white border border-slate-100 shadow-sm gap-4">
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-3">
+                      <View className="w-12 h-12 rounded-2xl bg-[#CBA35D]/15 items-center justify-center border border-[#CBA35D]/30">
+                        <Ionicons name="trophy" size={24} color="#CBA35D" />
+                      </View>
+                      <View>
+                        <Text className="text-slate-900 font-extrabold text-base">
+                          Clube de Pontos
                         </Text>
-                        {item.description ? (
-                          <Text className="text-gray-500 text-[11px] mt-0.5">
-                            {item.description}
+                        <Text className="text-slate-500 text-xs font-medium mt-0.5">
+                          {companyDetailsData.name}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="px-3 py-1 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20">
+                      <Text className="text-[#092D5D] font-extrabold text-[10px] uppercase tracking-wider">
+                        VIP
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Card de Pontuação do Usuário se Logado */}
+                  {props.user ? (
+                    <View className="pt-3 border-t border-slate-100">
+                      <View className="flex-row justify-between items-center mb-2">
+                        <Text className="text-slate-600 text-xs font-semibold">
+                          Seus Pontos Acumulados:
+                        </Text>
+                        <View className="flex-row items-baseline gap-1">
+                          <Text className="text-[#092D5D] font-black text-xl">
+                            {userPts}
+                          </Text>
+                          <Text className="text-[#CBA35D] font-extrabold text-xs">
+                            pts
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Barra de Progresso em Fundo Claro */}
+                      <View className="h-3.5 w-full bg-slate-100 rounded-full overflow-hidden mb-1.5 border border-slate-200/60">
+                        <View
+                          className="h-full bg-gradient-to-r from-[#092D5D] to-[#CBA35D] rounded-full"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </View>
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-slate-400 text-[11px] font-medium">0 pts</Text>
+                        <Text className="text-[#092D5D] text-[11px] font-extrabold">
+                          {progressPercent}% da meta
+                        </Text>
+                        <Text className="text-slate-400 text-[11px] font-medium">{targetMinPts} pts</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View className="pt-3 border-t border-slate-100 flex-row items-center gap-2">
+                      <Ionicons name="lock-closed-outline" size={16} color="#092D5D" />
+                      <Text className="text-slate-600 text-xs flex-1">
+                        Faça login para acompanhar seus pontos e resgatar prêmios exclusivos!
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Recompensa / Benefício em Destaque (se configurado) */}
+                {hasConfiguredReward && (rewardDesc || (rewardVal != null && rewardVal > 0)) ? (
+                  <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <Ionicons name="gift" size={20} color="#092D5D" />
+                      <Text className="text-gray-900 font-bold text-sm">
+                        Benefício / Prêmio em Destaque
+                      </Text>
+                    </View>
+
+                    <View className="p-4 rounded-xl bg-[#F8FAFC] border border-gray-200/60 flex-row items-center justify-between">
+                      <View className="flex-1 pr-3">
+                        <Text className="text-[#092D5D] font-black text-base">
+                          {rewardDesc || `Benefício de R$ ${rewardVal != null ? Number(rewardVal).toFixed(2).replace(".", ",") : "0,00"}`}
+                        </Text>
+                        {minPts != null && minPts > 0 ? (
+                          <Text className="text-gray-500 text-xs mt-1">
+                            Meta: {minPts} pontos acumulados
                           </Text>
                         ) : null}
                       </View>
 
-                      <View className="px-3 py-1.5 rounded-xl bg-[#CBA35D]/15 border border-[#CBA35D]/40 items-center">
-                        <Text className="text-[#CBA35D] font-black text-xs">
-                          {item.pointsRequired} pts
-                        </Text>
-                      </View>
+                      {rewardVal != null && rewardVal > 0 ? (
+                        <View className="bg-[#092D5D] px-3 py-2 rounded-xl">
+                          <Text className="text-white font-bold text-xs">
+                            R$ {Number(rewardVal).toFixed(2).replace(".", ",")} OFF
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
-                  ))}
+                  </View>
+                ) : null}
+
+                {/* Como Funciona / Regras do Programa de Pontos */}
+                <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                  <View className="flex-row items-center gap-2 mb-3">
+                    <Ionicons name="information-circle-outline" size={20} color="#092D5D" />
+                    <Text className="text-gray-900 font-bold text-sm">
+                      Como Funciona o Programa de Pontos
+                    </Text>
+                  </View>
+                  <Text className="text-gray-600 text-xs leading-5">
+                    {ruleDesc}
+                  </Text>
+
+                  <View className="mt-4 pt-3 border-t border-gray-100 flex-row items-center gap-3">
+                    <View className="w-8 h-8 rounded-full bg-[#092D5D]/10 items-center justify-center">
+                      <Ionicons name="sparkles" size={16} color="#092D5D" />
+                    </View>
+                    <Text className="text-gray-700 text-xs font-semibold flex-1">
+                      Ganhe {ptsPerReal} ponto(s) a cada R$ 1,00 gasto ao concluir um agendamento!
+                    </Text>
+                  </View>
                 </View>
-              ) : (
-                <Text className="text-gray-500 text-xs italic text-center py-2">
-                  Consulte os prêmios e condições diretamente no salão.
-                </Text>
-              )}
-            </View>
+
+                {/* Lista de Itens de Recompensa (Serviços e Produtos) */}
+                <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                  <Text className="text-gray-900 font-bold text-sm mb-3">
+                    Itens e Prêmios Resgatáveis (Serviços & Produtos)
+                  </Text>
+                  {props.loyaltyProgramData?.items && props.loyaltyProgramData.items.length > 0 ? (
+                    <View className="gap-2.5">
+                      {props.loyaltyProgramData.items.map((item: any) => (
+                        <View
+                          key={item.id}
+                          className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 flex-row items-center justify-between"
+                        >
+                          <View className="flex-1 mr-2">
+                            <View className="flex-row items-center gap-1.5 mb-1">
+                              <View className="px-2 py-0.5 rounded-md bg-[#092D5D]/10">
+                                <Text className="text-[#092D5D] font-bold text-[10px] uppercase">
+                                  {item.itemType === "SERVICE" ? "Serviço" : item.itemType === "PRODUCT" ? "Produto" : "Prêmio"}
+                                </Text>
+                              </View>
+                              {item.servicePrice ? (
+                                <Text className="text-gray-500 text-xs font-semibold">
+                                  R$ {Number(item.servicePrice).toFixed(2).replace(".", ",")}
+                                </Text>
+                              ) : item.productPrice ? (
+                                <Text className="text-gray-500 text-xs font-semibold">
+                                  R$ {Number(item.productPrice).toFixed(2).replace(".", ",")}
+                                </Text>
+                              ) : null}
+                            </View>
+                            <Text className="text-gray-900 font-bold text-xs">
+                              {item.title}
+                            </Text>
+                            {item.description ? (
+                              <Text className="text-gray-500 text-[11px] mt-0.5">
+                                {item.description}
+                              </Text>
+                            ) : null}
+                          </View>
+
+                          <View className="px-3 py-1.5 rounded-xl bg-[#CBA35D]/15 border border-[#CBA35D]/40 items-center">
+                            <Text className="text-[#CBA35D] font-black text-xs">
+                              {item.pointsRequired} pts
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className="text-gray-500 text-xs italic text-center py-2">
+                      Consulte os prêmios e condições diretamente no salão.
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
           </View>
         );
       }

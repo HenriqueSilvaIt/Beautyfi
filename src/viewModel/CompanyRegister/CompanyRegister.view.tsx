@@ -13,6 +13,7 @@ import { router } from "expo-router";
 
 import { useCompanyRegisterViewModel } from "./useCompanyRegisterViewModel";
 import { AppInput } from "@/shared/components/AppInput";
+import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { ImportClientsModal } from "@/viewModel/Clients/ImportClientsModal";
 import * as ImagePicker from "expo-image-picker";
 import { Image as ExpoImage } from "expo-image";
@@ -83,117 +84,114 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
 // ─── Step 1: Dados do Negócio e Conta de Acesso ───────────
 function Step1({ data, updateData, nextStep, canProceed }: any) {
   return (
-    <ScrollView
-      className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 60 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="mb-4">
-        <Text className="text-gray-900 text-2xl font-black mb-1">
-          Crie seu negócio e conta
-        </Text>
-        <Text className="text-gray-500 text-xs font-medium">
-          Preencha os dados da empresa e crie suas credenciais de administrador.
-        </Text>
-      </View>
-
-      {/* Seção Empresa */}
-      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4">
-        <View className="flex-row items-center gap-2 mb-3">
-          <Ionicons name="business" size={18} color="#092D5D" />
-          <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
-            Sobre o Estabelecimento
+    <KeyboardContainer backgroundColor="white">
+      <View className="px-5 pt-4 pb-16">
+        <View className="mb-4">
+          <Text className="text-gray-900 text-2xl font-black mb-1">
+            Crie seu negócio e conta
+          </Text>
+          <Text className="text-gray-500 text-xs font-medium">
+            Preencha os dados da empresa e crie suas credenciais de administrador.
           </Text>
         </View>
 
-        <AppInput
-          label="Nome da Empresa *"
-          value={data.name}
-          onChangeText={(v) => updateData({ name: v })}
-          placeholder="Ex: Barbearia Elegance"
-          leftIcon="business-outline"
-          containerClassName="mb-1"
-        />
-      </View>
+        {/* Seção Empresa */}
+        <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <Ionicons name="business" size={18} color="#092D5D" />
+            <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
+              Sobre o Estabelecimento
+            </Text>
+          </View>
 
-      {/* Seção Admin */}
-      <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-6 gap-3">
-        <View className="flex-row items-center gap-2 mb-1">
-          <Ionicons name="person" size={18} color="#092D5D" />
-          <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
-            Conta do Administrador
-          </Text>
+          <AppInput
+            label="Nome da Empresa *"
+            value={data.name}
+            onChangeText={(v) => updateData({ name: v })}
+            placeholder="Ex: Barbearia Elegance"
+            leftIcon="business-outline"
+            containerClassName="mb-1"
+          />
         </View>
 
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <AppInput
-              label="Primeiro Nome *"
-              value={data.firstName}
-              onChangeText={(v) => updateData({ firstName: v })}
-              placeholder="Ex: João"
-              leftIcon="person-outline"
-            />
+        {/* Seção Admin */}
+        <View className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm mb-6 gap-3">
+          <View className="flex-row items-center gap-2 mb-1">
+            <Ionicons name="person" size={18} color="#092D5D" />
+            <Text className="text-[#092D5D] text-xs font-black uppercase tracking-wider">
+              Conta do Administrador
+            </Text>
           </View>
-          <View className="flex-1">
-            <AppInput
-              label="Sobrenome"
-              value={data.lastName}
-              onChangeText={(v) => updateData({ lastName: v })}
-              placeholder="Ex: Silva"
-              leftIcon="person-outline"
-            />
+
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <AppInput
+                label="Primeiro Nome *"
+                value={data.firstName}
+                onChangeText={(v) => updateData({ firstName: v })}
+                placeholder="Ex: João"
+                leftIcon="person-outline"
+              />
+            </View>
+            <View className="flex-1">
+              <AppInput
+                label="Sobrenome"
+                value={data.lastName}
+                onChangeText={(v) => updateData({ lastName: v })}
+                placeholder="Ex: Silva"
+                leftIcon="person-outline"
+              />
+            </View>
           </View>
+
+          <AppInput
+            label="E-mail de Acesso *"
+            value={data.email}
+            onChangeText={(v) => updateData({ email: v.trim() })}
+            placeholder="Ex: joao@email.com"
+            leftIcon="mail-outline"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <AppInput
+            label="Senha de Acesso (mín. 6 caracteres) *"
+            value={data.password}
+            onChangeText={(v) => updateData({ password: v })}
+            placeholder="Sua senha secreta"
+            leftIcon="lock-closed-outline"
+            secureTextEntry
+            autoCapitalize="none"
+          />
+
+          <AppInput
+            label="Celular / WhatsApp *"
+            value={data.phone}
+            onChangeText={(v) => updateData({ phone: v })}
+            placeholder="Ex: (11) 99999-9999"
+            leftIcon="call-outline"
+            keyboardType="phone-pad"
+          />
         </View>
 
-        <AppInput
-          label="E-mail de Acesso *"
-          value={data.email}
-          onChangeText={(v) => updateData({ email: v.trim() })}
-          placeholder="Ex: joao@email.com"
-          leftIcon="mail-outline"
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-
-        <AppInput
-          label="Senha de Acesso (mín. 6 caracteres) *"
-          value={data.password}
-          onChangeText={(v) => updateData({ password: v })}
-          placeholder="Sua senha secreta"
-          leftIcon="lock-closed-outline"
-          secureTextEntry
-          autoCapitalize="none"
-        />
-
-        <AppInput
-          label="Celular / WhatsApp *"
-          value={data.phone}
-          onChangeText={(v) => updateData({ phone: v })}
-          placeholder="Ex: (11) 99999-9999"
-          leftIcon="call-outline"
-          keyboardType="phone-pad"
-        />
-      </View>
-
-      <TouchableOpacity
-        disabled={!canProceed}
-        onPress={nextStep}
-        activeOpacity={0.85}
-        className={`h-16 rounded-2xl items-center justify-center shadow-md ${
-          canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
-        }`}
-      >
-        <Text
-          className={`font-black text-base uppercase tracking-wider ${
-            canProceed ? "text-white" : "text-gray-600"
+        <TouchableOpacity
+          disabled={!canProceed}
+          onPress={nextStep}
+          activeOpacity={0.85}
+          className={`h-16 rounded-2xl items-center justify-center shadow-md mb-6 ${
+            canProceed ? "bg-[#092D5D]" : "bg-gray-300 border border-gray-300"
           }`}
         >
-          Continuar
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text
+            className={`font-black text-base uppercase tracking-wider ${
+              canProceed ? "text-white" : "text-gray-600"
+            }`}
+          >
+            Continuar
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardContainer>
   );
 }
 
@@ -955,6 +953,7 @@ function Step7({
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
 
   const addEmployee = () => {
     if (!name.trim()) return;
@@ -962,12 +961,18 @@ function Step7({
     updateData({
       employees: [
         ...current,
-        { name: name.trim(), phone: phone.trim(), email: email.trim() },
+        {
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          password: password.trim() || undefined,
+        },
       ],
     });
     setName("");
     setPhone("");
     setEmail("");
+    setPassword("");
   };
 
   const removeEmployee = (index: number) => {
@@ -1029,6 +1034,20 @@ function Step7({
           autoCapitalize="none"
           leftIcon="mail-outline"
         />
+        <AppInput
+          label="Senha de Acesso (Opcional - mín. 6 caracteres)"
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Ex: 123456"
+          secureTextEntry
+          autoCapitalize="none"
+          leftIcon="lock-closed-outline"
+        />
+        {email.trim().length > 0 && (
+          <Text className="text-gray-500 text-[11px] font-medium px-1">
+            💡 Se informados, e-mail e senha permitirão que o profissional faça login no aplicativo com sua própria conta.
+          </Text>
+        )}
         <TouchableOpacity
           onPress={addEmployee}
           activeOpacity={0.85}
@@ -1076,8 +1095,16 @@ function Step7({
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
+          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
         >
-          <Text className="text-white font-black text-sm uppercase tracking-wide">
+          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={nextStep}
+          activeOpacity={0.85}
+          className="flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+        >
+          <Text className="text-white font-black text-base uppercase tracking-wider">
             {employeesList.length === 0 ? "Pular / Continuar" : "Continuar"}
           </Text>
         </TouchableOpacity>
@@ -1159,114 +1186,151 @@ function Step8({ nextStep, prevStep, data, updateData }: any) {
   };
 
   return (
-    <ScrollView
-      className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 140 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="mb-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-gray-900 text-2xl font-black">
-            Fotos do Espaço & Portfólio
-          </Text>
-          <View className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
-            <Text className="text-amber-800 text-[10px] font-extrabold uppercase">Opcional</Text>
+    <View className="flex-1 bg-gray-50">
+      <ScrollView
+        className="flex-1 px-5 pt-4"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+      >
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-gray-900 text-2xl font-black">
+              Fotos do Espaço & Portfólio
+            </Text>
+            <View className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+              <Text className="text-amber-800 text-[10px] font-extrabold uppercase">Opcional</Text>
+            </View>
           </View>
-        </View>
-        <Text className="text-gray-500 text-xs font-medium mt-1">
-          Adicione fotos do seu estabelecimento e dos serviços realizados. Você pode pular.
-        </Text>
-      </View>
-
-      {/* Seção Fotos do Espaço */}
-      <View className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm mb-5 gap-3">
-        <View className="flex-row items-center gap-2">
-          <Ionicons name="home-outline" size={18} color="#092D5D" />
-          <Text className="text-gray-900 font-extrabold text-xs uppercase tracking-wider">
-            Fotos do Estabelecimento ({spaceImages.length})
+          <Text className="text-gray-500 text-xs font-medium mt-1">
+            Adicione fotos do seu estabelecimento e dos serviços realizados. Você pode pular.
           </Text>
         </View>
 
-        {spaceImages.length > 0 && (
-          <View className="flex-row flex-wrap gap-2 my-1">
-            {spaceImages.map((uri, idx) => (
-              <View key={idx} className="w-[28%] h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
-                <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
-                <TouchableOpacity
-                  onPress={() => removeImage(idx, "space")}
-                  className="absolute top-1 right-1 p-1 bg-red-600/90 rounded-full z-10"
-                >
-                  <Ionicons name="trash-outline" size={12} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            ))}
+        {/* Seção Fotos do Espaço */}
+        <View className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4 gap-2.5">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="home-outline" size={18} color="#092D5D" />
+              <Text className="text-gray-900 font-extrabold text-xs uppercase tracking-wider">
+                Fotos do Estabelecimento
+              </Text>
+            </View>
+            <View className="bg-gray-100 px-2.5 py-0.5 rounded-full">
+              <Text className="text-gray-600 font-bold text-[11px]">
+                {spaceImages.length} {spaceImages.length === 1 ? "foto" : "fotos"}
+              </Text>
+            </View>
           </View>
-        )}
 
-        <TouchableOpacity
-          onPress={() => handlePickImages("space")}
-          activeOpacity={0.85}
-          className="h-11 rounded-xl bg-[#092D5D]/10 border border-[#092D5D]/30 items-center justify-center flex-row gap-1.5"
-        >
-          <Ionicons name="images-outline" size={18} color="#092D5D" />
-          <Text className="text-[#092D5D] font-bold text-xs">Adicionar Fotos do Espaço</Text>
-        </TouchableOpacity>
-      </View>
+          {spaceImages.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              className="my-1"
+            >
+              {spaceImages.map((uri, idx) => (
+                <View key={idx} className="w-16 h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100 shadow-sm">
+                  <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                  <TouchableOpacity
+                    onPress={() => removeImage(idx, "space")}
+                    className="absolute top-1 right-1 p-1 bg-red-600/90 rounded-full z-10"
+                  >
+                    <Ionicons name="trash-outline" size={10} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
 
-      {/* Seção Fotos do Portfólio */}
-      <View className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm mb-6 gap-3">
-        <View className="flex-row items-center gap-2">
-          <Ionicons name="camera-outline" size={18} color="#092D5D" />
-          <Text className="text-gray-900 font-extrabold text-xs uppercase tracking-wider">
-            Fotos de Portfólio ({portfolioImages.length})
-          </Text>
+          <TouchableOpacity
+            onPress={() => handlePickImages("space")}
+            activeOpacity={0.85}
+            className="h-10 rounded-xl bg-[#092D5D]/10 border border-[#092D5D]/30 items-center justify-center flex-row gap-1.5"
+          >
+            <Ionicons name="images-outline" size={16} color="#092D5D" />
+            <Text className="text-[#092D5D] font-bold text-xs">
+              {spaceImages.length > 0 ? "Adicionar Mais Fotos" : "Adicionar Fotos do Espaço"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {portfolioImages.length > 0 && (
-          <View className="flex-row flex-wrap gap-2 my-1">
-            {portfolioImages.map((uri, idx) => (
-              <View key={idx} className="w-[28%] h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100">
-                <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
-                <TouchableOpacity
-                  onPress={() => removeImage(idx, "portfolio")}
-                  className="absolute top-1 right-1 p-1 bg-red-600/90 rounded-full z-10"
-                >
-                  <Ionicons name="trash-outline" size={12} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            ))}
+        {/* Seção Fotos do Portfólio */}
+        <View className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm mb-4 gap-2.5">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="camera-outline" size={18} color="#092D5D" />
+              <Text className="text-gray-900 font-extrabold text-xs uppercase tracking-wider">
+                Fotos de Portfólio
+              </Text>
+            </View>
+            <View className="bg-gray-100 px-2.5 py-0.5 rounded-full">
+              <Text className="text-gray-600 font-bold text-[11px]">
+                {portfolioImages.length} {portfolioImages.length === 1 ? "foto" : "fotos"}
+              </Text>
+            </View>
           </View>
-        )}
 
-        <TouchableOpacity
-          onPress={() => handlePickImages("portfolio")}
-          activeOpacity={0.85}
-          className="h-11 rounded-xl bg-[#092D5D]/10 border border-[#092D5D]/30 items-center justify-center flex-row gap-1.5"
-        >
-          <Ionicons name="images-outline" size={18} color="#092D5D" />
-          <Text className="text-[#092D5D] font-bold text-xs">Adicionar Fotos de Trabalhos</Text>
-        </TouchableOpacity>
-      </View>
+          {portfolioImages.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              className="my-1"
+            >
+              {portfolioImages.map((uri, idx) => (
+                <View key={idx} className="w-16 h-16 rounded-xl overflow-hidden relative border border-gray-200 bg-gray-100 shadow-sm">
+                  <ExpoImage source={{ uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                  <TouchableOpacity
+                    onPress={() => removeImage(idx, "portfolio")}
+                    className="absolute top-1 right-1 p-1 bg-red-600/90 rounded-full z-10"
+                  >
+                    <Ionicons name="trash-outline" size={10} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
 
-      <View className="flex-row gap-3 mt-6 mb-6">
+          <TouchableOpacity
+            onPress={() => handlePickImages("portfolio")}
+            activeOpacity={0.85}
+            className="h-10 rounded-xl bg-[#092D5D]/10 border border-[#092D5D]/30 items-center justify-center flex-row gap-1.5"
+          >
+            <Ionicons name="images-outline" size={16} color="#092D5D" />
+            <Text className="text-[#092D5D] font-bold text-xs">
+              {portfolioImages.length > 0 ? "Adicionar Mais Fotos" : "Adicionar Fotos de Trabalhos"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Barra Inferior Fixa com Botões Voltar / Continuar */}
+      <View className="px-5 py-3.5 bg-white border-t border-gray-200/80 flex-row gap-3 shadow-lg">
         <TouchableOpacity
           onPress={prevStep}
           activeOpacity={0.85}
-          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="flex-1 h-14 rounded-2xl items-center justify-center bg-white border border-gray-200 px-3"
         >
-          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase tracking-wider text-center">
+            Voltar
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={nextStep}
           activeOpacity={0.85}
-          className="flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md"
+          className="flex-1 h-14 bg-[#092D5D] rounded-2xl items-center justify-center shadow-md px-3"
         >
-          <Text className="text-white font-black text-base uppercase tracking-wider">
+          <Text className="text-white font-black text-sm uppercase tracking-wider text-center">
             {spaceImages.length === 0 && portfolioImages.length === 0 ? "Pular / Continuar" : "Continuar"}
           </Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -1444,9 +1508,9 @@ function Step10({ data, prevStep, submitCompany, isSubmitting }: any) {
 
   return (
     <ScrollView
-      className="flex-1 px-5 pt-4 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: 80 }}
-      showsVerticalScrollIndicator={false}
+      className="flex-1 bg-gray-50"
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 140, flexGrow: 1 }}
+      showsVerticalScrollIndicator={true}
     >
       <View className="mb-4">
         <Text className="text-gray-900 text-2xl font-black mb-1">
@@ -1502,27 +1566,32 @@ function Step10({ data, prevStep, submitCompany, isSubmitting }: any) {
         />
       </View>
 
-      <View className="flex-row gap-3">
+      <View className="flex-row gap-3 mt-4 mb-10 pb-6">
         <TouchableOpacity
           onPress={prevStep}
           disabled={isSubmitting}
           activeOpacity={0.85}
-          className="flex-1 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200"
+          className="w-28 h-16 rounded-2xl items-center justify-center bg-white border border-gray-200 px-3"
         >
-          <Text className="text-gray-700 font-extrabold text-base uppercase tracking-wider">Voltar</Text>
+          <Text className="text-gray-700 font-extrabold text-sm uppercase tracking-wider text-center">
+            Voltar
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={submitCompany}
           disabled={isSubmitting}
           activeOpacity={0.85}
-          className={`flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-lg ${
+          className={`flex-1 h-16 bg-[#092D5D] rounded-2xl items-center justify-center shadow-lg px-4 py-2 ${
             isSubmitting ? "opacity-60" : ""
           }`}
         >
           {isSubmitting ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-black text-base uppercase tracking-wider">
+            <Text
+              className="text-white font-black text-xs uppercase tracking-wider text-center"
+              numberOfLines={2}
+            >
               Criar Conta e Empresa
             </Text>
           )}

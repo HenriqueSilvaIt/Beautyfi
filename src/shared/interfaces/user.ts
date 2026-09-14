@@ -18,6 +18,7 @@ export interface UserProps {
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
   allowPushNotifications?: boolean;
+  allowPushReminderNotifications?: boolean;
   subscriptionExpired?: boolean;
   firstLogin?: boolean;
   address?: string;
@@ -36,6 +37,7 @@ export interface UserInterface {
   whatsappAskedOnce?: boolean;
   allowWhatsAppNotifications?: boolean;
   allowPushNotifications?: boolean;
+  allowPushReminderNotifications?: boolean;
   address?: string;
   latitude?: number;
   longitude?: number;
@@ -57,6 +59,7 @@ export interface UpdateUserPreferencesInterface {
   askWhatsappConfirmation?: boolean;
   whatsappAskedOnce?: boolean;
   allowPushNotifications?: boolean;
+  allowPushReminderNotifications?: boolean;
 }
 
 

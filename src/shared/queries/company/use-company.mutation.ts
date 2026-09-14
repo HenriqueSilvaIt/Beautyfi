@@ -105,6 +105,7 @@ export function useCompanyDetailsMutation() {
       queryClient.invalidateQueries({ queryKey: ["company-details", response.id] });
       queryClient.invalidateQueries({ queryKey: ["company", response.id] });
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-company"] });
     },
     onError: (error) => {
       console.error(error);
@@ -182,6 +183,8 @@ export function useCompanyDetailsMutation() {
       updateOpeningHours(companyId, openingHours),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-company"] });
     },
   });
 
@@ -190,6 +193,8 @@ export function useCompanyDetailsMutation() {
       updateSocialMedias(companyId, socialMedias),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["company-details", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["company", variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-company"] });
     },
   });
 

@@ -279,6 +279,16 @@ export function MenuView({
                 onPress={() => safePush("/(private)/(crud)")}
               />
               <MenuItem
+                title="Minha Assinatura"
+                description="Gerencie seu plano e assinatura do aplicativo"
+                iconName="card-outline"
+                iconBgColor="rgba(203, 163, 93, 0.15)"
+                iconColor={colors["app-theme-primary"]}
+                onPress={() =>
+                  safePush("/(private)/(tabs)/(admin-tabs)/(menu)/subscription")
+                }
+              />
+              <MenuItem
                 title="Preferências"
                 description="Ajuste configurações do aplicativo"
                 iconName="information-circle-outline"
@@ -382,7 +392,7 @@ export function MenuView({
 
         {/* App Version */}
         <Text className="text-font-secondary text-[10px] text-center mt-6 mb-2">
-          Beautyfi v1.1.2
+          Beautyfi v1.1.4
         </Text>
       </ScrollView>
     </KeyboardContainer>

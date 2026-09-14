@@ -20,7 +20,7 @@ export enum EPaymentStatus {
 }
 
 export enum ECardFlagDayType {
-  WOKRING_DAYS = "WORKING_DAYS",
+  WORKING_DAYS = "WORKING_DAYS",
   CALENDAR_DAYS = "CALENDAR_DAYS",
 }
 
@@ -34,15 +34,15 @@ export interface EmployeeOrderDTO {
 }
 
 export interface PaymentCardFlagDTO {
-  id: number;
+  id?: number;
   name: string;
   fee: number;
   dayDelay: number;
-  dayType: ECardFlagDayType;
+  dayType: ECardFlagDayType | "WORKING_DAYS" | "CALENDAR_DAYS";
 }
 
 export interface PaymentMethodDTO {
-  id: number;
+  id?: number;
   fee: number;
   name: string;
   card: boolean;
@@ -100,7 +100,27 @@ export interface OrderMinParams {
 
 export interface OrderUserInterface {
   id: number;
-  name: string;
+  name?: string;
+  avatarUrl?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+export interface AppointmentServicesShopInterface {
+  serviceId: number;
+  priceAtMoment?: number;
+  durationAtMoment?: number;
+  discount?: number;
+  notes?: string;
+  appointmentId?: number;
+  service?: {
+    id: number;
+    name: string;
+    price?: number;
+    duration?: number;
+  };
 }
 
 export interface OrderItemsInterface {
@@ -110,6 +130,7 @@ export interface OrderItemsInterface {
   dateEnd: string;
   servicePrice: number;
   serviceName: string;
+  appointmentServices?: AppointmentServicesShopInterface[];
   productId: number;
   toUse: boolean;
   courtesy: boolean;
@@ -144,6 +165,7 @@ export interface OrderInterface {
   tip: number;
   discountPercent: number;
   totalSold?: number;
+  totalOrder?: number;
   totalEmployee?: number;
   totalCompany?: number;
   totalEmployeeNet?: number;

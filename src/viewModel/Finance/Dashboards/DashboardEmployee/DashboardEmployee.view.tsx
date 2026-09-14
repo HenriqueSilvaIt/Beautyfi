@@ -179,21 +179,6 @@ export function DashboardEmployeeView({
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         ListHeaderComponent={
           <View className="gap-4 mb-4">
-            {/* Banner Informativo Exclusivo: Apenas Comandas Fechadas */}
-            <View className="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 flex-row items-start gap-3 shadow-xs">
-              <View className="w-8 h-8 rounded-full bg-amber-500/10 items-center justify-center shrink-0 border border-amber-500/20">
-                <Ionicons name="information-circle" size={20} color="#d97706" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-amber-900 font-bold text-xs uppercase tracking-wide">
-                  Aviso Importante
-                </Text>
-                <Text className="text-amber-800 text-xs leading-relaxed mt-0.5 font-medium">
-                  Este relatório contabiliza exclusivamente comandas com status <Text className="font-extrabold text-amber-950 uppercase">FECHADA</Text>. Comandas em aberto ou canceladas não são somadas.
-                </Text>
-              </View>
-            </View>
-
             {/* Painel de Seleção de Datas */}
             <View className="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs gap-3">
               <Text className="text-slate-500 text-[11px] font-bold uppercase tracking-wider">
@@ -259,7 +244,7 @@ export function DashboardEmployeeView({
                 Nenhum resultado encontrado
               </Text>
               <Text className="text-slate-500 text-xs text-center mt-1">
-                Não há comandas fechadas para os profissionais no período selecionado.
+                Não há dados para os profissionais no período selecionado.
               </Text>
             </View>
           )

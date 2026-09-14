@@ -275,7 +275,9 @@ export function AppointmentReportView({
                   </View>
                   <View>
                     <Text className="text-font-primary font-semibold text-sm">
-                      {item.services?.[0]?.service?.name || "Serviço"}
+                      {item.services && item.services.length > 0
+                        ? item.services.map((s: any) => s.service?.name || s.name || "Serviço").join(", ")
+                        : "Serviço"}
                     </Text>
                     <Text className="text-gray-600 text-xs">
                       {dateStr} • {item.user ? `${item.user.firstName} ${item.user.lastName || ""}`.trim() : "Cliente"}

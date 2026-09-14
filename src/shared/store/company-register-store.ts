@@ -16,6 +16,7 @@ export interface InitialEmployeeItem {
   name: string;
   phone: string;
   email: string;
+  password?: string;
 }
 
 export interface CompanyRegisterData {

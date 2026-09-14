@@ -85,19 +85,19 @@ export function useLoyaltyViewModel() {
   useEffect(() => {
     if (companyDetails === undefined && activeProgram === undefined) return;
 
-    const isLoyaltyActive =
-      activeProgram != null && activeProgram.active !== undefined
-        ? parseBool(activeProgram.active)
-        : companyDetails != null && companyDetails.loyaltyActive !== undefined
-          ? parseBool(companyDetails.loyaltyActive)
-          : false;
+    let isLoyaltyActive = false;
+    if (activeProgram && activeProgram.active !== undefined && activeProgram.active !== null) {
+      isLoyaltyActive = parseBool(activeProgram.active);
+    } else if (companyDetails && companyDetails.loyaltyActive !== undefined && companyDetails.loyaltyActive !== null) {
+      isLoyaltyActive = parseBool(companyDetails.loyaltyActive);
+    }
 
-    const isStampActive =
-      activeProgram != null && activeProgram.stampActive !== undefined
-        ? parseBool(activeProgram.stampActive)
-        : companyDetails != null && (companyDetails as any).stampActive !== undefined
-          ? parseBool((companyDetails as any).stampActive)
-          : false;
+    let isStampActive = false;
+    if (activeProgram && activeProgram.stampActive !== undefined && activeProgram.stampActive !== null) {
+      isStampActive = parseBool(activeProgram.stampActive);
+    } else if (companyDetails && (companyDetails as any).stampActive !== undefined && (companyDetails as any).stampActive !== null) {
+      isStampActive = parseBool((companyDetails as any).stampActive);
+    }
 
     reset({
       loyaltyActive: isLoyaltyActive,

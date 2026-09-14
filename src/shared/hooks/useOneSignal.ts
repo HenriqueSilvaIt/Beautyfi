@@ -109,23 +109,53 @@ export function useOneSignal() {
       }).catch(() => {});
     }
 
+    const getNotificationTitle = (notif: any): string => {
+      if (!notif) return "Novo Agendamento!";
+      if (typeof notif.getTitle === "function") return notif.getTitle() || "Novo Agendamento!";
+      return notif.title || "Novo Agendamento!";
+    };
+
+    const getNotificationBody = (notif: any): string => {
+      if (!notif) return "";
+      if (typeof notif.getBody === "function") return notif.getBody() || "";
+      return notif.body || "";
+    };
+
+    const getNotificationId = (notif: any): string => {
+      if (!notif) return String(Date.now());
+      if (typeof notif.getNotificationId === "function") return notif.getNotificationId() || String(Date.now());
+      return notif.notificationId || String(Date.now());
+    };
+
+    const getNotificationData = (notif: any): any => {
+      if (!notif) return {};
+      if (typeof notif.getAdditionalData === "function") return notif.getAdditionalData() || {};
+      return notif.additionalData || {};
+    };
+
     const handleForegroundWillDisplay = (event: any) => {
       try {
-        const notification = event.getNotification();
-        const data = notification?.getAdditionalData() as any;
+        const notification = event?.getNotification ? event.getNotification() : event?.notification;
+        const data = getNotificationData(notification);
+
+        const notifId = getNotificationId(notification);
+        const notifTitle = getNotificationTitle(notification);
+        const notifBody = getNotificationBody(notification);
+
+        console.log("🔔 [OneSignal Foreground] Salvando notificação na store:", { id: notifId, title: notifTitle, body: notifBody });
 
         addNotification({
-          id: notification?.getNotificationId() || String(Date.now()),
-          title: notification?.getTitle() || "Notificação",
-          body: notification?.getBody() || "",
+          id: notifId,
+          title: notifTitle,
+          body: notifBody,
         });
 
         if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
           if (showInAppNewAppointmentModal) {
             event.preventDefault();
             Alert.alert(
-              "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
-              notification.getBody() || "",
+              "🔔 " + notifTitle,
+              notifBody,
               [
                 {
                   text: "Ver Agendamento",
@@ -158,12 +188,26 @@ export function useOneSignal() {
     const handleClick = (event: any) => {
       try {
         const notification = event?.notification;
-        const data = notification?.getAdditionalData() as any;
+        const data = getNotificationData(notification);
+
+        if (notification) {
+          const notifId = getNotificationId(notification);
+          const notifTitle = getNotificationTitle(notification);
+          const notifBody = getNotificationBody(notification);
+
+          console.log("🔔 [OneSignal Click] Salvando notificação na store:", { id: notifId, title: notifTitle, body: notifBody });
+
+          addNotification({
+            id: notifId,
+            title: notifTitle,
+            body: notifBody,
+          });
+        }
 
         if (data && (data.type === "NEW_APPOINTMENT" || data.type === "CANCELLED_APPOINTMENT")) {
           Alert.alert(
-            "🔔 " + (notification.getTitle() || "Atualização de Agendamento!"),
-            notification.getBody() || "",
+            "🔔 " + getNotificationTitle(notification),
+            getNotificationBody(notification),
             [
               {
                 text: "Ver Agendamento",

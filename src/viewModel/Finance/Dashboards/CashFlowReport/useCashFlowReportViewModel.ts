@@ -101,7 +101,9 @@ export function useCashFlowReportViewModel() {
 
   // Função para calcular valor real da comanda
   const getOrderVal = (order: any) => {
+    if (order.totalSold && Number(order.totalSold) > 0) return Number(order.totalSold);
     if (order.total && Number(order.total) > 0) return Number(order.total);
+    if (order.totalOrder && Number(order.totalOrder) > 0) return Number(order.totalOrder);
     return calculateOrderTotal(order.items ?? []);
   };
 

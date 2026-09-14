@@ -9,6 +9,7 @@ export const productSchema = yup.object({
       quantity: yup.string().optional(),
       imgUrl: yup.string().optional(),
       barCode: yup.string().optional(),
+      priceStartingFrom: yup.boolean().optional(),
 })
 
 export type ProductFormData = yup.InferType<typeof productSchema>;

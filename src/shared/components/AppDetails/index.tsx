@@ -17,9 +17,14 @@ import { EmployeeInterface } from "@/shared/interfaces/http/employee";
 import { ClientInterface } from "@/shared/interfaces/http/client";
 import { AdvertisementInterface } from "@/shared/interfaces/http/advertisement";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
-import { StripePlanDTO } from "@/shared/interfaces/http/stripe";
 import { usePlanStore } from "@/shared/store/plan-store";
 import { AppToggle } from "../AppToggle";
+import { ClientLoyaltyModal } from "@/viewModel/Admin/Clients/ClientLoyaltyModal";
+import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
+import { useCompanyStore } from "@/shared/store/company-store";
+import { useUserStore } from "@/shared/store/user-store";
+import { useLoyaltyMutation } from "@/shared/queries/company/use-loyalty.mutation";
+import { StripePlanDTO } from "@/shared/interfaces/http/stripe";
 
 interface AppDetailsItemBase {
   title: string;
@@ -86,6 +91,10 @@ interface AppDetailsProps<T extends FieldValues> {
   setAvailableInApp?: Dispatch<SetStateAction<boolean>>;
   handleToggleAvailableInApp?: () => void;
 
+  priceStartingFrom?: boolean;
+  setPriceStartingFrom?: Dispatch<SetStateAction<boolean>>;
+  handleTogglePriceStartingFrom?: () => void;
+
   clientAllowWhatsAppNotification?: boolean;
   setClientAllowWhatsAppNotification?: Dispatch<SetStateAction<boolean>>;
   handleToggleAllowWhatAppMessage?: () => void;
@@ -127,6 +136,9 @@ export default function AppDetails<T extends FieldValues>({
   handleToggleAvailableInApp,
   availableInApp,
   setAvailableInApp, 
+  priceStartingFrom,
+  setPriceStartingFrom,
+  handleTogglePriceStartingFrom,
   clientAllowWhatsAppNotification,
   setClientAllowWhatsAppNotification,
   handleToggleAllowWhatAppMessage,
@@ -176,6 +188,12 @@ export default function AppDetails<T extends FieldValues>({
   );
 
   const { safePush } = useSafeNavigation();
+  const { openBottomSheet, closeBottomSheet } = useBottomSheetContext();
+  const selectedCompanyId = useCompanyStore((s) => s.selectedCompanyId);
+  const userCompanyId = useUserStore((s) => s.user?.companyId);
+  const companyIdNum = Number(selectedCompanyId || userCompanyId || 0);
+  const { useGetActiveProgramQuery } = useLoyaltyMutation();
+  const { data: loyaltyProgramData } = useGetActiveProgramQuery(companyIdNum > 0 ? companyIdNum : undefined);
 
   const { maskDate, maskPhone, maskMoneyBR } = useMask();
 
@@ -324,13 +342,22 @@ export default function AppDetails<T extends FieldValues>({
         )}
 
         {availability.length > 0 && title?.toLowerCase() !== "cliente" && (
-          <AppToggle
-            value={availableInApp ?? false}
-            onValueChange={() => handleToggleAvailableInApp?.()}
-            textTrue="Este item ficará visível na vitrine do app."
-            textFalse="Este item ficará oculto na vitrine do app."
-            title="Disponível na vitrine"
-          />
+          <>
+            <AppToggle
+              value={availableInApp ?? false}
+              onValueChange={() => handleToggleAvailableInApp?.()}
+              textTrue="Este item ficará visível na vitrine do app."
+              textFalse="Este item ficará oculto na vitrine do app."
+              title="Disponível na vitrine"
+            />
+            <AppToggle
+              value={priceStartingFrom ?? false}
+              onValueChange={() => handleTogglePriceStartingFrom?.()}
+              textTrue="O valor será exibido como 'A partir de R$ ...' na vitrine."
+              textFalse="O valor será exibido como preço fixo 'R$ ...'."
+              title="Preço 'A partir de'"
+            />
+          </>
         )}
         {(clientFields.length > 0 || title?.toLowerCase() === "cliente" || !!clientContent) && (
           <View className="mb-6 gap-4">
@@ -401,6 +428,43 @@ export default function AppDetails<T extends FieldValues>({
                       {clientContent?.anamnesis?.allergies || clientContent?.anamnesis?.skinHairType || clientContent?.anamnesis?.observations
                         ? "Ver e editar histórico de saúde / alergias"
                         : "Clique para preencher a anamnese do cliente"}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBA35D" />
+              </TouchableOpacity>
+            )}
+
+            {/* Card Gerenciar Cartão Fidelidade (Carimbos) */}
+            {isEditMode && id && (
+              <TouchableOpacity
+                onPress={() => {
+                  openBottomSheet(
+                    <ClientLoyaltyModal
+                      clientId={Number(id)}
+                      clientName={clientContent?.name || "Cliente"}
+                      companyId={Number(selectedCompanyId || userCompanyId || 0)}
+                      currentStamps={clientLoyaltyPointsData?.stampsBalance ?? 0}
+                      stampRequiredCount={loyaltyProgramData?.stampRequiredCount ?? 4}
+                      stampServiceName={loyaltyProgramData?.stampServiceName ?? "Serviço Especial"}
+                      onClose={closeBottomSheet}
+                    />,
+                    0
+                  );
+                }}
+                activeOpacity={0.8}
+                className="bg-background-quartenary p-4 rounded-2xl border border-white/5 flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-10 h-10 rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                    <Ionicons name="ribbon" size={20} color="#CBA35D" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-font-primary text-sm font-bold">
+                      Cartão Fidelidade
+                    </Text>
+                    <Text className="text-font-secondary text-xs">
+                      {clientLoyaltyPointsData?.stampsBalance ?? 0} de {loyaltyProgramData?.stampRequiredCount ?? 4} carimbos acumulados
                     </Text>
                   </View>
                 </View>

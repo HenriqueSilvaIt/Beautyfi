@@ -56,7 +56,7 @@ export function useOrderMutation() {
     return useInfiniteQuery({
       queryKey: ["orders", companyId],
       //Porque o cache será separado por cliente.
-      queryFn: ({ pageParam = 0 }) => getOrders(pageParam, 10, companyId),
+      queryFn: ({ pageParam = 0 }) => getOrders(pageParam, 30, companyId),
 
       initialPageParam: 0,
 

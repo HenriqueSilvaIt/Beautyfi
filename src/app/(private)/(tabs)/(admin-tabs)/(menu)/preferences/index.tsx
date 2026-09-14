@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View, Switch, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,8 @@ import { router } from "expo-router";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
 import { usePreferencesStore } from "@/shared/store/preferences-store";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
+import { useUserStore } from "@/shared/store/user-store";
+import { useUserUserUpdatePreferences } from "@/shared/queries/user/use-user-logged.mutation";
 
 export default function PreferencesMenuScreen() {
   const {
@@ -14,6 +16,10 @@ export default function PreferencesMenuScreen() {
     showAllEmployeeDashboardsToEmployees,
     setShowAllEmployeeDashboardsToEmployees,
   } = usePreferencesStore();
+
+  const { user, setUser } = useUserStore();
+  const { userUpdatePreferencesMutation } = useUserUserUpdatePreferences();
+  const [isUpdatingUserPref, setIsUpdatingUserPref] = useState(false);
 
   const { useGetCompanyPreferencesQuery, updateCompanyPreferencesMutation } = useCompanyDetailsMutation();
   const companyPreferencesQuery = useGetCompanyPreferencesQuery?.();
@@ -50,6 +56,24 @@ export default function PreferencesMenuScreen() {
     }
   };
 
+  const allowPushReminder = user?.allowPushReminderNotifications !== false;
+
+  const handleTogglePushReminder = async (value: boolean) => {
+    // Optimistic local update
+    setUser((prev) => (prev ? { ...prev, allowPushReminderNotifications: value } : null));
+    setIsUpdatingUserPref(true);
+    try {
+      await userUpdatePreferencesMutation.mutateAsync({
+        allowPushReminderNotifications: value,
+      });
+    } catch (err) {
+      // Revert on error
+      setUser((prev) => (prev ? { ...prev, allowPushReminderNotifications: !value } : null));
+    } finally {
+      setIsUpdatingUserPref(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background-primary px-5 py-4">
       {/* Header */}
@@ -63,6 +87,24 @@ export default function PreferencesMenuScreen() {
       />
       {/* Menu Options */}
       <View className="gap-4">
+        {/* Minha Assinatura Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/(private)/(tabs)/(admin-tabs)/(menu)/subscription")}
+          activeOpacity={0.8}
+          className="bg-white/5 border border-gray-700/60 p-4 rounded-2xl flex-row items-center justify-between"
+        >
+          <View className="flex-row items-center flex-1">
+            <View className="bg-amber-500/10 p-3 rounded-xl mr-4">
+              <Ionicons name="card-outline" size={24} color="#CBA35D" />
+            </View>
+            <View className="flex-1 pr-2">
+              <Text className="text-font-primary text-base font-bold">Minha Assinatura</Text>
+              <Text className="text-gray-600 text-xs mt-1">Gerencie seu plano, status, cancelamento e reativação</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+        </TouchableOpacity>
+
         {/* WhatsApp Button */}
         <TouchableOpacity
           onPress={() => router.push("/(private)/(tabs)/(admin-tabs)/(menu)/preferences/whatsapp-config")}
@@ -100,6 +142,30 @@ export default function PreferencesMenuScreen() {
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
 
+        {/* Switch Toggle for Admin OneSignal Reminder Push */}
+        <View className="bg-white/5 border border-gray-700/60 p-4 rounded-2xl flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1 pr-4">
+            <View className="bg-amber-500/10 p-3 rounded-xl mr-4">
+              <Ionicons name="alarm-outline" size={24} color="#f59e0b" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-font-primary text-base font-bold">Lembretes de Agendamento (Push)</Text>
+              <Text className="text-gray-600 text-xs mt-1">
+                Receber notificações push no celular como lembrete dos próximos agendamentos
+              </Text>
+            </View>
+          </View>
+          {isUpdatingUserPref ? (
+            <ActivityIndicator color="#CBA35D" size="small" />
+          ) : (
+            <Switch
+              value={allowPushReminder}
+              onValueChange={handleTogglePushReminder}
+              trackColor={{ false: "#374151", true: "#CBA35D" }}
+              thumbColor={allowPushReminder ? "#000" : "#9ca3af"}
+            />
+          )}
+        </View>
 
         {/* Switch Toggle for in-app modals */}
         <View className="bg-white/5 border border-gray-700/60 p-4 rounded-2xl flex-row items-center justify-between">

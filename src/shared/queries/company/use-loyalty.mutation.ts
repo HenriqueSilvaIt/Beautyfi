@@ -48,6 +48,8 @@ export interface ClientLoyaltyPoints {
   companyLogoUrl?: string;
   pointsBalance: number;
   totalPointsEarned: number;
+  stampsBalance?: number;
+  totalStampsEarned?: number;
 }
 
 export function useLoyaltyMutation() {

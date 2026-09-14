@@ -22,6 +22,7 @@ import { Image as ExpoImage } from "expo-image";
 import { useSafeNavigation } from "@/shared/hooks/useSafeNavigation";
 import { OnboardingChecklistCard } from "@/viewModel/Onboarding/OnboardingChecklistCard";
 import { useFocusEffect } from "expo-router";
+import { ClientOnboardingModal } from "./ClientOnboardingModal";
 
 const BLURHASH =
   "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayj[ayfjj[j[ayjuayj[";
@@ -64,9 +65,6 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
   const { user, access_token } = useUserStore();
   const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
-  const [slideIndex, setSlideIndex] = useState(0);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
   const isAdmin = user?.roles?.some((r) => r.authority === "ROLE_ADMIN" || r.authority === "ROLE_MODERATOR");
 
@@ -412,169 +410,14 @@ export function NewHomeView(props: ReturnType<typeof useNewHomeViewModel>) {
         )}
 
       {/* Onboarding Client Modal */}
-      {!!access_token &&
-        user?.roles?.some((r) => r.authority === "ROLE_CLIENT") &&
-        user?.firstLogin !== false &&
-        (() => {
-          const handleNext = () => {
-            if (slideIndex < 2) {
-              scrollViewRef.current?.scrollTo({
-                x: (slideIndex + 1) * SCREEN_WIDTH,
-                animated: true,
-              });
-              setSlideIndex(slideIndex + 1);
-            } else {
-              handleDismissOnboarding();
-            }
-          };
-
-          const handleScroll = (event: any) => {
-            const contentOffsetX = event.nativeEvent.contentOffset.x;
-            const currentIndex = Math.round(contentOffsetX / SCREEN_WIDTH);
-            setSlideIndex(currentIndex);
-          };
-
-          const slides = [
-            {
-              title: "Agendamentos 24 horas",
-              description:
-                "Marque seus horários a qualquer hora do dia ou da noite, em qualquer lugar, sem precisar ligar ou enviar mensagens.",
-              icon: "calendar-outline",
-              bgColor: "#e0f2fe", // soft sky blue
-              iconColor: "#0284c7",
-            },
-            {
-              title: "Encontre Próximos",
-              description:
-                "Descubra os melhores profissionais e estabelecimentos pertinho de você, com mapa interativo e buscas customizadas.",
-              icon: "map-outline",
-              bgColor: "#fef3c7", // soft gold/amber
-              iconColor: "#d97706",
-            },
-            {
-              title: "Histórico & Controle",
-              description:
-                "Visualize seus próximos agendamentos, cancele quando necessário e acompanhe todo seu histórico em tempo real.",
-              icon: "time-outline",
-              bgColor: "#dcfce7", // soft green
-              iconColor: "#16a34a",
-            },
-          ];
-
-          return (
-              <Modal transparent animationType="fade" visible={true}>
-                <View className="flex-1 bg-[#092D5D]/40 justify-end">
-                  {/* Top part holding background illustration/icon based on active index */}
-                  <SafeAreaView
-                    style={{
-                      flex: 1,
-                      backgroundColor: slides[slideIndex].bgColor,
-                    }}
-                    edges={["top"]}
-                    className="justify-between pb-6 px-6"
-                  >
-                    {/* Header (Pular / Skip) */}
-                    <View className="flex-row justify-between items-center w-full">
-                      <View className="flex-row items-center gap-1.5 bg-black/10 px-3.5 py-1.5 rounded-full">
-                        <Ionicons name="sparkles" size={14} color="#092D5D" />
-                        <Text className="text-[#092D5D] font-bold text-xs">
-                          Novo por aqui?
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={handleDismissOnboarding}
-                        activeOpacity={0.7}
-                        className="bg-[#092D5D]/10 px-4 py-2 rounded-full"
-                      >
-                        <Text className="text-[#092D5D] font-bold text-xs">
-                          Pular
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Animated content/Illustration area */}
-                    <View className="items-center justify-center flex-1 my-4">
-                      <View className="bg-white p-8 rounded-full shadow-md items-center justify-center">
-                        <Ionicons
-                          name={slides[slideIndex].icon as any}
-                          size={84}
-                          color={slides[slideIndex].iconColor}
-                        />
-                      </View>
-                    </View>
-                    <View />
-                  </SafeAreaView>
-
-                  {/* Bottom White Card */}
-                  <SafeAreaView
-                    edges={["bottom"]}
-                    className="bg-white rounded-t-[40px] px-8 pt-8 pb-10 shadow-2xl h-[370px] justify-between"
-                  >
-                    {/* ScrollView of slide texts */}
-                    <View className="h-[180px]">
-                      <ScrollView
-                        ref={scrollViewRef}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onScroll={handleScroll}
-                        scrollEventThrottle={16}
-                        style={{ width: SCREEN_WIDTH - 64 }}
-                      >
-                        {slides.map((slide, idx) => (
-                          <View
-                            key={idx}
-                            style={{ width: SCREEN_WIDTH - 64 }}
-                            className="items-center justify-center px-4"
-                          >
-                            <Text className="text-[#092D5D] text-2xl font-black text-center mb-3">
-                              {slide.title}
-                            </Text>
-                            <Text className="text-gray-500 text-sm text-center leading-relaxed">
-                              {slide.description}
-                            </Text>
-                          </View>
-                        ))}
-                      </ScrollView>
-                    </View>
-
-                    {/* Action footer */}
-                    <View className="flex-row items-center justify-between mt-4">
-                      {/* Indicators */}
-                      <View className="flex-row gap-1.5">
-                        {slides.map((_, idx) => (
-                          <View
-                            key={idx}
-                            className={`h-2 rounded-full transition-all duration-300 ${idx === slideIndex ? "w-6" : "w-2"}`}
-                            style={{
-                              backgroundColor:
-                                idx === slideIndex ? "#092D5D" : "#cbd5e1",
-                            }}
-                          />
-                        ))}
-                      </View>
-
-                      {/* Next / Get Started button */}
-                      <TouchableOpacity
-                        onPress={handleNext}
-                        activeOpacity={0.8}
-                        className="px-6 py-4 rounded-2xl items-center justify-center bg-[#092D5D] flex-row gap-2"
-                      >
-                        <Text className="text-white font-extrabold text-sm uppercase tracking-wide">
-                          {slideIndex < 2 ? "Avançar" : "Começar"}
-                        </Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={16}
-                          color="white"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </SafeAreaView>
-                </View>
-              </Modal>
-          );
-        })()}
+      <ClientOnboardingModal
+        visible={
+          !!access_token &&
+          Boolean(user?.roles?.some((r) => r.authority === "ROLE_CLIENT")) &&
+          user?.firstLogin !== false
+        }
+        onDismiss={handleDismissOnboarding}
+      />
     </SafeAreaView>
   );
 }

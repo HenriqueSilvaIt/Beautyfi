@@ -7,6 +7,7 @@ export interface CompanyServicesProps {
   description?: string;
   priceDescription?: string;
   availableInApp?: boolean;
+  priceStartingFrom?: boolean;
   requiresDeposit?: boolean;
   depositType?: "PERCENTAGE" | "FIXED";
   depositAmount?: number;
@@ -27,6 +28,7 @@ export interface CompanyServicesInterface {
   imgUrl?: string;
   duration: number;
   availableInApp?: boolean;
+  priceStartingFrom?: boolean;
   requiresDeposit?: boolean;
   depositType?: "PERCENTAGE" | "FIXED";
   depositAmount?: number;
@@ -42,6 +44,7 @@ export interface CreateServiceDTO {
   price: number;
   description?: string;
   priceDescription?: string;
+  priceStartingFrom?: boolean;
   requiresDeposit?: boolean;
   depositType?: "PERCENTAGE" | "FIXED";
   depositAmount?: number;

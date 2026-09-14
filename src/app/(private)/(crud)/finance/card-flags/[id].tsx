@@ -12,6 +12,7 @@ import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { usePaymentCrudMutation } from "@/shared/queries/finance/use-payment-crud.mutation";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { colors } from "@/styles/colors";
+import { PaymentCardFlagDTO } from "@/shared/interfaces/http/order";
 
 const schema = yup.object().shape({
   name: yup.string().required("Nome da bandeira é obrigatório"),
@@ -69,11 +70,11 @@ export default function CardFlagFormScreen() {
   const handleSave = async (data: CardFlagFormData) => {
     try {
       setIsSaving(true);
-      const dto = {
+      const dto: PaymentCardFlagDTO = {
         name: data.name,
         fee: Number(data.fee.replace(",", ".")) || 0,
         dayDelay: Number(data.dayDelay) || 0,
-        dayType: data.isCalendarDays ? "CALENDAR_DAYS" as const : "WORKING_DAYS" as const,
+        dayType: data.isCalendarDays ? "CALENDAR_DAYS" : "WORKING_DAYS",
       };
 
       if (isEditMode) {

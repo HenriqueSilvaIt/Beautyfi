@@ -118,7 +118,7 @@ export function CompanyServices({
               </Text>
             ) : (
               <Text className="text-green-400 font-bold text-base">
-                R$ {item.price.toFixed(2)}
+                {item.priceStartingFrom ? "A partir de " : ""}R$ {item.price.toFixed(2).replace(".", ",")}
               </Text>
             )}
           </View>

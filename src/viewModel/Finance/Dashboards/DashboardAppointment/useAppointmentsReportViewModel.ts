@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useAppointmentMutation } from "@/shared/queries/company/use-appointment.mutation";
 import { useUserStore } from "@/shared/store/user-store";
 import { useCompanyStore } from "@/shared/store/company-store";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { AppointmentStatus } from "@/shared/interfaces/http/appointment";
 import { useEmployeeMutation } from "@/shared/queries/company/use-employee.mutation";
 import { useCompanyDetailsMutation } from "@/shared/queries/company/use-company.mutation";
@@ -77,14 +77,18 @@ export function useAppointmentsReportViewModel() {
       all = all.filter((app) => app.employee?.id === selectedEmployeeId);
     }
     
+    const sDate = startOfDay(dateStart);
+    const eDate = endOfDay(dateEnd);
+
     all.forEach((app) => {
       if (!app.dateScheduled) return;
       const d = new Date(app.dateScheduled);
-      if (d >= dateStart && d <= dateEnd) {
+      if (d >= sDate && d <= eDate) {
         if (app.status === AppointmentStatus.SCHEDULED || app.status === AppointmentStatus.CONFIRMED) {
           const dateStr = typeof app.dateScheduled === "string" ? app.dateScheduled : app.dateScheduled.toISOString();
           const monthStr = dateStr.substring(0, 7); // "YYYY-MM"
-          grouped[monthStr] = (grouped[monthStr] || 0) + 1;
+          const count = app.services && app.services.length > 0 ? app.services.length : 1;
+          grouped[monthStr] = (grouped[monthStr] || 0) + count;
         }
       }
     });
@@ -129,10 +133,13 @@ export function useAppointmentsReportViewModel() {
         item.status === AppointmentStatus.SCHEDULED ||
         item.status === AppointmentStatus.CONFIRMED,
     );
+    const sDate = startOfDay(dateStart);
+    const eDate = endOfDay(dateEnd);
+
     all = all.filter((app) => {
       if (!app.dateScheduled) return false;
       const date = new Date(app.dateScheduled);
-      return date >= dateStart && date <= dateEnd;
+      return date >= sDate && date <= eDate;
     });
 
     if (selectedEmployeeId !== null) {
@@ -142,7 +149,12 @@ export function useAppointmentsReportViewModel() {
     return all;
   }, [appointmentsData, dateStart, dateEnd, selectedEmployeeId]);
 
-  const periodTotalCount = periodFilteredAppointments.length;
+  const periodTotalCount = useMemo(() => {
+    return periodFilteredAppointments.reduce(
+      (acc, app) => acc + (app.services && app.services.length > 0 ? app.services.length : 1),
+      0
+    );
+  }, [periodFilteredAppointments]);
 
   const appointmentsList = useMemo(() => {
     if (selectedBar !== null && barData[selectedBar]) {

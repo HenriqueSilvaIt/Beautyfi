@@ -6,6 +6,7 @@ export const serviceScheme = yup.object({
   commissionServiceFee: yup.string().optional().nullable(),
   description: yup.string().optional().nullable(),
   priceDescription: yup.string().optional().nullable(),
+  priceStartingFrom: yup.boolean().optional(),
   imgUrl: yup.string().optional().nullable(),
   requiresDeposit: yup.boolean().optional(),
   depositType: yup.string().optional().nullable(),

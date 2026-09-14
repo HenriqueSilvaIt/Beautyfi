@@ -5,6 +5,7 @@ export interface ProductProps {
   price: number;
   commission: number;
   availableInApp?: boolean;
+  priceStartingFrom?: boolean;
 
   quantity: number;
   imgUrl: string;
@@ -22,6 +23,7 @@ export interface ProductInterface {
   imgUrl?: string;
   barCode?: string;
   availableInApp?: boolean;
+  priceStartingFrom?: boolean;
   companyId?: number;
 }
 

@@ -161,10 +161,10 @@ export function NewBookingView() {
                   <Image
                     source={{ uri: employee.avatarUrl }}
                     resizeMode="cover"
-                    className="h-14 w-14 rounded-full border-2 border-[#092D5D]/20"
+                    className="h-[40px] w-[40px] rounded-full border-2 border-[#092D5D]/20"
                   />
                 ) : (
-                  <View className="w-14 h-14 rounded-full bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
+                  <View className="w-[40px] h-[40px] rounded-full bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
                     <Ionicons name="person" size={26} color="#092D5D" />
                   </View>
                 )}
@@ -208,10 +208,10 @@ export function NewBookingView() {
                 <Image
                   source={{ uri: client.profileUrl }}
                   resizeMode="cover"
-                  className="h-14 w-14 rounded-full border-2 border-[#CBA35D]"
+                  className="h-[40px] w-[40px] rounded-full border-2 border-[#CBA35D]"
                 />
               ) : (
-                <View className="w-14 h-14 rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
+                <View className="w-[40px] h-[40px] rounded-full bg-[#CBA35D]/20 items-center justify-center border border-[#CBA35D]/40">
                   <Ionicons name="person" size={26} color="#CBA35D" />
                 </View>
               )}
@@ -255,10 +255,10 @@ export function NewBookingView() {
                 <Image
                   source={{ uri: service.imgUrl }}
                   resizeMode="cover"
-                  className="h-14 w-14 rounded-2xl border border-gray-200"
+                  className="h-[40px] w-[40px] rounded-2xl border border-gray-200"
                 />
               ) : (
-                <View className="w-14 h-14 rounded-2xl bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
+                <View className="w-[40px] h-[40px] rounded-2xl bg-[#092D5D]/10 items-center justify-center border border-[#092D5D]/20">
                   <Ionicons name="cut" size={26} color="#092D5D" />
                 </View>
               )}
@@ -296,15 +296,15 @@ export function NewBookingView() {
           </View>
         </ScrollView>
 
-        {/* Botão de Confirmação Fixo no Rodapé com Altura Aumentada (h-16 / 64px) */}
-        <View className="p-4.5 bg-white border-t border-gray-200/80 shadow-xl">
+        {/* Botão de Confirmação Fixo no Rodapé com Largura Ajustada */}
+        <View className="p-4 bg-white border-t border-gray-200/80 shadow-xl items-center">
           <TouchableOpacity
             onPress={createBooking}
             activeOpacity={0.85}
-            className="w-full h-16 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md flex-row gap-2.5"
+            className="w-[90%] max-w-[400px] h-14 rounded-2xl bg-[#092D5D] items-center justify-center shadow-md flex-row gap-2"
           >
-            <Ionicons name="checkmark-circle-outline" size={22} color="#FFFFFF" />
-            <Text className="text-white font-extrabold text-base uppercase tracking-wider">
+            <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+            <Text className="text-white font-extrabold text-sm uppercase tracking-wider">
               Confirmar Agendamento
             </Text>
           </TouchableOpacity>

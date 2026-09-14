@@ -387,6 +387,7 @@ export function useStripeMutation() {
   const cancelSubscriptionMutation = useMutation({
     mutationFn: (subscriptionId: string) => cancelSubscription(subscriptionId),
     onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["my-subscription-plans"] });
       console.log(response);
     },
     onError: (error) => {
@@ -398,6 +399,7 @@ export function useStripeMutation() {
     mutationFn: (subscriptionId: string) =>
       reactivateSubscription(subscriptionId),
     onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["my-subscription-plans"] });
       console.log(response);
     },
     onError: (error) => {

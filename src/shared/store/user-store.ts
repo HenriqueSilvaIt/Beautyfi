@@ -93,9 +93,10 @@ setAuthReady: (value: boolean) => set({ authReady: value }),
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydated(true);
-        if (state?.user?.companyId) {
+        const companyId = state?.user?.companyId;
+        if (companyId) {
           import("./company-store").then(({ useCompanyStore }) => {
-            useCompanyStore.getState().setSelectedCompanyId(state.user.companyId!);
+            useCompanyStore.getState().setSelectedCompanyId(companyId);
           }).catch(() => {});
         }
       },

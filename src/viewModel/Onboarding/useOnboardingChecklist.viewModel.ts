@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getClients } from "@/shared/services/client.service";
 import { getServices } from "@/shared/services/companyservice.service";
 import { getAppointments } from "@/shared/services/appointment.service";
-import { getCompanyById } from "@/shared/services/company.service";
+import { companyDetails } from "@/shared/services/company.service";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { CompanyProps } from "@/shared/interfaces/http/company";
 
@@ -55,7 +55,7 @@ export function useOnboardingChecklistViewModel() {
     queryKey: ["onboarding-clients", companyId],
     queryFn: () => getClients(0, 1),
     enabled: isEnabled,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
     retry: false,
   });
 
@@ -63,7 +63,7 @@ export function useOnboardingChecklistViewModel() {
     queryKey: ["onboarding-services", companyId],
     queryFn: () => getServices(0, 10, undefined, companyId),
     enabled: isEnabled,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
     retry: false,
   });
 
@@ -71,26 +71,26 @@ export function useOnboardingChecklistViewModel() {
     queryKey: ["onboarding-appointments", companyId],
     queryFn: () => getAppointments(0, 1, companyId),
     enabled: isEnabled,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
     retry: false,
   });
 
   const { data: companyData } = useQuery({
     queryKey: ["onboarding-company", companyId],
-    queryFn: () => getCompanyById(companyId),
+    queryFn: () => companyDetails(companyId),
     enabled: isEnabled,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
     retry: false,
   });
-
-  const companyProps = companyData as unknown as CompanyProps | undefined;
 
   // Step completions logic
   const hasAvatarOrLogo = Boolean(user?.avatarUrl || companyData?.logoUrl);
   const hasGalleryPhotos = Boolean(companyData?.imagesUrl && companyData.imagesUrl.trim().length > 0);
   const hasWorkingHours = Boolean(
-    (companyProps?.openingHourDTOS && companyProps.openingHourDTOS.length > 0) ||
-    (companyData?.address && companyData?.phone)
+    companyData?.openingHourDTOS && (
+      (Array.isArray(companyData.openingHourDTOS) && companyData.openingHourDTOS.length > 0) ||
+      (typeof companyData.openingHourDTOS === "object" && Object.keys(companyData.openingHourDTOS).length > 0)
+    )
   );
   const hasFirstService = Boolean(servicesData && (servicesData.totalElements > 0 || servicesData.content?.length > 0));
   const hasImportedClients = Boolean(clientsData && (clientsData.totalElements > 0 || clientsData.content?.length > 0));

@@ -175,7 +175,7 @@ export function useOrderDetailsViewModel(orderId?: number) {
       const mutationResponse = data ?? [];
       setPaymentCardFlags(mutationResponse);
       const formatted = mutationResponse.map((p) => ({
-        id: p.id,
+        id: Number(p.id ?? 0),
         name: p.name,
       }));
       modal.showCheckbox({
@@ -208,7 +208,7 @@ export function useOrderDetailsViewModel(orderId?: number) {
       console.log(JSON.stringify(mutationResponse));
       setPaymentMethods(mutationResponse);
       const formatted = mutationResponse.map((p) => ({
-        id: p.id,
+        id: Number(p.id ?? 0),
         name: p.name,
       }));
       modal.showCheckbox({

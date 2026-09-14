@@ -4,8 +4,9 @@ import { AppOrderCard } from "@/shared/components/AppOrderCard";
 import { AppAdminHeader } from "@/shared/components/AppAdminHeader";
 import { AppSearchBar } from "@/shared/components/AppSearchBar";
 import { AppDate } from "@/shared/components/AppDate";
-import { Text, TouchableOpacity, View, Modal, ScrollView } from "react-native";
+import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useBottomSheetContext } from "@/shared/hooks/useBotttomSheetApp";
 
 export function OrderView({
   orderDataPagged,
@@ -28,9 +29,88 @@ export function OrderView({
   clearFilters,
   selectedStatus,
   setSelectedStatus,
-  showStatusPicker,
-  setShowStatusPicker,
 }: ReturnType<typeof useOrderViewModel>) {
+  const { openBottomSheet, closeBottomSheet } = useBottomSheetContext();
+
+  const handleOpenStatusBottomSheet = () => {
+    openBottomSheet(
+      <View className="flex-1 px-5 pt-2 pb-8">
+        <View className="flex-row items-center justify-between pb-3 border-b border-gray-700/60 mb-2">
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="funnel-outline" size={20} color="#CBA35D" />
+            <Text className="text-font-primary font-bold text-lg">
+              Filtrar por status
+            </Text>
+          </View>
+          <TouchableOpacity onPress={closeBottomSheet} className="p-1">
+            <Ionicons name="close" size={22} color="#9ca3af" />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+          <TouchableOpacity
+            className={`py-3.5 px-3 rounded-xl flex-row items-center justify-between border-b border-gray-800/60 ${
+              selectedStatus === null ? "bg-white/5" : ""
+            }`}
+            onPress={() => {
+              setSelectedStatus(null);
+              closeBottomSheet();
+            }}
+          >
+            <Text
+              className={`text-base ${
+                selectedStatus === null
+                  ? "text-[#CBA35D] font-bold"
+                  : "text-font-primary font-medium"
+              }`}
+            >
+              Todos os status
+            </Text>
+            {selectedStatus === null && (
+              <Ionicons name="checkmark-circle" size={20} color="#CBA35D" />
+            )}
+          </TouchableOpacity>
+
+          {[
+            { value: "OPEN", label: "Aberta", icon: "time-outline", color: "#38bdf8" },
+            { value: "CLOSED", label: "Fechada", icon: "checkmark-done-outline", color: "#22c55e" },
+            { value: "WAITING_PAYMENT", label: "Aguardando pagamento", icon: "hourglass-outline", color: "#f59e0b" },
+            { value: "PAID", label: "Pago", icon: "cash-outline", color: "#10b981" },
+            { value: "CANCELED", label: "Cancelada", icon: "close-circle-outline", color: "#ef4444" },
+          ].map((st) => (
+            <TouchableOpacity
+              key={st.value}
+              className={`py-3.5 px-3 rounded-xl flex-row items-center justify-between border-b border-gray-800/60 ${
+                selectedStatus === st.value ? "bg-white/5" : ""
+              }`}
+              onPress={() => {
+                setSelectedStatus(st.value);
+                closeBottomSheet();
+              }}
+            >
+              <View className="flex-row items-center gap-3">
+                <Ionicons name={st.icon as any} size={18} color={st.color} />
+                <Text
+                  className={`text-base ${
+                    selectedStatus === st.value
+                      ? "text-[#CBA35D] font-bold"
+                      : "text-font-primary font-medium"
+                  }`}
+                >
+                  {st.label}
+                </Text>
+              </View>
+              {selectedStatus === st.value && (
+                <Ionicons name="checkmark-circle" size={20} color="#CBA35D" />
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>,
+      0
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background-primary">
       <AppAdminHeader title="Comandas" iconRight={{ icon: false, path: "" }} />
@@ -62,7 +142,7 @@ export function OrderView({
 
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => setShowStatusPicker(true)}
+              onPress={handleOpenStatusBottomSheet}
               className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm"
             >
               <Ionicons name="funnel-outline" size={16} color="#cba35d" style={{ marginRight: 8 }} />
@@ -125,62 +205,6 @@ export function OrderView({
         }}
         onCancel={() => setShowDatePicker(false)}
       />
-      {/* Modal seleção de status */}
-      <Modal
-        visible={showStatusPicker}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowStatusPicker(false)}
-      >
-        <View className="flex-1 bg-black/60 justify-end">
-          <View className="bg-background-primary rounded-t-2xl p-4 max-h-[60%] border-t border-slate-800">
-            <Text className="text-font-primary font-semibold text-base mb-3">
-              Filtrar por status
-            </Text>
-            <ScrollView>
-              <TouchableOpacity
-                className="py-3 border-b border-slate-800"
-                onPress={() => {
-                  setSelectedStatus(null);
-                  setShowStatusPicker(false);
-                }}
-              >
-                <Text className="text-font-primary">Todos</Text>
-              </TouchableOpacity>
-              {[
-                { value: "OPEN", label: "Aberta" },
-                { value: "CLOSED", label: "Fechada" },
-                { value: "WAITING_PAYMENT", label: "Aguardando pagamento" },
-                { value: "PAID", label: "Pago" },
-                { value: "CANCELED", label: "Cancelada" },
-              ].map((st) => (
-                <TouchableOpacity
-                  key={st.value}
-                  className="py-3 border-b border-slate-800"
-                  onPress={() => {
-                    setSelectedStatus(st.value);
-                    setShowStatusPicker(false);
-                  }}
-                >
-                  <Text
-                    className={`text-font-primary ${
-                      selectedStatus === st.value ? "font-bold text-accent-orange" : ""
-                    }`}
-                  >
-                    {st.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              onPress={() => setShowStatusPicker(false)}
-              className="mt-4 bg-slate-800 py-3 rounded-xl items-center"
-            >
-              <Text className="text-font-primary">Fechar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

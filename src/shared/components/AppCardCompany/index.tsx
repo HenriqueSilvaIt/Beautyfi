@@ -356,7 +356,7 @@ export function AppCardCompany({
                           {service.name}
                         </Text>
                         <Text className="text-gray-600 text-xs mt-0.5">
-                          R$ {Number(service.price).toFixed(2).replace(".", ",")}
+                          {service.priceStartingFrom ? "A partir de " : ""}R$ {Number(service.price).toFixed(2).replace(".", ",")}
                         </Text>
                       </View>
                       <TouchableOpacity

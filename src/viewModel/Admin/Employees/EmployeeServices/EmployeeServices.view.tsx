@@ -60,10 +60,10 @@ export function EmployeeServicesView() {
               <Image
                 source={{ uri: item.imgUrl }}
                 resizeMode="cover"
-                className="w-14 h-14 rounded-2xl bg-gray-100 mr-3.5 border border-gray-200"
+                className="w-[40px] h-[40px] rounded-2xl bg-gray-100 mr-3.5 border border-gray-200"
               />
             ) : (
-              <View className="w-14 h-14 rounded-2xl bg-[#092D5D]/10 border border-[#092D5D]/20 mr-3.5 items-center justify-center">
+              <View className="w-[40px] h-[40px] rounded-2xl bg-[#092D5D]/10 border border-[#092D5D]/20 mr-3.5 items-center justify-center">
                 <Ionicons name="cut" size={26} color="#092D5D" />
               </View>
             )}

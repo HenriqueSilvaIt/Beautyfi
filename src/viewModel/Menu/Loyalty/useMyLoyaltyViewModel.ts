@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export function useMyLoyaltyViewModel() {
   const user = useUserStore((state) => state.user);
-  const clientId = user?.clientId  || user?.id;
+  const clientId = user?.clientId || user?.id;
 
   const { useGetClientPointsQuery } = useLoyaltyMutation();
   const { data, isLoading, refetch, isRefetching } = useGetClientPointsQuery(
@@ -15,6 +15,7 @@ export function useMyLoyaltyViewModel() {
 
   return {
     user,
+    clientId: clientId ? Number(clientId) : 0,
     pointsList,
     isLoading,
     isRefetching,

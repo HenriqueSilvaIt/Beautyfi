@@ -12,6 +12,7 @@ import { KeyboardContainer } from "@/shared/components/KeyboardContainer";
 import { usePaymentCrudMutation } from "@/shared/queries/finance/use-payment-crud.mutation";
 import { useSnackbarContext } from "@/shared/hooks/snackbar.context";
 import { colors } from "@/styles/colors";
+import { PaymentMethodDTO } from "@/shared/interfaces/http/order";
 
 const schema = yup.object().shape({
   name: yup.string().required("Nome é obrigatório"),
@@ -65,7 +66,7 @@ export default function PaymentMethodFormScreen() {
   const handleSave = async (data: PaymentMethodFormData) => {
     try {
       setIsSaving(true);
-      const dto = {
+      const dto: PaymentMethodDTO = {
         name: data.name,
         card: data.card,
         fee: Number(data.fee.replace(",", ".")) || 0,

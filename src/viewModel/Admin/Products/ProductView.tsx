@@ -23,6 +23,9 @@ export function ProductView({
   availableInApp,
   handleToggleAvailableInApp,
   setAvailableInApp,
+  priceStartingFrom,
+  handleTogglePriceStartingFrom,
+  setPriceStartingFrom,
 }: ReturnType<typeof useProductViewModel>) {
   return (
     <>
@@ -33,6 +36,9 @@ export function ProductView({
             setAvailableInApp={setAvailableInApp}
             availableInApp={availableInApp}
             handleToggleAvailableInApp={handleToggleAvailableInApp}
+            priceStartingFrom={priceStartingFrom}
+            setPriceStartingFrom={setPriceStartingFrom}
+            handleTogglePriceStartingFrom={handleTogglePriceStartingFrom}
             isLoading={isLoading}
             onSubmit={onSubmit}
             isEditMode={isEditMode}

@@ -33,6 +33,7 @@ export function useProductViewModel(productId: number | undefined) {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [availableInApp, setAvailableInApp] = useState(false);
+  const [priceStartingFrom, setPriceStartingFrom] = useState(false);
 
   // Search states for debounce
   const [searchValue, setSearchValue] = useState("");
@@ -89,10 +90,16 @@ export function useProductViewModel(productId: number | undefined) {
 
 
    const hasUserToggled = useRef(false);
+   const hasUserToggledStartingFrom = useRef(false);
   
     function handleToggleAvailableInApp() {
       hasUserToggled.current = true;
       setAvailableInApp((prev) => !prev);
+    }
+
+    function handleTogglePriceStartingFrom() {
+      hasUserToggledStartingFrom.current = true;
+      setPriceStartingFrom((prev) => !prev);
     }
 
   // Função para atualizar os dados
@@ -108,6 +115,7 @@ export function useProductViewModel(productId: number | undefined) {
         imgUrl: productData.imgUrl,
         barCode: productData.barCode,
         availableInApp: availableInApp,
+        priceStartingFrom: priceStartingFrom,
         commission: parseMoney(productData.commission ?? ""),
         price: parseMoney(productData.price ?? ""),
         companyId: COMPANY_ID_NUMBER,
@@ -180,6 +188,7 @@ export function useProductViewModel(productId: number | undefined) {
           quantity: parseQuantity(productData.quantity ?? ""),
           imgUrl: productData.imgUrl,
           availableInApp: availableInApp,
+          priceStartingFrom: priceStartingFrom,
           barCode: productData.barCode,
           commission: parseMoney(productData.commission ?? ""),
           price: parseMoney(productData.price ?? ""),
@@ -203,6 +212,7 @@ export function useProductViewModel(productId: number | undefined) {
           barCode: productData.barCode,
           commission: parseMoney(productData.commission) ?? 0,
           availableInApp: availableInApp,
+          priceStartingFrom: priceStartingFrom,
           price: parseMoney(productData.price),
           companyId: COMPANY_ID_NUMBER,
         };
@@ -291,8 +301,11 @@ export function useProductViewModel(productId: number | undefined) {
       //  só aplica o valor do servidor se o usuário não tocou ainda
 
      if (!hasUserToggled.current) {
-    setAvailableInApp(Boolean(productContent.availableInApp));
-  }
+       setAvailableInApp(Boolean(productContent.availableInApp));
+     }
+     if (!hasUserToggledStartingFrom.current) {
+       setPriceStartingFrom(Boolean(productContent.priceStartingFrom));
+     }
   }, [productContent]);
 
   useEffect(() => {
@@ -335,6 +348,9 @@ export function useProductViewModel(productId: number | undefined) {
     availableInApp,
     handleToggleAvailableInApp,
     setAvailableInApp,
+    priceStartingFrom,
+    handleTogglePriceStartingFrom,
+    setPriceStartingFrom,
     searchValue,
     setSearchValue,
   };

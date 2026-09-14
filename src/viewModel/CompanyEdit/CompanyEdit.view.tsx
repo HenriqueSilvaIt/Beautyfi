@@ -2,6 +2,7 @@ import React from "react";
 import {
   ActivityIndicator,
   ScrollView,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -29,6 +30,7 @@ export function CompanyEditView() {
     imagesUrl,
     portfolioImagesUrl,
     hoursList,
+    toggleDayActive,
     instagram,
     setInstagram,
     facebook,
@@ -493,73 +495,103 @@ export function CompanyEditView() {
           <View className="gap-3">
             {hoursList.map((hour) => (
               <View
-                key={hour.id}
-                className="bg-gray-50 border border-gray-200/60 p-3.5 rounded-xl gap-2"
+                key={hour.dayWeek}
+                className={`border p-3.5 rounded-xl gap-2 ${
+                  hour.active
+                    ? "bg-gray-50 border-gray-200/60"
+                    : "bg-gray-100/60 border-gray-200/40 opacity-70"
+                }`}
               >
-                <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wide">
-                  {hour.dayWeek}
-                </Text>
-                <View className="flex-row gap-3">
-                  {/* Turno 1 */}
-                  <View className="flex-1">
-                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
-                      1º Turno
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-[#092D5D] font-black text-xs uppercase tracking-wide">
+                      {hour.dayWeek}
                     </Text>
-                    <View className="flex-row items-center gap-1.5">
-                      <TouchableOpacity
-                        onPress={() =>
-                          openTimePicker(hour.id, "firstHour", hour.firstHour)
-                        }
-                        className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
-                      >
-                        <Text className="text-gray-800 text-xs font-bold">
-                          {getFormatTime(hour.firstHour) || "09:00"}
+                    {!hour.active && (
+                      <View className="bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">
+                        <Text className="text-red-500 text-[10px] font-bold">
+                          Fechado
                         </Text>
-                      </TouchableOpacity>
-                      <Text className="text-gray-400 text-xs font-bold">-</Text>
-                      <TouchableOpacity
-                        onPress={() =>
-                          openTimePicker(hour.id, "secondHour", hour.secondHour)
-                        }
-                        className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
-                      >
-                        <Text className="text-gray-800 text-xs font-bold">
-                          {getFormatTime(hour.secondHour) || "12:00"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                      </View>
+                    )}
                   </View>
 
-                  {/* Turno 2 */}
-                  <View className="flex-1">
-                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
-                      2º Turno
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-gray-500 text-xs font-semibold">
+                      {hour.active ? "Aberto" : "Folga"}
                     </Text>
-                    <View className="flex-row items-center gap-1.5">
-                      <TouchableOpacity
-                        onPress={() =>
-                          openTimePicker(hour.id, "thirdHour", hour.thirdHour)
-                        }
-                        className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
-                      >
-                        <Text className="text-gray-800 text-xs font-bold">
-                          {getFormatTime(hour.thirdHour) || "13:00"}
-                        </Text>
-                      </TouchableOpacity>
-                      <Text className="text-gray-400 text-xs font-bold">-</Text>
-                      <TouchableOpacity
-                        onPress={() =>
-                          openTimePicker(hour.id, "lastHour", hour.lastHour)
-                        }
-                        className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
-                      >
-                        <Text className="text-gray-800 text-xs font-bold">
-                          {getFormatTime(hour.lastHour) || "18:00"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Switch
+                      value={hour.active}
+                      onValueChange={() => toggleDayActive(hour.dayWeek)}
+                      trackColor={{ false: "#d1d5db", true: "#092D5D" }}
+                      thumbColor={hour.active ? "#CBA35D" : "#f3f4f6"}
+                    />
                   </View>
                 </View>
+
+                {hour.active && (
+                  <View className="flex-row gap-3 mt-1">
+                    {/* Turno 1 */}
+                    <View className="flex-1">
+                      <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                        1º Turno
+                      </Text>
+                      <View className="flex-row items-center gap-1.5">
+                        <TouchableOpacity
+                          onPress={() =>
+                            openTimePicker(hour.dayWeek, "firstHour", hour.firstHour)
+                          }
+                          className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
+                        >
+                          <Text className="text-gray-800 text-xs font-bold">
+                            {getFormatTime(hour.firstHour) || "09:00"}
+                          </Text>
+                        </TouchableOpacity>
+                        <Text className="text-gray-400 text-xs font-bold">-</Text>
+                        <TouchableOpacity
+                          onPress={() =>
+                            openTimePicker(hour.dayWeek, "secondHour", hour.secondHour)
+                          }
+                          className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
+                        >
+                          <Text className="text-gray-800 text-xs font-bold">
+                            {getFormatTime(hour.secondHour) || "12:00"}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Turno 2 */}
+                    <View className="flex-1">
+                      <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                        2º Turno
+                      </Text>
+                      <View className="flex-row items-center gap-1.5">
+                        <TouchableOpacity
+                          onPress={() =>
+                            openTimePicker(hour.dayWeek, "thirdHour", hour.thirdHour)
+                          }
+                          className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
+                        >
+                          <Text className="text-gray-800 text-xs font-bold">
+                            {getFormatTime(hour.thirdHour) || "13:00"}
+                          </Text>
+                        </TouchableOpacity>
+                        <Text className="text-gray-400 text-xs font-bold">-</Text>
+                        <TouchableOpacity
+                          onPress={() =>
+                            openTimePicker(hour.dayWeek, "lastHour", hour.lastHour)
+                          }
+                          className="bg-white border border-gray-200 p-2 rounded-lg flex-1 items-center"
+                        >
+                          <Text className="text-gray-800 text-xs font-bold">
+                            {getFormatTime(hour.lastHour) || "18:00"}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                )}
               </View>
             ))}
           </View>

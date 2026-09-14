@@ -18,6 +18,10 @@ export function ServiceView({
   avatarUri,
   availableInApp,
   setAvailableInApp,
+  handleToggleAvailableInApp,
+  priceStartingFrom,
+  setPriceStartingFrom,
+  handleTogglePriceStartingFrom,
   requiresDeposit,
   setRequiresDeposit,
   handleToggleRequiresDeposit,
@@ -26,7 +30,6 @@ export function ServiceView({
   isLoading,
   onServiceDelete,
   serviceRefetch,
-  handleToggleAvailableInApp,
   isStripeModalVisible,
   setIsStripeModalVisible,
 }: ReturnType<typeof useServiceViewModel>) {
@@ -51,6 +54,9 @@ export function ServiceView({
             setAvailableInApp={setAvailableInApp}
             availableInApp={availableInApp}
             handleToggleAvailableInApp={handleToggleAvailableInApp}
+            priceStartingFrom={priceStartingFrom}
+            setPriceStartingFrom={setPriceStartingFrom}
+            handleTogglePriceStartingFrom={handleTogglePriceStartingFrom}
             requiresDeposit={requiresDeposit}
             handleToggleRequiresDeposit={handleToggleRequiresDeposit}
             depositType={depositType}

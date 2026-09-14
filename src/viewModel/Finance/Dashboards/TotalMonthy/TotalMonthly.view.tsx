@@ -178,14 +178,28 @@ export function TotalMonthlyView({
   );
 
   const calculateOrderValue = (order: any) => {
+    if (order.totalSold && Number(order.totalSold) > 0) {
+      return Number(order.totalSold);
+    }
     if (order.total && Number(order.total) > 0) {
       return Number(order.total);
     }
+    if (order.totalOrder && Number(order.totalOrder) > 0) {
+      return Number(order.totalOrder);
+    }
     if (order.items && order.items.length > 0) {
       return order.items.reduce((acc: number, item: any) => {
-        const p = Number(item.price ?? item.servicePrice ?? 0);
+        let price = 0;
+        if (item.appointmentServices && item.appointmentServices.length > 0) {
+          price = item.appointmentServices.reduce(
+            (sum: number, aps: any) => sum + Number(aps.priceAtMoment ?? aps.service?.price ?? 0),
+            0
+          );
+        } else {
+          price = Number(item.servicePrice || item.price || 0);
+        }
         const q = Number(item.quantity ?? 1);
-        return acc + p * q;
+        return acc + price * q;
       }, 0);
     }
     return 0;

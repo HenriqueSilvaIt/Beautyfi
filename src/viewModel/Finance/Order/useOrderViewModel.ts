@@ -60,11 +60,16 @@ export function useOrderViewModel() {
       if (!numMatch && !clientNameMatch) return false;
     }
 
-    // 2. Date filter
+    // 2. Date filter (comparação no timezone local do usuário sem bugs de shift UTC)
     if (selectedDate) {
-      const orderDateStr = order.moment ? order.moment.substring(0, 10) : ""; // "YYYY-MM-DD"
-      const selectedDateStr = selectedDate.toISOString().substring(0, 10);
-      if (orderDateStr !== selectedDateStr) return false;
+      const dateVal = order.moment || (order as any).createdAt;
+      if (!dateVal) return false;
+      const orderDate = new Date(dateVal);
+      const isSameDay =
+        orderDate.getFullYear() === selectedDate.getFullYear() &&
+        orderDate.getMonth() === selectedDate.getMonth() &&
+        orderDate.getDate() === selectedDate.getDate();
+      if (!isSameDay) return false;
     }
 
     // 3. Status filter

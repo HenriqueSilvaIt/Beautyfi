@@ -31,6 +31,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [availableInApp, setAvailableInApp] = useState(false);
+  const [priceStartingFrom, setPriceStartingFrom] = useState(false);
   const [requiresDeposit, setRequiresDeposit] = useState(false);
   const [depositType, setDepositType] = useState<"PERCENTAGE" | "FIXED">("FIXED");
   const [isStripeModalVisible, setIsStripeModalVisible] = useState(false);
@@ -106,10 +107,16 @@ export function useServiceViewModel(serviceId: number | undefined) {
   } = useFormContext<ServiceFormData>();
 
   const hasUserToggled = useRef(false);
+  const hasUserToggledStartingFrom = useRef(false);
 
   function handleToggleAvailableInApp() {
     hasUserToggled.current = true;
     setAvailableInApp((prev) => !prev);
+  }
+
+  function handleTogglePriceStartingFrom() {
+    hasUserToggledStartingFrom.current = true;
+    setPriceStartingFrom((prev) => !prev);
   }
 
   const onServiceUpdate = handleSubmit(async (serviceData) => {
@@ -129,6 +136,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
         depositType: depositType,
         depositAmount: parseMoney(serviceData.depositAmount ?? ""),
         availableInApp: availableInApp,
+        priceStartingFrom: priceStartingFrom,
         imgUrl: serviceData.imgUrl ?? "",
         priceDescription: serviceData.priceDescription ?? "",
         employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
@@ -198,6 +206,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
             imgUrl: avatarUri ?? serviceData.imgUrl ?? "",
             employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
             availableInApp: availableInApp,
+            priceStartingFrom: priceStartingFrom,
             priceDescription: serviceData.priceDescription ?? "",
             description: serviceData.description ?? "",
           };
@@ -222,6 +231,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
             depositAmount: parseMoney(serviceData.depositAmount ?? ""),
             employees: (serviceData.employees as ServiceEmployeeParam[]) ?? undefined,
             availableInApp: availableInApp,
+            priceStartingFrom: priceStartingFrom,
             priceDescription: serviceData.priceDescription ?? "",
             description: serviceData.description ?? "",
           };
@@ -319,6 +329,9 @@ export function useServiceViewModel(serviceId: number | undefined) {
     if (!hasUserToggled.current) {
       setAvailableInApp(Boolean(serviceContent.availableInApp));
     }
+    if (!hasUserToggledStartingFrom.current) {
+      setPriceStartingFrom(Boolean(serviceContent.priceStartingFrom));
+    }
   }, [serviceContent]);
 
   useEffect(() => {
@@ -336,6 +349,7 @@ export function useServiceViewModel(serviceId: number | undefined) {
       employees: [],
     });
     setRequiresDeposit(false);
+    setPriceStartingFrom(false);
     setDepositType("FIXED");
   }, [isEditMode]);
 
@@ -364,6 +378,9 @@ export function useServiceViewModel(serviceId: number | undefined) {
     setAvailableInApp,
     availableInApp,
     handleToggleAvailableInApp,
+    priceStartingFrom,
+    setPriceStartingFrom,
+    handleTogglePriceStartingFrom,
     requiresDeposit,
     setRequiresDeposit,
     handleToggleRequiresDeposit,
