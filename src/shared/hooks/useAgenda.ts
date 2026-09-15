@@ -7,6 +7,19 @@ import { EDayWeek, EmployeeProps } from "../interfaces/http/employee";
 import { UserProps } from "../interfaces/user";
 import { useTime } from "./useTime";
 
+export function getAppointmentPrice(app: AppointmentProps): number {
+  if (app.blocked) return 0;
+  if (app.totalPrice != null && Number(app.totalPrice) > 0) return Number(app.totalPrice);
+  if (app.services && app.services.length > 0) {
+    return app.services.reduce((acc, s) => {
+      const p = s.priceAtMoment ?? s.service?.price ?? 0;
+      const d = s.discount ?? 0;
+      return acc + Math.max(Number(p) - Number(d), 0);
+    }, 0);
+  }
+  return 0;
+}
+
 export function useAgenda() {
   const SLOT_HEIGHT = 40;
   const START_HOUR = 8;
@@ -19,28 +32,35 @@ export function useAgenda() {
   }
 
   function getCurrentTimePosition(
-  currentTime: string,
-  slotHeight: number,
-  minutesPerSlot: number
-) {
-  const [hour, minute] = currentTime.split(":").map(Number);
-  const totalMinutes = hour * 60 + minute;
+    currentTime: string,
+    slotHeight: number,
+    minutesPerSlot: number,
+  ) {
+    const [hour, minute] = currentTime.split(":").map(Number);
+    const totalMinutes = hour * 60 + minute;
 
-  const pixelsPerMinute = slotHeight / minutesPerSlot;
+    const pixelsPerMinute = slotHeight / minutesPerSlot;
 
-  return totalMinutes * pixelsPerMinute;
-}
+    return totalMinutes * pixelsPerMinute;
+  }
 
 function getServiceName(
   services: AppointmentServices[]
 ): string {
-  return services[0]?.service.name ?? "";
+  if (!services || services.length === 0) return "";
+  const names = services.map((s) => s.service?.name).filter(Boolean);
+  return names.length > 0 ? names.join(", ") : (services[0]?.service?.name ?? "");
 }
 
 function getServicePrice(
   services: AppointmentServices[]
 ): number {
-  return services[0]?.service.price ?? 0;
+  if (!services || services.length === 0) return 0;
+  return services.reduce((acc, s) => {
+    const p = s.priceAtMoment ?? s.service?.price ?? 0;
+    const d = s.discount ?? 0;
+    return acc + Math.max(Number(p) - Number(d), 0);
+  }, 0);
 }
 
 
@@ -234,6 +254,7 @@ function getEmployeeOffHourRanges(
     getCurrentTimePosition,
     getUser,
     getAgendaStart,
+    getAppointmentPrice,
     SLOT_HEIGHT,
     START_HOUR,
     END_HOUR,

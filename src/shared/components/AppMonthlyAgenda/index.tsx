@@ -17,9 +17,12 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { moneyMapper } from "@/utils/moneyMapper";
+import { getAppointmentPrice } from "@/shared/hooks/useAgenda";
 
 interface AppMonthlyAgendaProps {
   currentDate: Date;
+  activeMonth?: Date;
+  onMonthChange?: (date: Date) => void;
   appointments: AppointmentProps[];
   onAppointmentPress: (id: number) => void;
   onSelectDay: (date: Date) => void;
@@ -27,6 +30,8 @@ interface AppMonthlyAgendaProps {
 
 export function AppMonthlyAgenda({
   currentDate,
+  activeMonth: controlledActiveMonth,
+  onMonthChange,
   appointments,
   onAppointmentPress,
   onSelectDay,
@@ -34,7 +39,8 @@ export function AppMonthlyAgenda({
   const themeNavy = "#092D5D";
   const themeGold = colors["app-theme-secundary"] || "#CBA35D";
 
-  const [activeMonth, setActiveMonth] = useState(currentDate);
+  const [localActiveMonth, setLocalActiveMonth] = useState(currentDate);
+  const activeMonth = controlledActiveMonth || localActiveMonth;
   const [selectedDay, setSelectedDay] = useState(currentDate);
 
   const monthStart = startOfMonth(activeMonth);
@@ -49,12 +55,21 @@ export function AppMonthlyAgenda({
     day = addDays(day, 1);
   }
 
-  const prevMonth = () => setActiveMonth(subMonths(activeMonth, 1));
-  const nextMonth = () => setActiveMonth(addMonths(activeMonth, 1));
+  const prevMonth = () => {
+    const newM = subMonths(activeMonth, 1);
+    setLocalActiveMonth(newM);
+    onMonthChange?.(newM);
+  };
+  const nextMonth = () => {
+    const newM = addMonths(activeMonth, 1);
+    setLocalActiveMonth(newM);
+    onMonthChange?.(newM);
+  };
   const goToToday = () => {
     const today = new Date();
-    setActiveMonth(today);
+    setLocalActiveMonth(today);
     setSelectedDay(today);
+    onMonthChange?.(today);
   };
 
   // Agendamentos do mês ativo (Apenas agendamentos reais com serviços, excluindo bloqueios de horário)
@@ -66,9 +81,7 @@ export function AppMonthlyAgenda({
 
   // Métricas do Mês
   const monthTotalRevenue = monthAppointments.reduce((acc, app) => {
-    if (app.blocked) return acc;
-    const price = app.services?.[0]?.priceAtMoment || 0;
-    return acc + Number(price);
+    return acc + getAppointmentPrice(app);
   }, 0);
 
   const occupiedDaysCount = days.filter((d) => {
@@ -86,9 +99,7 @@ export function AppMonthlyAgenda({
   });
 
   const selectedDayRevenue = selectedDayAppointments.reduce((acc, app) => {
-    if (app.blocked) return acc;
-    const price = app.services?.[0]?.priceAtMoment || 0;
-    return acc + Number(price);
+    return acc + getAppointmentPrice(app);
   }, 0);
 
   return (
@@ -307,8 +318,11 @@ export function AppMonthlyAgenda({
               const appDate = new Date(app.dateScheduled);
               const timeStr = format(appDate, "HH:mm");
               const clientName = app.client?.name || app.user?.firstName || "Cliente";
-              const serviceName = app.services?.[0]?.service?.name || "Serviço";
-              const price = app.services?.[0]?.priceAtMoment || 0;
+              const serviceName =
+                app.services && app.services.length > 1
+                  ? app.services.map((s) => s.service?.name).filter(Boolean).join(", ")
+                  : app.services?.[0]?.service?.name || "Serviço";
+              const price = getAppointmentPrice(app);
               const clientInitial = clientName.charAt(0).toUpperCase();
 
               return (

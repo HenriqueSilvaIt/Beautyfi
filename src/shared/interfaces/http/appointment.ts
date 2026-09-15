@@ -47,6 +47,7 @@ export interface AppointmentProps {
   usingSubscription?: boolean;
   confirmationSent?: boolean;
   reminderSent?: boolean;
+  totalPrice?: number;
 }
 
 export interface AppointmentServicesHttpParams {

@@ -59,9 +59,15 @@ export function AgendaView({
   employeeIsFetchingNextPage,
   hideModal,
   isDeleteLoading,
+  viewMode,
+  setViewMode,
+  activeMonth,
+  handleChangeMonth,
+  handlePrevWeek,
+  handleNextWeek,
+  handleWeekToday,
 }: ReturnType<typeof useAgendaViewModel>) {
   const { safePush } = useSafeNavigation();
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
 
   function handleBlockAgendaButton() {
     setOpenMenu(false);
@@ -220,27 +226,70 @@ export function AgendaView({
       )}
 
       {viewMode === "week" && (
-        <AppWeeklyAgenda
-          currentDate={currentDate}
-          appointments={appointments || []}
-          onAppointmentPress={handleAppointmentPress}
-          onSelectDay={(date) => {
-            handleDateSelect(date);
-            setViewMode("day");
-          }}
-        />
+        <>
+          {employeeDataPagged && (
+            <View className="mb-2 items-center py-2 bg-background-primary border-b border-gray-600">
+              <AppEmployeeSelector
+                employeeId={employeeId}
+                employeeIsSelected={employeeIsSelected}
+                employees={employeeDataPagged}
+                handleEmployeeSelect={handleEmployeeSelect}
+                type="admin"
+                onRefetch={employeeRefetch}
+                hasNextPage={employeeHasNextPage}
+                isFetchingNextPage={employeeIsFetchingNextPage}
+                isLoading={employeeIsLoading}
+                isRefetching={employeeIsRefetching}
+                fetchNextPage={employeeFetchNextPage}
+              />
+            </View>
+          )}
+          <AppWeeklyAgenda
+            currentDate={currentDate}
+            appointments={appointments || []}
+            onAppointmentPress={handleAppointmentPress}
+            onSelectDay={(date) => {
+              handleDateSelect(date);
+              setViewMode("day");
+            }}
+            onPrevWeek={handlePrevWeek}
+            onNextWeek={handleNextWeek}
+            onToday={handleWeekToday}
+          />
+        </>
       )}
 
       {viewMode === "month" && (
-        <AppMonthlyAgenda
-          currentDate={currentDate}
-          appointments={appointments || []}
-          onAppointmentPress={handleAppointmentPress}
-          onSelectDay={(date) => {
-            handleDateSelect(date);
-            setViewMode("day");
-          }}
-        />
+        <>
+          {employeeDataPagged && (
+            <View className="mb-2 items-center py-2 bg-background-primary border-b border-gray-600">
+              <AppEmployeeSelector
+                employeeId={employeeId}
+                employeeIsSelected={employeeIsSelected}
+                employees={employeeDataPagged}
+                handleEmployeeSelect={handleEmployeeSelect}
+                type="admin"
+                onRefetch={employeeRefetch}
+                hasNextPage={employeeHasNextPage}
+                isFetchingNextPage={employeeIsFetchingNextPage}
+                isLoading={employeeIsLoading}
+                isRefetching={employeeIsRefetching}
+                fetchNextPage={employeeFetchNextPage}
+              />
+            </View>
+          )}
+          <AppMonthlyAgenda
+            currentDate={currentDate}
+            activeMonth={activeMonth}
+            onMonthChange={handleChangeMonth}
+            appointments={appointments || []}
+            onAppointmentPress={handleAppointmentPress}
+            onSelectDay={(date) => {
+              handleDateSelect(date);
+              setViewMode("day");
+            }}
+          />
+        </>
       )}
 
       {/* BOTÃO FLUTUANTE */}

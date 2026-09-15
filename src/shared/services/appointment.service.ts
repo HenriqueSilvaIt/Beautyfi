@@ -14,18 +14,22 @@ import {
 } from "../interfaces/http/available-appointments";
 
 export async function getAppointmentAdmin(
-  date: string,
+  date?: string,
   employeeId?: number | null,
-  companyId?: number
+  companyId?: number,
+  startDate?: string,
+  endDate?: string,
 ) {
   const { data } = await styleAppApiClient.get<AppointmentHttpResponse>(
     `/appointments/admin`,
     {
       params: {
-        dateBooking: date,
+        dateBooking: date || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
         employeeId: employeeId || undefined,
         companyId: companyId || undefined,
-        size: 100,
+        size: 1000,
       },
     },
   );

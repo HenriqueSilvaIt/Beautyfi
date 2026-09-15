@@ -168,7 +168,7 @@ export function useCompanySubscriptionViewModel() {
     const text = encodeURIComponent(
       `Olá, gostaria de tirar dúvidas sobre a assinatura do Beautyfi para o meu estabelecimento.`
     );
-    Linking.openURL(`https://api.whatsapp.com/send?phone=5511999999999&text=${text}`);
+    Linking.openURL(`https://api.whatsapp.com/send?phone=5511952835344&text=${text}`);
   };
 
   return {

@@ -6,12 +6,16 @@ import { colors } from "@/styles/colors";
 import { addDays, format, startOfWeek, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { moneyMapper } from "@/utils/moneyMapper";
+import { getAppointmentPrice } from "@/shared/hooks/useAgenda";
 
 interface AppWeeklyAgendaProps {
   currentDate: Date;
   appointments: AppointmentProps[];
   onAppointmentPress: (id: number) => void;
   onSelectDay: (date: Date) => void;
+  onPrevWeek?: () => void;
+  onNextWeek?: () => void;
+  onToday?: () => void;
 }
 
 export function AppWeeklyAgenda({
@@ -19,6 +23,9 @@ export function AppWeeklyAgenda({
   appointments,
   onAppointmentPress,
   onSelectDay,
+  onPrevWeek,
+  onNextWeek,
+  onToday,
 }: AppWeeklyAgendaProps) {
   const themeNavy = "#092D5D";
   const themeGold = colors["app-theme-secundary"] || "#CBA35D";
@@ -34,9 +41,7 @@ export function AppWeeklyAgenda({
   });
 
   const weekTotalRevenue = weekAppointments.reduce((acc, app) => {
-    if (app.blocked) return acc;
-    const price = app.services?.[0]?.priceAtMoment || 0;
-    return acc + Number(price);
+    return acc + getAppointmentPrice(app);
   }, 0);
 
   return (
@@ -45,11 +50,41 @@ export function AppWeeklyAgenda({
       <View className="bg-white rounded-3xl p-5 border border-slate-100 mb-4 shadow-sm">
         <View className="flex-row items-center justify-between border-b border-slate-100 pb-3 mb-3">
           <View className="flex-row items-center gap-2">
-            <Ionicons name="calendar-outline" size={20} color={themeNavy} />
-            <Text className="text-slate-900 text-base font-extrabold">
+            {onPrevWeek && (
+              <TouchableOpacity
+                onPress={onPrevWeek}
+                activeOpacity={0.8}
+                className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center border border-slate-200"
+              >
+                <Ionicons name="chevron-back" size={16} color={themeNavy} />
+              </TouchableOpacity>
+            )}
+
+            <Text className="text-slate-900 text-sm font-extrabold">
               Semana ({format(weekStart, "dd/MM", { locale: ptBR })} - {format(daysOfWeek[6], "dd/MM", { locale: ptBR })})
             </Text>
+
+            {onNextWeek && (
+              <TouchableOpacity
+                onPress={onNextWeek}
+                activeOpacity={0.8}
+                className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center border border-slate-200"
+              >
+                <Ionicons name="chevron-forward" size={16} color={themeNavy} />
+              </TouchableOpacity>
+            )}
           </View>
+
+          {onToday && (
+            <TouchableOpacity
+              onPress={onToday}
+              activeOpacity={0.85}
+              className="px-2.5 py-1 rounded-full bg-[#092D5D]/10 border border-[#092D5D]/20 flex-row items-center gap-1"
+            >
+              <Ionicons name="today-outline" size={12} color={themeNavy} />
+              <Text className="text-[#092D5D] text-xs font-bold">Hoje</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Faixa de Métricas Rápidas da Semana */}
@@ -85,9 +120,7 @@ export function AppWeeklyAgenda({
           });
 
           const dayRevenue = dayAppointments.reduce((acc, app) => {
-            if (app.blocked) return acc;
-            const price = app.services?.[0]?.priceAtMoment || 0;
-            return acc + Number(price);
+            return acc + getAppointmentPrice(app);
           }, 0);
 
           return (
@@ -155,8 +188,11 @@ export function AppWeeklyAgenda({
                     const appDate = new Date(app.dateScheduled);
                     const timeStr = format(appDate, "HH:mm");
                     const clientName = app.client?.name || app.user?.firstName || "Cliente";
-                    const serviceName = app.services?.[0]?.service?.name || "Serviço";
-                    const price = app.services?.[0]?.priceAtMoment || 0;
+                    const serviceName =
+                      app.services && app.services.length > 1
+                        ? app.services.map((s) => s.service?.name).filter(Boolean).join(", ")
+                        : app.services?.[0]?.service?.name || "Serviço";
+                    const price = getAppointmentPrice(app);
                     const clientInitial = clientName.charAt(0).toUpperCase();
 
                     return (

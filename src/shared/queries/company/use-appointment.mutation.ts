@@ -13,9 +13,11 @@ import { AppointmentHttpStatusParams, AppointmentProps, AppointmentUpdateHttpPar
 import { queryClient } from "../../../../queryClient";
 import { AvailableAppointmentsHttpParams } from "@/shared/interfaces/http/available-appointments";
 export interface AppointmentsAgendaProps {
-  date: string;
+  date?: string;
   employeeId?: null | number;
   companyId?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export function useAppointmentMutation() {
@@ -95,8 +97,8 @@ export function useAppointmentMutation() {
   }
 
   const getAppointmentAgenda = useMutation({
-    mutationFn: ({ date, employeeId, companyId }: AppointmentsAgendaProps) =>
-      getAppointmentAdmin(date, employeeId, companyId),
+    mutationFn: ({ date, employeeId, companyId, startDate, endDate }: AppointmentsAgendaProps) =>
+      getAppointmentAdmin(date, employeeId, companyId, startDate, endDate),
     onSuccess: (response) => {},
     onError: (error) => {
       console.log(error);

@@ -24,7 +24,16 @@ import { useAgendaStore } from "@/shared/store/agenda-store";
 import { useCompanyStore } from "@/shared/store/company-store";
 import { useModalStore } from "@/shared/store/modal-store";
 import { useUserStore } from "@/shared/store/user-store";
-import { format } from "date-fns";
+import {
+  addDays,
+  addWeeks,
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfWeek,
+  subWeeks,
+} from "date-fns";
 import { router, useFocusEffect, useSegments } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
@@ -51,6 +60,26 @@ export function useAgendaViewModel() {
   const appointmentDataPagged =
     appointmentData?.pages.flatMap((page) => page.content ?? []) ?? [];
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
+  const [activeMonth, setActiveMonth] = useState(new Date());
+
+  function handlePrevWeek() {
+    setCurrentDate((prev) => subWeeks(prev, 1));
+  }
+
+  function handleNextWeek() {
+    setCurrentDate((prev) => addWeeks(prev, 1));
+  }
+
+  function handleWeekToday() {
+    const today = new Date();
+    setCurrentDate(today);
+    setDay(today);
+  }
+
+  function handleChangeMonth(date: Date) {
+    setActiveMonth(date);
+  }
 
   const [dayIsSelected, setDayIsSelected] = useState(false);
   const segments = useSegments();
@@ -427,7 +456,7 @@ export function useAgendaViewModel() {
   //Função para retornar agendamentos
 
   async function getAppointment() {
-    if (!employeeId || !selectedDay) return;
+    if (!selectedDay) return;
     if (!initialized) {
       setAgendaLoading(true);
     } else {
@@ -435,22 +464,42 @@ export function useAgendaViewModel() {
     }
 
     try {
-      const newDate = formatIsoToLocalDate(selectedDay);
-      const newEmployeeId = employeeId;
+      const newEmployeeId = employeeId || undefined;
       const agendaCompanyId = user?.companyId ?? undefined;
-      console.log(newDate);
-      const data = await getAppointmentAgenda.mutateAsync({
-        date: newDate,
-        employeeId: newEmployeeId,
-        companyId: agendaCompanyId,
-      });
 
-      const response = data?.content ?? [];
-      if (response.length > 0) {
-        console.log(`Appointment information ${response}`);
+      let data;
+      if (viewMode === "day") {
+        const newDate = formatIsoToLocalDate(selectedDay);
+        data = await getAppointmentAgenda.mutateAsync({
+          date: newDate,
+          employeeId: newEmployeeId,
+          companyId: agendaCompanyId,
+        });
+      } else if (viewMode === "week") {
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = addDays(weekStart, 6);
+        const startDate = format(weekStart, "yyyy-MM-dd");
+        const endDate = format(weekEnd, "yyyy-MM-dd");
+        data = await getAppointmentAgenda.mutateAsync({
+          employeeId: newEmployeeId,
+          companyId: agendaCompanyId,
+          startDate,
+          endDate,
+        });
+      } else if (viewMode === "month") {
+        const monthStart = startOfWeek(startOfMonth(activeMonth), { weekStartsOn: 1 });
+        const monthEnd = endOfWeek(endOfMonth(activeMonth), { weekStartsOn: 1 });
+        const startDate = format(monthStart, "yyyy-MM-dd");
+        const endDate = format(monthEnd, "yyyy-MM-dd");
+        data = await getAppointmentAgenda.mutateAsync({
+          employeeId: newEmployeeId,
+          companyId: agendaCompanyId,
+          startDate,
+          endDate,
+        });
       }
 
-      console.log(`Retorno` + JSON.stringify(response));
+      const response = data?.content ?? [];
       setAppointments(response);
     } catch (error) {
       handleError(error, "Falha ao buscar agendamentos");
@@ -533,12 +582,12 @@ export function useAgendaViewModel() {
     }
   }, [user?.companyId]);
 
-  // Recarrega agendamentos sempre que o funcionário selecionado ou dia mudar
+  // Recarrega agendamentos sempre que o funcionário selecionado, dia, visualização ou período mudar
   useEffect(() => {
-    if (employeeId && selectedDay) {
+    if (selectedDay) {
       getAppointment();
     }
-  }, [employeeId, selectedDay]);
+  }, [employeeId, selectedDay, viewMode, activeMonth, currentDate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -555,7 +604,7 @@ export function useAgendaViewModel() {
         setInitialized(true);
       }
 
-      if (employeeId && selectedDay) {
+      if (selectedDay) {
         getAppointment();
       }
 
@@ -565,6 +614,9 @@ export function useAgendaViewModel() {
     }, [
       employeeId,
       selectedDay,
+      viewMode,
+      activeMonth,
+      currentDate,
       initialized,
       user?.employeeId,
       user?.companyId,
@@ -663,5 +715,13 @@ export function useAgendaViewModel() {
     employeeFetchNextPage,
     employeeHasNextPage,
     employeeIsFetchingNextPage,
+    viewMode,
+    setViewMode,
+    activeMonth,
+    setActiveMonth,
+    handleChangeMonth,
+    handlePrevWeek,
+    handleNextWeek,
+    handleWeekToday,
   };
 }
